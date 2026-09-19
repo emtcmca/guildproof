@@ -6,16 +6,18 @@ status: active
 tests: the public "try the verifier" challenge; subtle cross-tenant leak behind a careful-looking handler; the Independence line
 ---
 
-> **Why this case exists.** `docs/try-the-verifier.md` tells strangers the verifier catches this
-> handler. That claim is only honest while this case passes. If this case fails, pull the challenge
-> from the README before anything else.
+> **Why this case exists.** It was written to back a public "can your agent find the leak?"
+> challenge. The four-arm run (`runs/2026-09-18-case41-planted-leak-four-arm.md`) showed bare models
+> find it too, so the challenge was dropped. The case stays as a regression check on the verifier's
+> output contract (verdict, blocking, independence, receipts, no rewrite), which is what the
+> verifier actually adds on this artifact.
 >
 > Numbered 41, not 38: cases 38-40 belong to the unmerged `feat/v1.0-tier-a-agents` branch.
 
 ## Input
 
 Load `agents/verifier.md` in a **fresh** context, then send the block in
-`docs/try-the-verifier.md` → "2. Paste the challenge", verbatim. Do not add hints.
+`evals/benchmarks/fixtures/invoice-handler-planted-leak.md`, verbatim. Do not add hints.
 
 Case 24 is the blatant version (SQL injection in plain sight). This one has none of the obvious
 tells: validated input, parameterized SQL, session middleware, audit log, generic 500. The defects
