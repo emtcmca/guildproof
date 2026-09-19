@@ -13,3 +13,6 @@ Thumbs.db
 *.log
 node_modules/
 docs/assets/__pycache__/
+
+# Local session-state block (vault-maintained, not for the public repo)
+CLAUDE.md
