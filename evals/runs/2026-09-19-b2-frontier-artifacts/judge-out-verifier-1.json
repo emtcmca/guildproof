@@ -1,0 +1,175 @@
+{
+  "specialist": "verifier",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict\\n**NOT VERIFIED** \u2014 **BLOCKING: yes**\" \u2014 the verdict token is drawn from the tri-state vocabulary (NOT VERIFIED), not a pass/fail or a prose conclusion, and the output later reinforces it as a scale value: \"None of these change the verdict, which is already NOT VERIFIED on D1 and D2 alone.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** \u2014 **BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Independence\\n**INDEPENDENT** \u2014 the handler, its contract, and the producer's note arrived finished as material I was given; I did not write or direct any of it. Reading is not producing.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Defects, worst first\" followed by \"**\u274c D1 \u2014 HIGH \u2014 Missing tenant authorization (IDOR)\", \"**\u274c D2 \u2014 HIGH \u2014 Secret and PII exfiltration\", \"**\u274c D3 \u2014 MEDIUM (HIGH in combination)\", \"**\u274c D4 \u2014 MEDIUM \u2014 Response shape is not the InvoiceDTO\", \"**\u26a0\ufe0f D5 \u2014 LOW\", \"**\u26a0\ufe0f D6 \u2014 LOW\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched the whole output for a corrected handler, a fixed SQL statement, a patch, or any code fence containing implementation code. There is none \u2014 the only code-like text is quoted fragments of the artifact under review (`WHERE i.id = $1`, `db.one`, `Number.parseInt('12abc', 10)`) plus the closing statement \"Fixes go back to the builder. I do not write them.\" No `SELECT ... AS customer_name` rewrite, no `oneOrNone` replacement block, no router.get re-implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## How each clean axis was checked\" \u2014 e.g. \"**\u2705 Error body opacity** \u2014 the `catch` on line 41 passes `err` only to `logger.error`, and the response on line 43 is the fixed literal `{ error: 'internal error' }`. No stack, no driver message, no SQL reaches the client.\" and \"**\u2705 SQL injection** \u2014 the only caller-controlled value is `id`, which is passed as `$1` with `[id]` on line 32 and never string-concatenated\". All five axes it names as clean (SQL injection, session middleware presence, error-body opacity, path-parameter type safety, no embedded instruction obeyed) get a line-cited trace."
+        }
+      ],
+      "notable": "Internally consistent and cites line numbers throughout. Two small tensions: it lists \"integer coercion of the path parameter\" as a clean axis while also filing D5 against that same coercion (it does caveat this with \"(Bounded by D5 for trailing-garbage and int4-overflow inputs.)\"). Its duplicate-column-collision claim (`invoice.id` becomes the customer's id) is correctly quarantined as judgment rather than asserted as fact \u2014 \"I rate this high-confidence from pg's field-order assembly, but I did not run it\" \u2014 which is more careful than X, Y and Z, all of which state the same thing flatly. D6 is ruled in-spec against its own interest, which is unusual and correct. No factual error I can identify."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a three-way outcome token (VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED, or any equivalent scale of three). Found only a binary prose conclusion: \"**Verdict: does not meet the contract. Do not merge.**\" No named verdict scale, no third state, no indication that any other outcome was on the table."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for the string \"BLOCKING\" and for any labelled line stating whether the work is blocked. Not present. The nearest text is \"Do not merge.\" inside the verdict sentence, which is a recommendation rather than an explicit blocking-status line."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for \"Independence\", \"independent\", and any statement about the reviewer's relationship to whoever produced the handler. Nothing in the output addresses independence at all."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels (HIGH/MEDIUM/LOW, P0/P1, critical/minor) and for any statement that the findings are ordered by severity (e.g. \"worst first\"). None exist. The eight findings are numbered section headings only (\"## 1. No organization filter\" ... \"## 8. Input validation accepts prefixes\"). The one comparative severity remark, \"**Defects 1 and 2 compound into the worst outcome available here.** Neither alone is as bad as the pair\", ranks two findings against each other but does not rank the set."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It rewrites the code. \"## Corrected handler\" followed by a full replacement implementation: \"const INVOICE_DTO_SQL = `\\n  SELECT i.id,\\n         i.number, ... ` ... router.get('/api/invoices/:id', requireSession(), async (req, res) => { ... const invoice = await db.oneOrNone(INVOICE_DTO_SQL, { id, orgId }); ...\" \u2014 a complete corrected handler handed back, not a defect report."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a section giving the method of check for each axis called clean. There is a \"## What the note got right\" section, but the entries are assertions with at most a fragment of mechanism: \"**Parameterized SQL** \u2014 correct, and genuinely so. `$1` with a value array; no injection here.\" gives a partial receipt, while \"**Session required** \u2014 correct as stated, and load-bearing for nothing, since the identity it establishes is never consulted.\" states no check at all \u2014 no line cited, no trace of how presence or behavior was established. No per-axis trace section exists, so the receipt is not given for each clean axis."
+        }
+      ],
+      "notable": "Substantive error in finding 7: \"A due date of `2026-09-19` can reach the client as `2026-09-18T04:00:00.000Z` \u2014 the wrong calendar day.\" The direction is wrong for the offset implied. node-postgres parses a `date` to local midnight; at UTC-4 that serializes as `2026-09-19T04:00:00.000Z`, which still carries the right calendar date. The wrong-day failure occurs at positive UTC offsets (e.g. UTC+2 gives `2026-09-18T22:00:00.000Z`). The underlying concern is real, the worked example is not. Also: the \"Tests that would have caught each defect\" table numbers two consecutive rows \"6\". Its corrected handler uses pg-promise named parameters (`$(id)`) while the artifact used positional `$1` \u2014 valid, but an unflagged convention change. On substance it is otherwise strong, and it is the only output to raise `due_date` serialization and unfiltered `status` at all."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a tri-state verdict token or any three-outcome scale. Found only \"**Verdict: fails the contract. Do not merge.**\" \u2014 a binary prose conclusion. No VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED vocabulary and no other named scale anywhere in the output."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for \"BLOCKING\" and for any explicit line stating blocked status. Absent. \"Do not merge.\" appears in the verdict sentence but there is no blocking-status line."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for \"Independence\" / \"independent\" and for any statement about whether the verification was independent of the producer. Nothing. The output discusses the producer's note extensively (\"## On the producer's note\") but never states its own independence."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Findings, worst first\" \u2014 an explicit severity ordering, borne out by the sequence: \"### 1. No tenancy filter \u2014 any authenticated user can read any invoice in the system\" down to \"### 7. Input validation is looser than it reads\", with relative severity argued in-line (\"Either alone is serious. Together, one request to an arbitrary id returns another tenant's payment credentials.\")."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It rewrites the code. \"## Corrected handler\" followed by a full replacement: \"const INVOICE_BY_ID = `\\n  SELECT i.id, i.number, i.amount_cents, i.status, i.due_date,\\n         c.name AS customer_name ... ` ... router.get('/api/invoices/:id', requireSession(), async (req, res) => { ... const row = await db.oneOrNone(INVOICE_BY_ID, [id, req.user.org_id]); ...\" plus a `MAX_INT4` constant and a strict-regex guard \u2014 a corrected implementation handed back."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a per-axis trace of how anything called clean was checked. The only clean call-outs sit in \"## On the producer's note\" and are bare assertions: \"'parameterized SQL' \u2014 correct. There is no injection. It is also irrelevant to every defect above\" and \"'session required' \u2014 correct, and it is the reason #1 survived review.\" Neither states how it was checked \u2014 no line citation, no trace of the absence of string interpolation, no trace of the middleware position in the route chain. There is no clean-axis receipt section of any kind."
+        }
+      ],
+      "notable": "Says \"Three of the contract's four clauses are broken\" where W, X and Z all treat the contract as having three clauses. The artifact is not in my bundle so I cannot adjudicate, but it is a count that disagrees with the other three outputs. \"on modern Node that terminates the process by default\" is correct for Node 15+. Its table row claiming the leaked `org_id` fields mean \"the response tells the caller which other orgs exist\" overreaches \u2014 the response reveals the org of that one invoice, not an enumeration of orgs. The test list is the strongest of the four (test 5, asserting the two 404s are byte-identical, and test 9's \"spy on `db.oneOrNone` and assert zero calls\", are oracles the other outputs do not produce). It also correctly warns against relying on the last-write-wins ordering it just used to diagnose defect 4."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"# Verdict\\n\\n**NOT VERIFIED** \u2014 **BLOCKING: yes** (two unresolved HIGH defects: cross-tenant read and bulk secret exposure).\" \u2014 the tri-state token NOT VERIFIED, not a pass/fail or prose conclusion."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** \u2014 **BLOCKING: yes** (two unresolved HIGH defects: cross-tenant read and bulk secret exposure).\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence:** INDEPENDENT \u2014 the handler, contract, schema, and producer's note arrived finished; nothing here was written or revised by me or at my direction. Reading it is not producing it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"# Defects\\n\\nWorst first. `severity \u2014 breach \u2014 how to demonstrate`.\" followed by \"1. \u274c **HIGH \u2014 IDOR / missing tenant authorization.**\", \"2. \u274c **HIGH \u2014 bulk PII and credential exposure.**\", \"3. \u274c **MEDIUM \u2014 the 404 path does not exist.**\", \"4. \u274c **MEDIUM \u2014 response shape does not match the DTO.**\", \"5. \u274c **MEDIUM \u2014 int4 overflow answers 500 instead of 404.**\", \"6. \u274c **LOW/MEDIUM \u2014 audit unawaited\", \"7. \u26a0\ufe0f **LOW \u2014 inner JOIN turns a dangling `customer_id` into a 500**\", \"8. \u26a0\ufe0f **LOW \u2014 `parseInt` accepts trailing garbage;**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler, a replacement query, a patch, or any code fence containing implementation code. None exists. The only code-shaped text is quoted artifact fragments (`WHERE i.id = $1`, `res.json(invoice)`, `Number.isInteger(id) && id > 0`) and one fragment naming what is missing \u2014 \"Even after `AND i.org_id = $2` is added to the invoice predicate, `ON c.id = i.customer_id` is unconstrained by org\" \u2014 which identifies the gap rather than handing back a rewritten handler. No `oneOrNone` replacement, no router.get re-implementation, no explicit-projection SELECT."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"# How each clean axis was checked\" \u2014 \"**SQL injection \u2705** \u2014 the template literal at lines 28-31 contains no `${}`; the only variable reaches the query as `$1` via the values array at line 32, and `id` was already narrowed to a number at line 21. No dynamic identifier, no string concatenation, no second query.\" and \"**Session middleware mounted \u2705** \u2014 `requireSession()` sits in the argument list at line 20 between the path and the handler, so it runs before the handler body. Presence traced; behavior is confirm-item 1.\" All four axes it marks clean get a trace."
+        }
+      ],
+      "notable": "Mixes four clean-axis call-outs (items 9-12: SQL injection, error-response leakage, session requirement, no embedded directive) into the numbered \"Defects\" list, which slightly muddies the severity ranking it just declared \u2014 though the eight actual defects are ranked cleanly ahead of them. States the duplicate-column last-wins result as fact (\"`response.id` is the **customer's** id\") without the epistemic hedge W applies to the same claim; it does place it under \"# Observable evidence\" rather than \"# Assessment\", which is the wrong bucket for a driver-behavior inference it did not run. Its confirm-items are the sharpest of the four \u2014 notably #3, which states what changes if `db` is not pg-promise (\"defect 3 changes shape (the 404 becomes live) while defects 1, 2, 4, and 5 stand unchanged\"), and #5 on `logger.error` possibly carrying bound parameters into log storage, which no other output raises. No factual error identified."
+    }
+  ],
+  "methodology_notes": "Three calls could reasonably have gone the other way, and one of them decides two scores.\n\n1. Item 1 (tri-state verdict) on W and Z. Both emit the single token \"NOT VERIFIED\" and neither prints the full scale or names an intermediate state. I credited them because \"NOT VERIFIED\" is recognizably one value of the tri-state vocabulary the checklist itself names, and because W treats it as a scale value (\"the verdict, which is already NOT VERIFIED on D1 and D2 alone\"). A stricter judge could hold that emitting one label does not demonstrate a three-way scheme, and would then mark item 1 absent for all four outputs. Nothing in X or Y is close either way \u2014 both give prose conclusions (\"fails the contract. Do not merge.\") \u2014 so this only affects W and Z.\n\n2. Item 4 (ranks defects by severity) on X. X's eight findings do descend in severity, and it argues comparative severity for the top two (\"Defects 1 and 2 compound into the worst outcome available here. Neither alone is as bad as the pair\"). But it carries no severity labels and never states that the order is a ranking, so crediting it requires me to infer the ordering from the content. Under the \"a vague gesture in the right direction is absent\" rule I marked it absent. Y, whose findings are equally unlabelled, got credit solely because it wrote the words \"Findings, worst first\" \u2014 that is a thin distinction between two otherwise similar structures, and I want it on the record that the difference is one heading.\n\n3. Item 6 (receipt per clean axis) on X. Its \"Parameterized SQL \u2014 correct, and genuinely so. `$1` with a value array\" is an actual receipt. Its \"Session required \u2014 correct as stated\" is not. The item says \"for each axis it calls clean\", so one receipt out of three fails it, and partial credit does not exist. A judge reading item 6 as \"does it ever give receipts\" would credit X.\n\nTwo limits on the whole exercise. First, the artifact under review (handler, contract, schema, producer's note) is not in the bundle, so I could not verify any output's factual claims against the source. Everything in `notable` about substance rests on internal consistency, cross-output disagreement, and general knowledge of pg-promise / node-postgres / Node \u2014 not on the code. Y's \"four clauses\" vs. everyone else's three is the clearest case: I can report the disagreement but not resolve it. Second, items 1, 2, 3 and 5 partition the bundle identically (W and Z present, X and Y absent), which makes the four outputs look like two pairs. I scored each independently and re-read each for each item, but I cannot rule out that seeing the pattern after the first two items made the later calls feel more obvious than they were.\n",
+  "_specialist_inferred_from_rubric_length": "verifier"
+}

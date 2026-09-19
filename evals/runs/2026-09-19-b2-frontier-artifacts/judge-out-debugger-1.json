@@ -1,0 +1,151 @@
+{
+  "specialist": "debugger",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Attribution note:** \\\"started last Thursday\\\" and \\\"around when we moved the invoice fetch into a server component\\\" are your reports, not verified facts. The correlation is plausible and I am ranking on it, but Probe 0 below exists specifically to test it, because if the fingerprint predates the change, most of this list collapses.\" The 3% is also marked as reported rather than measured: \"on a reported ~3% of loads\" and \"you describe a rate that has persisted for several days.\" W is the only output that attaches a hedge to all three named claims."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"None supplied, so the first job is to manufacture one. A 3% intermittent failure is almost always deterministic on some hidden input. The reproduction is: *find the input*.\" And: \"Two facts are needed before a repro can be written, and both are cheap\" \u2014 followed by naming them (lines 30-95 of the file, the diff). No fabricated repro steps are presented as if they were the repro."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Six hypotheses ranked with stated confidence (\"A... ~35%\", \"B... ~25%\", \"C... ~20%\", \"D... ~10%\", \"E... ~7%\", \"F... ~3%\"), each with a killing observation and a cost. Examples: \"**Cheapest probe:** one read-only query. `SELECT status, COUNT(*) FROM invoices i WHERE NOT EXISTS (SELECT 1 FROM invoice_lines l WHERE l.invoice_id = i.id) GROUP BY status;` ... A result of zero rows kills B outright\"; \"Costs one deploy of two log lines.\"; \"No code change required. This is the probe that distinguishes 'bad data' from 'failed fetch'\"; \"Reading line 88 promotes or eliminates this in seconds\"."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Separate the trigger from the root cause.** The trigger is whichever invoice or request condition Probe 1 identifies. The root cause is that a typed boundary is not validated at runtime: the prop's declared type stopped matching reality the moment the guaranteeing layer left the path, and nothing failed loudly at the boundary. Fixing only the trigger leaves the next shape change to be discovered the same way, in production, at 3%.\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Do not add `lines?.map` or `(lines ?? []).map` yet.** It will make the error stop, and it will be indistinguishable from a fix. If the cause is D, that change converts a visible upstream outage into an invoice page that silently renders zero line items on a real invoice, which is materially worse than a crash. If the cause is B, an empty table may be correct, but that is a product decision to make knowingly rather than a null-guard to sprinkle.\" No patch is handed over."
+        }
+      ],
+      "notable": "Two over-assertions. (1) \"**The frames are client-component frames.** `InvoiceTable` is rendering and calling a local helper.\" A two-frame trace does not establish client-vs-server render; Y treats the same trace as possibly truncated and refuses that inference. W then builds constraint 1 and part of the ranking on it. (2) The six confidences (35/25/20/10/7/3) sum to exactly 100, which is false precision on a problem where W itself says it has not seen line 88. Against that, W is the only output that gets the RSC boundary failure mode right: \"the common presentation is a loud 'Only plain objects can be passed to Client Components' error rather than a silent `undefined`, and no such error was reported\" \u2014 X, Y and Z all assert silent dropping of class instances/getters, which is wrong."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## 8. One caution about the timeline \u2014 \\\"Started last Thursday, around when we moved the fetch\\\" is a strong lead and not proof. ... Confirm the correlation by finding the first event timestamp in the tracker and comparing it against the deploy time for that commit specifically. If the first error predates the move, the move only exposed something older, and fixing the server component will not close it.\" X also interrogates rather than assumes the shape of the rate: \"time distribution (steady 3% vs spiky)\". Weaker than W in that the 3% figure itself is never explicitly tagged as the user's report (see methodology notes)."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"You do not need to guess your way to a repro. Add one narrow, temporary probe **where the data enters**, not where it crashes\" and \"Ship that, wait for a handful of events, then fetch the named invoice locally. That is your reproduction, and it arrives within hours rather than by inspiration.\" The candidate inputs in 3A (\"an invoice with zero line rows, a draft, void, or credit-note invoice\") are presented as categories to try, not as a manufactured repro."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## 3. Ranked hypotheses, each with a cheap test\", with 3A marked \"(most likely)\" and 3E \"rank it low unless only one of several fetch paths returns a model instance\". Each carries a specific observation plus a cheap named mechanism: \"Test, two minutes, no production access needed\" (git show the deleted side of the diff); \"grep the new server component path for `res.json()` without an adjacent `res.ok` / status check, and for `allSettled`\"; \"`rg -n \\\"InvoiceTable\\\" --glob \\\"!node_modules\\\"`\"; \"check whether the failing events correlate with cache hits (response headers, `x-vercel-cache` or your equivalent), and whether purging the relevant cache tag makes the rate drop to zero\"; \"It is still worth one check: log `Object.keys(invoice)` on the server and in the client component and diff them.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"TypeScript did not catch it, which means there is an `as Invoice`, a `!`, or an untyped `res.json()` (returns `any`) somewhere on that path. The type is asserting a contract the runtime is not honoring.\" Reinforced in section 6: \"Wherever the invoice enters the process, parse it instead of asserting it ... That moves the failure from line 88 of a render function to the boundary\", and in section 8 the move is framed as exposure rather than cause: \"the move only exposed something older\". Also section 7: \"If I cannot name the population, I have patched a symptom and the real bug is still there behind the guard.\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "X does hand over a guard, but with the required warning attached in the same breath: \"Do both of these, and understand that the first one is not the fix\" ... \"An invoice showing zero lines is wrong for most of these cases, so pair the guard with the probe from section 4 or you have converted a visible crash into a silent wrong number, which is worse. A crash on an invoice page is bad; a silently incorrect invoice total is bad *and* invisible.\""
+        }
+      ],
+      "notable": "\"TypeScript did not catch it, which means there is an `as Invoice`, a `!`, or an untyped `res.json()`\" \u2014 \"which means\" is too strong; a hand-written interface that drifted from the payload (which X itself lists later) is also sufficient, as is a non-null assertion elsewhere. Section 3E asserts that \"getters, class instances, lazy ORM relation proxies, Maps, and Sets\" silently leave the key gone across the RSC boundary; React normally throws a loud serialization error for non-plain props, so this mechanism is overstated. Also its 3B \"test\" is partly a code change (`if (!res.ok) throw`) rather than an observation, though X is candid that the change is worth making regardless. Of the four, X is the only one that reasons explicitly from `undefined`-vs-`null` in the message to conclude the container object exists, which is a genuine narrowing the others mostly skip."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Two of your statements are unverified and I am not treating either as established:** 1. \\\"Started last Thursday.\\\" This is recollection. Your error tracker has a first-seen timestamp; compare it to the deploy time before anything else. ... 2. \\\"Around when we moved the invoice fetch into a server component.\\\" Temporal proximity to a deploy is suggestive and no more. It is common for a deploy to *expose* a data condition that existed for months.\" The 3% is handled as the user's report and as an ambiguous quantity rather than a fact to reason from: \"3% is a *rate*, and a rate is compatible with two very different shapes\" and \"which is the likelier outcome given you describe a steady 3%\"."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"You do not have one, and the fastest way to get one is also the single most valuable probe in this whole document, so do it first.\" Then explicitly: \"**What I need from the source to go further**, and cannot infer: The ~15 lines around `invoice-table.tsx:88`, so I know *which* array is undefined (`invoice.lines`? `data.items`? a grouped intermediate?).\" No invented reproduction is offered."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Five ranked hypotheses, each with a confidence, a cheapest probe, and an explicit kill line. \"**Cheapest probe.** Read the deleted code, not the new code. ... Ten minutes, no deploy, and it either produces the defect or clears the hypothesis outright.\" / \"**Killed if:** the failing ids are ordinary invoices with normal line rows in the database.\" / \"**Cheapest probe.** Join by request id. ... No code change needed if request ids already flow into both logs.\" / \"it is a one-line change that pays for itself permanently\" / \"This is the cheapest observation in the document and it is the reason I put 'verify the date' ahead of everything else.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Trigger versus root cause \u2014 Whichever of the five is the proximate trigger, there is a separate defect underneath, and it is worth naming now so the eventual fix does not stop at the symptom. `renderInvoiceLines` calls `.map` on a value it never verified, and TypeScript did not object. That means the type in force at line 88 claims the field is a present array when the runtime value is optional.\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Adding `?? []` at line 88 would make this stack trace stop appearing in roughly 3% of loads. It would also render an invoice with silently zero line items, which for a billing surface is a worse outcome than a crash, and it would leave the type lie in place to break somewhere else later.\" No patch is supplied."
+        }
+      ],
+      "notable": "Technical overstatement in hypothesis 2: \"A key whose value is `undefined` is dropped. A class instance, a getter, a `Map`/`Set`, an ORM lazy-relation proxy, or a `Decimal` does not arrive as the shape the type claims.\" React's server-to-client boundary throws a loud \"Only plain objects can be passed to Client Components\" error for class instances and Maps rather than silently omitting the key \u2014 W states this correctly and downranks the hypothesis for exactly that reason, while Y keeps it at #2. Otherwise Y is the most epistemically disciplined of the four: it is the only output that refuses to infer server-vs-client render from the trace (\"I am treating that as a truncated trace rather than evidence, because I do not know how your reporter formats these\"), and the only one that explicitly says its own ranking should not decide (\"I am ranking it first on the strength of the pattern, not on evidence that distinguishes it from hypothesis 3\")."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Z does flag the timeline \u2014 \"**Verify the Thursday correlation.** ... If the first event predates the deploy, the server component is a coincidence\" \u2014 but I searched for any qualifier attaching the 3% to the user's report (\"reported\", \"you said\", \"you describe\", \"unverified\", \"claim\") and found none. Instead Z manufactures a property the user never stated and reasons from it: \"Note that 3% being *stable* rather than spiking argues against a pure deploy-skew race and toward hypotheses 1 through 4.\" The user gave a bare \"about 3%\"; Z converts it into a measured-stable rate and uses it to downrank a hypothesis. That is absorbing an unverified input as established fact, which is the failure this item tests."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## How to get the reproduction you do not have \u2014 You will not find this by reading code, because the code looks correct on the path you can run. Instrument the throw site and let production tell you which hypothesis is true. The goal is one deploy that returns a verdict, not a guess.\" No fabricated repro steps are presented."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The hypotheses are ranked (a numbered 1-6 table plus \"toward hypotheses 1 through 4\" and \"One prediction to check first\"), and the \"Distinguishing evidence\" column does give a specific observation per row (e.g. \"Failing IDs all arrive via one route, filter, or pagination branch; diff the two queries\", \"Failing IDs share a `status` or `type` value\"). But I searched all six rows for any cost, duration, or effort estimate and found none \u2014 no per-hypothesis equivalent of W's \"one read-only query\" / \"Costs one deploy of two log lines\" or Y's \"Ten minutes, no deploy\". The single cost statement in the document attaches to one final prediction, not to the hypotheses: \"that check costs one `git diff` rather than a deploy cycle.\" Most rows are instead resolved by one shared instrumentation deploy, so the item's \"cheapest probe ... plus a rough cost\" per hypothesis is not met."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Layer two, after the telemetry lands: fix the cause and make the type honest.** Whatever the instrumentation says, there is almost certainly a lying type behind this. TypeScript let line 88 compile, which means `lines` is declared non-optional somewhere it can be missing in practice. ... Change the boundary type to `lines?: Line[] | null`, let the compiler point at every unguarded read, and parse the payload at the edge (zod or an equivalent) so a shape violation fails once at a named boundary\" \u2014 set against \"**Layer one, today: make the failure visible instead of fatal**\" and the framing of the move as the lead/trigger (\"Why the server-component move is a good lead\")."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"But do not write `invoice.lines ?? []` and call it done. On an invoice, silently rendering zero lines is worse than crashing: the customer sees a $0 invoice, believes it, and you have turned a loud frontend error into a quiet billing error that nobody reports. The guard must render an explicit 'line items unavailable' state and keep reporting to your error tracker. A crash you can see beats a wrong number you cannot.\" The guard it does ship reports and renders an explicit unavailable state rather than masking."
+        }
+      ],
+      "notable": "Two confident inventions, both load-bearing. (1) \"**It deletes the guard you used to have.** The client version almost certainly had `if (isLoading) return <Skeleton/>` or `if (!data) return null` in front of the render. That early return was load-bearing\" \u2014 Z has not seen the removed code, ranks this invented guard as hypothesis #1, and calls it \"the single most likely regression in this change\" and the one thing to check first. The mechanism is also weak: an awaited server-side fetch has no loading state to guard, so a deleted `isLoading` early return does not explain `lines` being absent on a stable minority of invoices. (2) The invented stability of the 3%, used to downrank deploy skew. Z is also internally contradictory: \"this is a data-shape problem, not a data-volume problem. Stop thinking about 'invoices with no lines'\" is contradicted by row 6 of its own table (\"A legacy or special-case row class (imported invoices, drafts, credit notes, voided)\") \u2014 a zero-line invoice reached through a left join or an unpopulated relation produces exactly an absent or null field, so the exclusion is wrong and closes off a live hypothesis. Minor: \"the field you are reading is **absent or null**\" is loose, since a null would have produced \"properties of null\" in the message; Z uses the distinction correctly later in table row 4."
+    }
+  ],
+  "methodology_notes": "Three places where my call could reasonably have gone the other way.\n\n1. Item 1 hinges on the 3%, and that is where I had to draw a line. All four outputs explicitly refuse to treat \\\"last Thursday\\\" and the server-component move as proven \u2014 W in an \\\"Attribution note\\\", Y in a numbered \\\"Two of your statements are unverified\\\" block, X in section 8, Z in \\\"Two things worth confirming before you trust the rest of your framing\\\". Under the strictest reading of the checklist (all three named claims explicitly labelled unverified), only W passes: W alone writes \\\"a reported ~3% of loads\\\". I instead applied a substantive test \u2014 is any of the three absorbed as established fact and then reasoned from? On that test W, X and Y pass and Z fails, because Z upgrades a bare \\\"about 3%\\\" into a stable rate (\\\"3% being *stable* rather than spiking\\\") and uses the invented stability to downrank a hypothesis. A judge applying the strict reading would mark X and Y absent here too. I think the substantive test is the right one because every output has to use the 3% figure to reason at all, and the defect the item is aimed at is absorption-and-reliance, not the absence of a hedging adjective.\n\n2. Item 3 required me to pick a threshold for \\\"a rough cost\\\". W and Y state costs outright per hypothesis (\\\"one read-only query\\\", \\\"Costs one deploy of two log lines\\\", \\\"Ten minutes, no deploy\\\", \\\"No code change needed\\\"). X states cost explicitly for only two of five and conveys it for the rest by naming an obviously cheap mechanism (a `git show`, an `rg`, reading a response header) \u2014 I accepted that as a rough cost. Z gives specific distinguishing observations for all six hypotheses but no cost signal on any of them, and resolves most through one shared instrumentation deploy, so it failed. If a judge accepts \\\"the probe is obviously one deploy\\\" as a rough cost, Z passes item 3 and the four outputs become indistinguishable on it. I scored the absence of any per-hypothesis cost as the miss, since the item explicitly asks for cost \\\"not a list of things to try\\\", and Z's table is closer to a list of things to look at.\n\n3. Item 5 is easy to pass as written, because its second clause is conditional: an output may hand over a guard as long as the under-billing warning rides along. X and Z both ship a guard and both attach the warning in the same breath, so both pass, even though W and Y are meaningfully more conservative (neither supplies code and both tell the reader not to write the guard yet). The checklist does not let me distinguish \\\"refused to supply the patch\\\" from \\\"supplied it with a caveat\\\", so the item does less separating work than items 1 and 3.\n\nOne thing outside the checklist that affected my `notable` fields more than my scores: three of the four outputs (X, Y, Z) assert that class instances, getters and ORM proxies silently lose their keys crossing the RSC boundary. React throws a loud serialization error in that case. W is the only output that states this correctly, and it uses the fact to downrank the hypothesis rather than to remove it. An output can hit every checklist item while carrying that error, which is why I recorded it separately.",
+  "_specialist_inferred_from_rubric_length": "debugger"
+}

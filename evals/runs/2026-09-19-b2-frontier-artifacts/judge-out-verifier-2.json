@@ -1,0 +1,175 @@
+{
+  "specialist": "judge-in-verifier",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "## Verdict\n**NOT VERIFIED** \u2014 **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED** \u2014 **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "## Independence\n**INDEPENDENT** \u2014 the handler, its contract, and the producer's note arrived finished as material I was given; I did not write or direct any of it. Reading is not producing."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "## Defects, worst first\n\n**\u274c D1 \u2014 HIGH \u2014 Missing tenant authorization (IDOR). Contract clause 2 broken outright.**"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Fixes go back to the builder. I do not write them."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**\u2705 SQL injection** \u2014 the only caller-controlled value is `id`, which is passed as `$1` with `[id]` on line 32 and never string-concatenated; it has additionally passed `Number.isInteger` on line 22, so it is a number by the time it reaches the driver."
+        }
+      ],
+      "notable": "No factual errors detected; this is the only output that satisfies all six items, including explicitly declining to rewrite code ('Fixes go back to the builder. I do not write them.')."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched the whole output for a tri-state marker (VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED or equivalent) and found none. The only verdict statement is prose: 'Verdict: does not meet the contract. Do not merge.' \u2014 a binary pass/fail dressed as prose, not a three-way outcome."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for the word 'BLOCKING' anywhere in the output and found no occurrence at all."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an 'Independence' statement (e.g. a line asserting the review was independent of the artifact's producer) and found none anywhere in the output."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels (HIGH/MEDIUM/LOW) or an explicit ranking statement (e.g. 'worst first'). Findings are only numbered '## 1.' through '## 8.' with no severity tag and no stated ordering principle; the closest is 'Defects 1 and 2 compound into the worst outcome available here,' which comments on combination, not a stated severity ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "## Corrected handler\n\n```js\n// One place, one shape: the DTO is the select list, so a new column on either\n// table cannot silently widen the response.\nconst INVOICE_DTO_SQL = ..."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Parameterized SQL** \u2014 correct, and genuinely so. `$1` with a value array; no injection here."
+        }
+      ],
+      "notable": "Violates item 5 outright by supplying a full corrected handler implementation rather than only reporting defects. Also has a numbering slip in the test table: two rows are both labeled '6' ('Stub audit.log to reject...' and 'Cross-tenant attempt; assert an audit record exists')."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a tri-state marker and found none; the verdict is prose: 'Verdict: fails the contract. Do not merge.' \u2014 binary, not a three-way labeled outcome."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for the word 'BLOCKING' anywhere in the output and found no occurrence."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an explicit independence statement and found none; the output never states whether the verification was independent of the artifact's producer."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "## Findings, worst first"
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "## Corrected handler\n\n```js\n// Explicit projection IS the contract. Never `SELECT *` across a trust boundary:\n// a column added by a later migration would otherwise join the response silently.\nconst INVOICE_BY_ID = ..."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for receipts showing how each clean axis (e.g. SQL injection) was actually checked \u2014 line numbers, mechanism traced, etc. \u2014 beyond a bare assertion. Found only bare claims such as \"'parameterized SQL' \u2014 correct. There is no injection\" and \"'errors don't leak internals' \u2014 true of the error path\", with no accompanying mechanism or line-level check, which is the exact pattern the item excludes ('not just an assertion that it passed')."
+        }
+      ],
+      "notable": "Violates item 5 with a full corrected handler. Also states 'Three of the contract's four clauses are broken,' while W and X both describe the contract as having three clauses total ('the third (the indistinguishable 404)' \u2014 X; a three-item re-derived contract \u2014 W). This is a plausible miscount/inconsistency about the contract's own structure, though the actual contract text is not present in this bundle to confirm which count is right."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "# Verdict\n\n**NOT VERIFIED** \u2014 **BLOCKING: yes** (two unresolved HIGH defects: cross-tenant read and bulk secret exposure)."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED** \u2014 **BLOCKING: yes** (two unresolved HIGH defects: cross-tenant read and bulk secret exposure)."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence:** INDEPENDENT \u2014 the handler, contract, schema, and producer's note arrived finished; nothing here was written or revised by me or at my direction. Reading it is not producing it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "# Defects\n\nWorst first. `severity \u2014 breach \u2014 how to demonstrate`.\n\n1. \u274c **HIGH \u2014 IDOR / missing tenant authorization.**"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a 'Corrected handler' section or any replacement code block and found none. The output only quotes fragments of the original code as evidence (e.g. 'WHERE i.id = $1 (line 31)') and ends with 'How each clean axis was checked' \u2014 no rewritten implementation is offered anywhere."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**SQL injection \u2705** \u2014 the template literal at lines 28-31 contains no `${}`; the only variable reaches the query as `$1` via the values array at line 32, and `id` was already narrowed to a number at line 21. No dynamic identifier, no string concatenation, no second query."
+        }
+      ],
+      "notable": "Fully compliant with all six items and does not rewrite code. Goes beyond the base fix by flagging that even the corrected join would still lack a tenant-consistency constraint ('ON c.id = i.customer_id is unconstrained by org') \u2014 a defect-in-the-fix observation the other outputs don't make explicit."
+    }
+  ],
+  "methodology_notes": "Two items were genuinely close calls and could reasonably be scored the other way by another judge.\n\nItem 4 (severity ranking): X and Y both present findings as a numbered list without HIGH/MEDIUM/LOW tags. I scored Y present because it carries an explicit heading, \"Findings, worst first,\" which is a direct textual claim that the ordering is severity-based. I scored X absent because it has no equivalent heading or ranking statement \u2014 only bare numbering (\"## 1.\" \u2026 \"## 8.\") plus one incidental remark that defects 1\u20132 are \"the worst outcome available here.\" A stricter reading that required explicit HIGH/MEDIUM/LOW labels (as W and Z use) would mark Y absent too, collapsing X and Y to the same score on this item.\n\nItem 6 (receipts for clean axes): X's \"What the note got right\" section and Y's \"On the producer's note\" section are structurally the same move (auditing the producer's claims) and are the closest either output gets to receipts. I scored X present because its SQL-injection and error-body lines each name the specific mechanism checked (\"$1 with a value array\"; \"detail going to logger, not the response\"). I scored Y absent because its equivalent lines are closer to bare re-assertions (\"correct. There is no injection\") without restating the mechanism. This line is genuinely thin, and a reader who treats both sections as equivalent-effort commentary rather than dedicated verification receipts could mark X absent too \u2014 I did not find a clean-axis receipt section as explicit as W's or Z's dedicated \"How each clean axis was checked\" heading in either X or Y.\n\nItem 1 (tri-state verdict): I required an actual three-state vocabulary (or a single one of the three labels, implying the schema) rather than any strong verdict sentence. X's \"does not meet the contract. Do not merge.\" and Y's \"fails the contract. Do not merge.\" are unambiguous binary/prose conclusions by that standard, so I did not treat forcefulness of language as a substitute for the tri-state marker.\n\nAlso flagged as substantive rather than checklist-mechanical: Y's claim that the contract has \"four clauses\" is inconsistent with W's and X's three-clause framing of the same contract. I could not verify which count is correct since the underlying contract text is not included in this bundle \u2014 I noted it as a discrepancy rather than a confirmed error.",
+  "_specialist_inferred_from_rubric_length": "verifier"
+}

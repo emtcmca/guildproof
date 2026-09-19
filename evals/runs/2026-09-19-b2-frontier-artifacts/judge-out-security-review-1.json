@@ -1,0 +1,127 @@
+{
+  "specialist": "security-review",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Grouped by whether it blocks.\" \u2014 sections run \"## Blocking\", \"## Should fix before this ships, not necessarily before merge\", \"## Smaller things\", closing with \"## Minimum to merge\" (\"1. `rowCount` check on revoke... 4. Allowlist the public `config` serialization\"). Exploitability explicitly drives placement: \"**No rate limit on create.** Not a brute-force concern (a 128-bit token is not guessable and the lookup is indexed, so I would not worry about timing or enumeration on the public GET), but an authenticated user can create rows without limit\" \u2014 demoted to Smaller things on low exploitability. And impact drives the top slot: \"three of them are the kind of defect that looks fine in testing and only shows up in production, and one of them is a false confirmation that will make Eric (or a user) believe a link is dead when it is still live.\" Also sequenced: \"Items 5 through 9 I would want in the same sprint, and 5 and 6 specifically before any external user touches this\". Not flat, not code order."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Somebody pastes a share URL into the wrong Slack channel, hits revoke, gets a green check, and the dashboard stays public forever.\" Also: \"A share URL pasted into any indexed page puts a private dashboard into Google. This happens.\" And on the unshown data path: \"a share token must only be able to fetch the exact queries that dashboard defines, executed with the owner's privileges and nothing wider. That is the classic confused-deputy hole in every share-link feature\"."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"None of that is visible in this diff, which is the point: **the endpoint's exposure surface is defined by a column this code does not control**, and it will grow every time someone adds a field to config.\" The assumption is marked as such \u2014 \"Dashboard configs typically hold datasource identifiers, raw query text or filter predicates...\" \u2014 and the unknown is branched rather than asserted: \"If the front end calls an authenticated data endpoint, the share page is broken for real anonymous viewers... If it calls a data endpoint that trusts the share token, that endpoint is the real security boundary\". Also \"If dashboards cannot be transferred today, write that down somewhere, because this code assumes it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"If it calls a data endpoint that trusts the share token, that endpoint is the real security boundary and it is not in this review.\" Reinforced two sentences later: \"That is the classic confused-deputy hole in every share-link feature, and it lives in the code that is not here.\" This is the weakest instance of the four outputs \u2014 W has no scope or limitations section and no confirm-items list \u2014 but it is an explicit, specific statement that a material security boundary was not examined by this review."
+        }
+      ],
+      "notable": "The proposed revoke fix is broken as written: `revoked_by = $3` and `owner_id = $3` are referenced while only two bind values are passed (`[token, user.id]`), so `$3` does not exist and the statement would throw. Both placeholders should be `$2`. W also opens with \"nothing here is catastrophically broken\" and then, in the same review, flags an unshown data path that could be an unauthenticated confused-deputy read as a merge blocker \u2014 the opening assessment does not survive its own finding 4. W never considers the renderer / stored-XSS path at all (X and Z both do). Substantive calls that are correct: `db.none` semantics, the duplicate index under `UNIQUE`, `is_active = TRUE` excluding NULL as fail-closed, and that the globally unique token makes `dashboard_id` in the revoke WHERE clause a pure failure mode."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Explicit severity labels in descending order (CRITICAL \u2192 HIGH \u2192 HIGH \u2192 MEDIUM-HIGH \u2192 MEDIUM \u2192 MEDIUM \u2192 LOW-MEDIUM \u2192 LOW \u2192 LOW \u2192 LOW), each with a stated basis: \"**Severity reasoning:** likelihood of the endpoint being hit is 1.0 (it is the feature). Impact is unbounded until someone reads the config schema.\" And a downgrade justified on exploitability: \"**Severity reasoning:** high rather than critical because the credential itself is strong (see the \u2705 below) \u2014 this is not remotely brute-forceable. The severity comes from permanence plus invisibility.\" Exploitability also removes a candidate finding: \"Brute-forcing the token itself is **not** a credible path at 128 bits, and I am not going to dress it up as one.\" Closes with \"## Highest-severity issue\"."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"The attack is not an owner defacing their own page. It is: attacker creates a dashboard, plants script in `title` or in a config field the renderer interpolates, sends the share link to a victim who holds a live session on the same origin, and the script executes with the victim's cookies on your domain.\" Also CSRF: \"If the session is a cookie without `SameSite=Lax|Strict` and without a CSRF token, a page the victim visits can force `POST /api/dashboards/1/share`, minting a permanent public link on a dashboard the victim owns.\" Also an insider path: \"Anyone with log read access \u2014 support engineers, an ingestion vendor, an SIEM \u2014 holds every share credential ever issued.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Observed side stated up front: \"## Attack surface \u2014 Three routes and one table. What I can see:\". Assumed side fenced off explicitly: \"Context I do not have, and am not assuming into existence: the `config` schema, the renderer, the data-fetch path the share page uses, session/CSRF middleware, CORS policy, rate limiting, CDN config, and any org-level sharing policy. Per the rules I work under, I treat unseen controls as absent and list them as confirm-items rather than asserting they are missing.\" Held to inside findings: \"the renderer is not in this change, so I am flagging rather than asserting.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Confirm-these \u2014 Controls or context that may exist in code I was not shown. I have defaulted to treating each as absent; none of these is a fact I am asserting.\" Followed by eleven enumerated unchecked items, e.g. \"1. **What does `dashboards.config` actually contain?** Read the schema and a production row.\" and \"11. **Are access logs scrubbed of the `/share/:token` path**, and who has read access to those logs?\""
+        }
+      ],
+      "notable": "Ranking is internally inconsistent at the top: X labels the config-blob exposure CRITICAL while conceding \"Impact is unbounded until someone reads the config schema\", yet files the unshown data endpoint at MEDIUM-HIGH after writing of it \"This is the single worst outcome available in this change, which is why it is the confirm-item I would chase before merge.\" By its own words that finding outranks the one above it. Second, \"**The `token` index exists**, so lookup cost does not vary in a way that is observable across tokens\" is loose \u2014 an index does not make lookup timing uniform, and the real reason timing is a non-issue is the 128-bit space, which X argues correctly elsewhere. Third, X asserts \"sequential `SERIAL` ids make walking them trivial\" and \"the internal `SERIAL` primary key\"; the schema is not quoted in the bundle, so that specific claim is stated with more confidence than the shown artifact supports. Otherwise the concrete reachability argument for the 500-with-`err.message` path (non-numeric `:id` \u2192 invalid-input-syntax \u2192 no `received` property \u2192 raw message serialized) is the sharpest in the set."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Suggested order \u2014 Items 1 through 5 before merge. Item 1 first, because a revocation path that lies is worse than one that does not exist, and it is a ten-line change with a clear test. Item 6 and item 7 in the same follow-up, since both are about what happens after a link escapes, which is the scenario this whole feature needs an answer for.\" Two-tier structure (\"## Blocking\" 1-5, \"## Should fix\" 6-13) plus an up-front flag that ordering is not severity-monotonic: \"Five items below I would fix before merging. The rest can be follow-ups, but item 6 is the one that bites in production.\" Exploitability is used to remove items entirely: \"**Brute force on `/share/:token`.** Guessing a 128-bit token is not a threat model, so the absence of rate limiting on that route is not a security gap.\" Not flat, not code order."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"A forced create is an attacker-triggered exposure (they cannot read the cross-origin response, but the token now exists and may surface elsewhere), and a forced revoke is a nuisance denial of service.\" Actor/action/outcome is also stated for the revoke defect: \"the owner of a leaked link copies the token out of one email and the dashboard id out of another, gets them mismatched, sees a green confirmation, and closes the tab. The link is still live.\" And for offboarding: \"When someone leaves, the links they created keep working.\" Thinner than X or Z, but the named actor, the action they take, and what it yields are present rather than gestured at."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"`requireSession()` is not shown. If it authenticates from a cookie, both state-changing routes are CSRF-reachable... If `requireSession()` reads a bearer header, this does not apply.\" The config claim is likewise marked as inference rather than observation: \"In practice these objects end up holding things like data-source identifiers, connection hints or internal hostnames, saved SQL or query fragments... Today it may be clean. The exposure is that this line makes every future addition to `config` public by default.\" And a verification caveat on its own advice: \"Whichever you pick, verify it against an actual log line rather than assuming.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched Y for a scope or limitations statement, a confirm-items / open-questions list, and any sentence in which the review states what it did not examine \u2014 strings and equivalents of \"I did not check\", \"not reviewed\", \"out of scope\", \"context I do not have\", \"treating as absent\", \"confirm\". None is present. The nearest hits are \"`requireSession()` is not shown\", which is a fact about the artifact used to condition one finding (credited under item 3, not here), and \"One nit outside the security scope\", which scopes a style comment rather than the review. Two of the largest unshown surfaces \u2014 the endpoint that supplies the shared page's chart data, and the renderer that interpolates `title` and `config` \u2014 are never mentioned anywhere in Y, so their non-examination is not merely unstated, it is invisible. Unlike W, Y never says of anything that it lies outside this review."
+        }
+      ],
+      "notable": "Y is the only output of the four that never raises the shared-data path or the renderer/stored-XSS surface \u2014 the two boundaries W, X and Z each treat as the place the real blast radius lives. Given Y also volunteers a \"Deliberately not flagging\" list, the omission reads as unexamined rather than dismissed. Two specific defects: \"move the token to a query parameter that your logging already redacts\" is bad advice as stated \u2014 query strings are logged by default in most access-log formats and land in `Referer` just as path segments do, so this moves the secret without removing it; and `publicDashboardView` dereferences `row.config.widgets.map(...)` one paragraph after Y says the config shape is not something it can see. Y is the most precise output on one detail the others fumble or skip: \"a NULL `is_active` is representable, and `is_active = TRUE` evaluates to NULL rather than FALSE for such a row. That happens to fail closed here, which is lucky rather than designed.\" Y is also alone in catching that the public GET's catch-all turns every error, including pool exhaustion and timeouts, into a 404 \u2014 a real observability finding no other output makes."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Severity-labelled and ordered descending: \"### \u274c HIGH \u2014 revocation reports success without verifying that anything was revoked\", then two \"\u274c HIGH (confirm)\" findings, then \"\u26a0\ufe0f MEDIUM\", \"\u26a0\ufe0f MEDIUM (confirm)\", then three \"\u26a0\ufe0f LOW\" items, closing with \"## Highest-severity issue\". Exploitability explicitly sets the rank rather than the mere absence of a control: \"Brute-forcing `GET /share/:token` is *not* a concern here \u2014 128 bits of entropy makes guessing infeasible \u2014 so rate limiting on the read path is defense in depth, not a gap.\" Impact reasoning likewise: \"**Impact:** Case one is the highest-impact outcome available in this feature: full cross-tenant data read.\" Not flat, not code order."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"an attacker with one valid share token discovers the pattern and reads *every* dashboard's data by incrementing the id, no token needed. Note that `GET /share/:token` helpfully returns `id: share.id` (the internal, sequential `dashboards.id`), handing the attacker the exact parameter and confirming ids are enumerable integers.\" Also CSRF: \"an attacker who knows or has seen a token can force the victim's browser to revoke it (denial of access), and forged `POST`s create share rows the victim never authorized.\" Also the leak path: \"If the rendered share page loads any third-party resource (fonts, chart CDN, map tiles, images referenced from `config`), the full URL goes out in the `Referer` header to that third party by default.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"I cannot see the shape of `config` in this diff, so I am flagging the sink, not asserting a leaked secret. But the code makes no attempt to distinguish 'the parts of config a public viewer needs to render' from 'everything the editor stored.' Treat that as absent until the filtering is shown.\" The artifact boundary is stated structurally up front \u2014 \"**Boundary the diff does not show:** `GET /share/:token` returns a dashboard's *config* but no dashboard *data*... That unshown path is where the blast radius actually lives\" \u2014 and again per finding: \"I cannot see whether `requireSession()` enforces a CSRF token or `SameSite` cookies; treating the control as absent.\" Findings that rest on assumption carry \"(confirm)\" in their own headings."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"4. **Is there upstream middleware doing rate limiting, `Referrer-Policy`, or error sanitization?** I see none in this change and am treating all three as absent.\" Part of a seven-item \"## Confirm these\" section that enumerates what was not examined, e.g. \"2. **What endpoint does the share page call for chart data, and what authenticates it?**\" and \"7. **Are `/share/*` request paths scrubbed from access-log retention?**\""
+        }
+      ],
+      "notable": "Z contradicts itself about which finding is worst. \"## Highest-severity issue\" names the silent revoke no-op, but the data-path finding states \"Case one is the highest-impact outcome available in this feature: full cross-tenant data read\" and confirm-item 2 says outright that if that endpoint takes a dashboard id from an anonymous caller, \"that is a cross-tenant IDOR and outranks everything above.\" Two of its own sentences overrule its stated top finding. Smaller imprecision: \"`is_active = TRUE` evaluates false against NULL\" \u2014 it evaluates to NULL, not FALSE; the fail-closed conclusion survives, but Y states the semantics correctly and Z does not. Z's strongest original contribution is the token-exchange mitigation no other output proposes: \"make `/share/:token` a thin HTML shell that immediately exchanges the token for a short-lived, `HttpOnly`-cookie-scoped view session, so the long-lived token stops appearing in subsequent requests.\" Like X, Z asserts the dashboard id is \"internal, sequential\" and \"enumerable integers\"; the schema is not reproduced in the bundle, so that is stated more firmly than the quoted artifact shows."
+    }
+  ],
+  "methodology_notes": "Scoring constraint worth stating first: the bundle contains only the four reviews, not the diff, schema, or handlers they review. I could therefore judge the four checklist behaviors directly, but substance errors only where an output contradicts itself, contradicts code it quotes, or asserts something about the artifact that the other three describe differently. Claims I could not adjudicate (whether `dashboards.id` is a SERIAL, whether the public GET has a catch-all 404) are recorded as unverifiable rather than as errors.\n\nItem 1 turned out to be non-discriminating: all four rank, and all four use exploitability explicitly to demote or delete the brute-force finding on the 128-bit token. X and Z do it with severity labels and a named top finding; W and Y do it with blocking tiers plus an explicit merge order. I credited the tiered form because the checklist bars flat lists and code order, not because a particular notation was used, and because both W and Y show risk reasoning driving placement rather than just headings. A judge who required per-finding severity labels would split 1 into X and Z present, W and Y absent. I think that would be scoring house style rather than behavior, but the ordering evidence for W and Y is weaker than for X and Z and I want that on the record.\n\nItems 3 and 4 overlap enough that they collapse into one item unless split deliberately. I split them as: item 3 = separating observation from assumption inside the findings (epistemic hygiene), item 4 = stating the boundary of the review itself (what was not examined). Under that split, all four pass 3, and Y alone fails 4.\n\nThe two calls most likely to go the other way, both on item 4:\n\nW got credit on a single sentence \u2014 \"that endpoint is the real security boundary and it is not in this review\" \u2014 with no limitations section and no confirm list anywhere in the output. I credited it because the sentence is specific and self-referential about the review's scope, not a vague gesture, and because it is reinforced immediately (\"it lives in the code that is not here\"). A judge reading item 4 as requiring an enumerated scope statement would mark W absent, and I would not call that wrong.\n\nY I marked absent on the same item, and the distinction I held is narrow: Y says \"`requireSession()` is not shown\" (a fact about the artifact, which I credited under item 3) but never says of anything that it lies outside what this review examined. What pushed the call was that the two biggest unshown surfaces \u2014 the chart-data endpoint and the renderer \u2014 are not mentioned in Y at all, so there is no sense in which Y told its reader where the review stops. If a judge treats \"X is not shown\" as equivalent to \"I did not check X\", Y flips to present and W and Y end up tied on all four items.\n\nItem 2 for Y is the third soft call. Y's clearest actor-action-outcome sentences are a CSRF paragraph and a user-error narrative about a mismatched dashboard id; it has nothing with the specificity of X's stored-XSS chain or Z's id-incrementing IDOR. I scored the behavior as present because who does what to get what is stated, while noting the gap in quality. Partial credit does not exist here, so a reasonable judge could read Y's CSRF paragraph as a conditional weakness statement rather than a named attack and mark it absent.\n\nFinally, all four outputs converge on the same top three or four defects, which makes me fairly confident none of the checklist items is being satisfied by accident \u2014 but it also means the checklist separates these four far less than their differences in substance do. The most decision-relevant differences I found (Y's total omission of the data path and the renderer; Z's and X's contradictions about which finding ranks first; W's non-executable proposed fix) are invisible to the checklist and live only in `notable`.",
+  "_specialist_inferred_from_rubric_length": "security-review"
+}

@@ -4,6 +4,11 @@
 · **Artifacts:** [`2026-09-19-b2-artifacts/`](2026-09-19-b2-artifacts/) (34 files, everything below is
 reproducible from them)
 
+> **Read the frontier-tier run alongside this one:**
+> [2026-09-19-b2-frontier-tier.md](2026-09-19-b2-frontier-tier.md). It changes the conclusion. Three
+> of the four specialists largely close this gap on a stronger model by themselves. The verifier does
+> not, and that is the result worth quoting.
+
 ## What was measured
 
 For four specialists, the same user message was sent to the same model twice with the specialist

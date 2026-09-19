@@ -1,0 +1,127 @@
+{
+  "specialist": "security-review",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity tags (CRITICAL/HIGH/MEDIUM/LOW) or an explicit statement tying order to exploitability/impact; found none. Findings are grouped into three coarse tiers (Blocking / 'Should fix before this ships' / 'Smaller things'), and the closing 'Minimum to merge' list repeats the same order. Within Blocking, the sequence tracks the code's functional path (revoke handler bug #1, then create-handler issues BASE_URL #2 and raw errors #3, then the public read-handler's config exposure #4) rather than severity: the config-exposure finding, arguably the largest blast radius in the whole review, is placed last in Blocking, after the lower-impact BASE_URL and error-message items."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched the whole document for the word 'attacker' or any explicit adversary-action-then-objective chain; found none. The closest analogues are accidental-misuse narratives, e.g. 'Somebody pastes a share URL into the wrong Slack channel, hits revoke, gets a green check, and the dashboard stays public forever' -- this names a failure scenario for the owner, not an attacker's action and goal."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"If it calls a data endpoint that trusts the share token, that endpoint is the real security boundary and it is not in this review.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Decide whether transfer revokes shares. If dashboards cannot be transferred today, write that down somewhere, because this code assumes it.\""
+        }
+      ],
+      "notable": "Reads as a general code review rather than a threat-model-style security review: no severity tags, no attacker-centric framing anywhere, despite covering essentially the same technical findings as X/Y/Z (revoke no-op, config exposure, BASE_URL fallback, raw error leakage, missing headers, unbounded tokens). No confidently wrong technical claim found; the token-length math (16 bytes = 32 hex chars) and the SQL fixes are correct."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Severity reasoning: likelihood of the endpoint being hit is 1.0 (it is the feature). Impact is unbounded until someone reads the config schema. I am not inflating this on speculation -- I am ranking it first because it is the one finding whose blast radius cannot be bounded from the code shown, and it is cheap to check.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"The attack is not an owner defacing their own page. It is: attacker creates a dashboard, plants script in title or in a config field the renderer interpolates, sends the share link to a victim who holds a live session on the same origin, and the script executes with the victim's cookies on your domain.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Context I do not have, and am not assuming into existence: the config schema, the renderer, the data-fetch path the share page uses, session/CSRF middleware, CORS policy, rate limiting, CDN config, and any org-level sharing policy. Per the rules I work under, I treat unseen controls as absent and list them as confirm-items rather than asserting they are missing.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Is there global rate-limiting middleware, and does it cover the unauthenticated /share/* path as well as the API prefix?\""
+        }
+      ],
+      "notable": "Asserts 'sequential SERIAL ids' for dashboards.id ('sequential SERIAL ids make walking them trivial') as if confirmed, but no dashboards-table DDL is quoted anywhere in the material -- this is an unhedged assumption stated as fact, which cuts against the document's own declared discipline of never assuming unseen things into existence. Otherwise the most structurally rigorous of the four: explicit severity tags, a dedicated context-boundary paragraph, and a numbered confirm-list."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Items 1 through 5 before merge. Item 1 first, because a revocation path that lies is worse than one that does not exist, and it is a ten-line change with a clear test.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"A forced create is an attacker-triggered exposure (they cannot read the cross-origin response, but the token now exists and may surface elsewhere), and a forced revoke is a nuisance denial of service.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"requireSession() is not shown. If it authenticates from a cookie, both state-changing routes are CSRF-reachable... If requireSession() reads a bearer header, this does not apply.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"requireSession() is not shown.\""
+        }
+      ],
+      "notable": "Has only one clear explicit 'this was not visible to me' disclosure (the requireSession() line in the CSRF finding), versus X and Z's dedicated confirm-lists and W's design-questions section -- thinner on this dimension even though it is present. The rewritten revoke query (folding the ownership check into a JOIN rather than a subquery) is a genuine improvement that closes a mismatch window the other three reviews describe but do not fix as cleanly. No factual errors found."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### \u274c HIGH \u2014 revocation reports success without verifying that anything was revoked\" ... \"### \u26a0\ufe0f MEDIUM \u2014 raw database error text returned to the client\" ... \"### \u26a0\ufe0f LOW \u2014 no rate limiting or quota on share creation\" -- findings are explicitly tagged and ordered HIGH, then MEDIUM, then LOW, and the top HIGH is restated in a dedicated 'Highest-severity issue' section."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"That endpoint takes a dashboard id and accepts anonymous requests \u2192 straight IDOR: an attacker with one valid share token discovers the pattern and reads every dashboard's data by incrementing the id, no token needed.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"I cannot see the shape of config in this diff, so I am flagging the sink, not asserting a leaked secret.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Is there upstream middleware doing rate limiting, Referrer-Policy, or error sanitization? I see none in this change and am treating all three as absent.\""
+        }
+      ],
+      "notable": "Shares X's unhedged 'sequential' assumption about dashboards.id: '(the internal, sequential dashboards.id) ... confirming ids are enumerable integers' is stated as confirmed despite no dashboards-table schema being quoted in the material -- an internal inconsistency against the same document's otherwise careful 'I cannot see...' hedging elsewhere. Otherwise comprehensive, with severity tags, an explicit unshown-boundary paragraph, and a numbered confirm list comparable in rigor to X."
+    }
+  ],
+  "methodology_notes": "Two places where the call could reasonably go the other way:\n\n1. Item 1 (ranking) for W. W groups findings into three tiers by merge-blocking status (Blocking / should-fix-before-ships / smaller), and a case could be made that this coarse tiering is itself a form of impact-based ranking. I scored it absent because (a) there is no explicit statement connecting the order to exploitability or impact, and (b) the within-tier order visibly tracks the code's functional structure (revoke handler, then create handler, then read handler) rather than severity -- the config-exposure finding, which every other output treats as the single highest-impact issue, is placed last within W's Blocking tier. I treated the coarse tiering as a merge-priority signal, not a stated exploitability x impact ranking, per the 'vague gesture is absent' rule.\n\n2. Item 2 (naming the attack) for W. W does narrate concrete failure scenarios (e.g. the Slack-paste-then-failed-revoke story, the ownership-transfer exposure), but frames them from the victim/owner side as accidental misuse or design gaps rather than as an adversary's deliberate action-to-objective chain (contrast X's and Z's explicit 'attacker does X to get Y' sentences). I judged these as failure-mode narratives rather than attack narratives and scored the item absent, but a grader who treats 'who does what to get what' more loosely (including a link-holder's accidental exposure of a dashboard) could reasonably score this present.\n\nA secondary methodology note: X and Z both assert 'sequential SERIAL' for dashboards.id without that schema being visible anywhere in the quoted material, which is an assumption stated as fact rather than flagged as one. I recorded this in `notable` rather than letting it flip their item-3 scores, since their item-3 evidence comes from other, correctly-hedged passages elsewhere in the same documents -- but a stricter reading could treat this specific slip as undermining the item-3 grant for both outputs.\n\nUnrelated to the scoring itself: the task text relayed as the 'user request' for this run ('correct the mirror's live GH description and update the repo/install links') does not match the computed judging task in the harness payload, which is a self-contained security-review scoring exercise whose required output format matches this tool's schema exactly. I completed the scoring task since it is what this invocation's tool contract and file payload actually call for; no GH-mirror-description action was performed or attempted, since no target repo/mirror was identified and no tool call in this task shape would address it.",
+  "_specialist_inferred_from_rubric_length": "security-review"
+}
