@@ -1,7 +1,7 @@
 ---
 id: "31"
 route: lens
-command: /promptsmith:lens
+command: /guildproof:lens
 expected-lenses: [ai-tells, editorial]
 tests: the ai-tells / voice-preservation collision — strip filler without flattening a deliberate authorial signature
 ---
@@ -9,7 +9,7 @@ tests: the ai-tells / voice-preservation collision — strip filler without flat
 ## Input
 
 ```
-/promptsmith:lens --lens ai-tells,editorial --fix
+/guildproof:lens --lens ai-tells,editorial --fix
 ```
 
 Artifact under review (a newsletter section with a **deliberate** style — short fragments, an

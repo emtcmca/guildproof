@@ -1,7 +1,7 @@
 ---
 id: "02"
 route: sharpen
-command: /promptsmith:sharpen
+command: /guildproof:sharpen
 expected-lenses: [editorial, skeptic]
 tests: domain faithfulness (no fabricated authority), editorial lens, --deep candidacy
 ---
@@ -9,7 +9,7 @@ tests: domain faithfulness (no fabricated authority), editorial lens, --deep can
 ## Input
 
 ```
-/promptsmith:sharpen draft a violation notice for an unresolved fence-height dispute
+/guildproof:sharpen draft a violation notice for an unresolved fence-height dispute
 ```
 
 ## Must

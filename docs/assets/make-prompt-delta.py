@@ -1,179 +1,205 @@
-"""One-off generator for the answer-delta proof asset:
+"""One-off generator for the prompt-delta proof asset:
     docs/assets/proof-prompt-delta.png  — the workhorse still image (skims into HN/LinkedIn/dev.to)
     docs/assets/proof-prompt-delta.gif  — animates the reveal (social / dev.to asset)
 
-Design: the PROMPT DELTA. One-line request in → the complete prompt promptsmith hands back, with
-every added line tagged in the margin with the decision the one-liner left unstated. The point is
-that the length is recovered senior judgment, not padding — so each annotation names the specific
-thing a rushed one-liner forgets.
+Design: three visually distinct layers.
+  1. TITLE BAND (top, sans) — the header, its own band, clearly not terminal text.
+  2. TERMINAL WINDOW (middle, mono) — the mock guildproof output, unchanged terminal styling.
+  3. ANNOTATION BUBBLES (right gutter, sans) — margin commentary as bubbles with leader lines,
+     collectively distinct from the mono terminal output.
+  4. SUMMARY FOOTER BAND (bottom, sans) — the takeaway, its own band.
 
-Content is faithful to docs/assets/proof-answer-delta.md (the fleshed prompt, Panel 3). Honesty
-floor intact: the OPEN QUESTION line shows the tool flagging what it cannot know instead of guessing.
+Each margin bubble names the decision the one-liner left unstated, so the prompt's length reads
+as recovered senior judgment, not padding. The honesty-floor bubble (idempotency) is styled green.
 
+Content faithful to docs/assets/proof-answer-delta.md (the fleshed prompt, Panel 3).
 Not part of the package; run once, the image + gif are the committed artifacts."""
+import os
 import textwrap
 from PIL import Image, ImageDraw, ImageFont
+HERE = os.path.dirname(os.path.abspath(__file__))
 
-FONT_PATH = r"C:\Windows\Fonts\CascadiaMono.ttf"
-FONT_BOLD_PATH = r"C:\Windows\Fonts\consolab.ttf"
-FS = 16
-font = ImageFont.truetype(FONT_PATH, FS)
-font_b = ImageFont.truetype(FONT_BOLD_PATH, FS)
-font_sm = ImageFont.truetype(FONT_PATH, 14)
-font_title = ImageFont.truetype(FONT_BOLD_PATH, 19)
+# ---- fonts: MONO for terminal, SANS for header/footer/annotations (the visual distinction) ----
+MONO = r"C:\Windows\Fonts\CascadiaMono.ttf"
+SANS = r"C:\Windows\Fonts\segoeui.ttf"
+SANS_B = r"C:\Windows\Fonts\segoeuib.ttf"
+SANS_SB = r"C:\Windows\Fonts\seguisb.ttf"
+SANS_I = r"C:\Windows\Fonts\segoeuii.ttf"
 
-# GitHub-dark palette (matches make-sharpen-gif.py)
-BG = (13, 17, 23)
-PANEL = (22, 27, 34)
+mono = ImageFont.truetype(MONO, 20)
+mono_lbl = ImageFont.truetype(MONO, 14)
+title_f = ImageFont.truetype(SANS_B, 34)
+sub_f = ImageFont.truetype(SANS, 18)
+ann_f = ImageFont.truetype(SANS_I, 18)      # annotations italic sans — reads as commentary
+foot_f = ImageFont.truetype(SANS_SB, 22)
+foot_sf = ImageFont.truetype(SANS, 17)
+
+# ---- palette: three depth levels so the bands separate from the terminal ----
+CANVAS = (9, 12, 16)        # darkest — the page behind everything
+TERM = (14, 19, 26)         # terminal interior (mid)
+CHROME = (28, 34, 42)       # terminal title bar
+BAND = (24, 30, 39)         # title + footer bands (lightest) — visually distinct
 FG = (201, 209, 217)
-DIM = (110, 118, 129)
-GREEN = (63, 185, 80)
+DIM = (128, 138, 150)
+CREAM = (245, 240, 232)
+COPPER = (184, 115, 51)
+COPPER_LT = (212, 146, 74)
 BLUE = (88, 166, 255)
-ORANGE = (219, 154, 60)
-GREEN_TAG_BG = (18, 38, 24)
-BLUE_TAG_BG = (18, 31, 48)
-LINE_H = 22
+GREEN = (80, 200, 120)
+BUB_BG = (40, 29, 17)       # copper-tinted bubble
+BUB_BR = (150, 96, 44)
+BUBG_BG = (18, 40, 25)      # green (honesty) bubble
+BUBG_BR = (54, 120, 74)
 
-# ---------------------------------------------------------------- content
-INPUT_CMD = "/promptsmith:sharpen write a function to retry a failed API call"
+# ---- geometry ----
+W = 1480
+TERM_X, TERM_Y, TERM_W = 28, 150, 960
+CHROME_H, PAD, LH = 42, 18, 30
+CONTENT_X = TERM_X + 20
+CONTENT_Y0 = TERM_Y + CHROME_H + PAD
+TERM_RIGHT = TERM_X + TERM_W
+BUB_X = TERM_RIGHT + 36
+GUT_W = W - BUB_X - 28
+TITLE_H = 128
 
-# rows of the OUTPUT prompt: (kind, text, annotation)
-#   kind: head (section label, blue) | body (FG) | blank
+CMD = "/guildproof:sharpen write a function to retry a failed API call"
+
+# OUTPUT prompt rows: (kind, text). kind: head=blue section label, body=FG, blank
 ROWS = [
-    ("head", "ROLE: a backend engineer who treats a retry as a", None),
-    ("body", "      correctness decision, not a loop.", None),
-    ("head", "OBJECTIVE: retry ONLY when retrying is safe and can succeed.", None),
-    ("blank", "", None),
-    ("head", "REQUIREMENTS:", None),
-    ("body", "- Retry only retryable failures: timeouts, 429, 5xx.", "you never said which failures are safe to retry"),
-    ("body", "  Never 4xx (except 429) - they only waste the budget.", None),
-    ("body", "- Exponential backoff WITH jitter.", "the thundering-herd storm you'd forget"),
-    ("body", "- A total deadline, not just a max attempt count.", "attempts aren't time - one slow call runs past a count"),
-    ("body", "- Honor a Retry-After header on 429/503.", None),
-    ("blank", "", None),
-    ("head", "PROHIBITIONS (must NOT do):", None),
-    ("body", "- NEVER retry a non-idempotent POST unless the caller", "the one line that stops a double charge"),
-    ("body", "  supplies an idempotency key.", None),
-    ("body", "- Do NOT swallow the final error; surface what failed.", None),
-    ("blank", "", None),
-    ("head", "OPEN QUESTION (answer before building):", None),
-    ("body", "- Is this call idempotent / does it carry a key?", "honesty floor: flags what it can't know - won't guess"),
-    ("body", "  The retry is only safe if yes. I will not guess.", None),
+    ("head", "ROLE: a backend engineer who treats a retry as a"),
+    ("body", "      correctness decision, not a loop."),
+    ("head", "OBJECTIVE: retry ONLY when retrying is safe and can succeed."),
+    ("blank", ""),
+    ("head", "REQUIREMENTS:"),
+    ("body", "- Retry only retryable failures: timeouts, 429, 5xx."),
+    ("body", "  Never 4xx (except 429) - they only waste the budget."),
+    ("body", "- Exponential backoff WITH jitter."),
+    ("body", "- A total deadline, not just a max attempt count."),
+    ("body", "- Honor a Retry-After header on 429/503."),
+    ("blank", ""),
+    ("head", "PROHIBITIONS (must NOT do):"),
+    ("body", "- NEVER retry a non-idempotent POST unless the caller"),
+    ("body", "  supplies an idempotency key."),
+    ("body", "- Do NOT swallow the final error; surface what failed."),
+    ("blank", ""),
+    ("head", "OPEN QUESTION (answer before building):"),
+    ("body", "- Is this call idempotent / does it carry a key?"),
+    ("body", "  The retry is only safe if yes. I will not guess."),
 ]
 
-ANNOT_X = 620
+# annotations: (ROWS index, text, is_honesty_floor)
+ANNOTS = [
+    (5, "you never said which failures are safe to retry", False),
+    (7, "the thundering-herd storm you'd forget", False),
+    (8, "attempts aren't time - one slow call runs past a count", False),
+    (12, "the one line that stops a double charge", False),
+    (17, "honesty floor: flags what it can't know, won't guess", True),
+]
+
+TERM_PREFIX = 2  # cmd row 0 + blank row 1 precede ROWS in the terminal
 
 
-def annot_color(text):
-    return GREEN if text.startswith("honesty floor") else ORANGE
+def row_y(rows_idx):
+    return CONTENT_Y0 + (TERM_PREFIX + rows_idx) * LH
 
 
-def paint_block(d, ox, oy, n_rows=None, annots_on=None):
-    """Render the OUTPUT prompt rows starting at (ox, oy).
-    n_rows: reveal only the first n rows (for the GIF). None = all.
-    annots_on: set of row indices whose margin note is drawn. None = all."""
-    limit = len(ROWS) if n_rows is None else n_rows
-    for i, (kind, text, annot) in enumerate(ROWS):
-        if i >= limit:
-            break
-        y = oy + i * LINE_H
+TERM_ROWS_TOTAL = TERM_PREFIX + len(ROWS)
+TERM_H = CHROME_H + PAD + TERM_ROWS_TOTAL * LH + PAD
+TERM_BOTTOM = TERM_Y + TERM_H
+FOOT_Y = TERM_BOTTOM + 30
+FOOT_H = 122
+H = FOOT_Y + FOOT_H + 24
+
+
+def draw_title_band(d):
+    d.rectangle([0, 0, W, TITLE_H], fill=BAND)
+    d.rectangle([0, TITLE_H - 2, W, TITLE_H], fill=COPPER)      # accent rule under the band
+    d.rectangle([28, 34, 36, 94], fill=COPPER)                  # copper marker block
+    d.text((52, 30), "The prompt delta", font=title_f, fill=CREAM)
+    d.text((52, 82), "One line in. The prompt a senior would have written — out.",
+           font=sub_f, fill=DIM)
+    tag = "GUILDPROOF · /sharpen"
+    d.text((W - 28 - mono_lbl.getlength(tag), 54), tag, font=mono_lbl, fill=COPPER_LT)
+
+
+def draw_terminal(d, typed_cmd, n_rows):
+    d.rounded_rectangle([TERM_X, TERM_Y, TERM_RIGHT, TERM_BOTTOM], radius=9, fill=TERM,
+                        outline=(44, 52, 62), width=1)
+    d.rounded_rectangle([TERM_X, TERM_Y, TERM_RIGHT, TERM_Y + CHROME_H], radius=9, fill=CHROME)
+    d.rectangle([TERM_X, TERM_Y + CHROME_H - 9, TERM_RIGHT, TERM_Y + CHROME_H], fill=CHROME)
+    for i, c in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
+        d.ellipse([TERM_X + 18 + i * 22, TERM_Y + 15, TERM_X + 30 + i * 22, TERM_Y + 27], fill=c)
+    d.text((TERM_X + TERM_W / 2, TERM_Y + 21), "PowerShell", font=mono, fill=DIM, anchor="mm")
+    pre = "PS C:\\dev> "
+    y = CONTENT_Y0
+    d.text((CONTENT_X, y), pre, font=mono, fill=GREEN)
+    d.text((CONTENT_X + mono.getlength(pre), y), typed_cmd, font=mono, fill=FG)
+    if n_rows == 0:
+        cx = CONTENT_X + mono.getlength(pre) + mono.getlength(typed_cmd)
+        d.rectangle([cx, y, cx + 11, y + 21], fill=FG)
+        return
+    for i, (kind, text) in enumerate(ROWS[:n_rows]):
+        yy = CONTENT_Y0 + (TERM_PREFIX + i) * LH
         if kind == "head":
-            d.text((ox, y), text, font=font, fill=BLUE)
+            d.text((CONTENT_X, yy), text, font=mono, fill=BLUE)
         elif kind == "body":
-            d.text((ox, y), text, font=font, fill=FG)
-        # margin annotation
-        if annot and (annots_on is None or i in annots_on):
-            c = annot_color(annot)
-            d.text((ANNOT_X, y), "<-", font=font, fill=c)
-            d.text((ANNOT_X + font.getlength("<- "), y), annot, font=font_sm, fill=c)
+            d.text((CONTENT_X, yy), text, font=mono, fill=FG)
 
 
-# ================================================================ STATIC PNG
-def build_png():
-    PADX = 28
-    W = 1240
-    top = 96
-    input_h = 78
-    body_start = top + input_h
-    H = body_start + len(ROWS) * LINE_H + 92
+def draw_bubbles(d, n_prompt_rows, shown):
+    """Annotation bubbles (sans) in the gutter with leader lines to their terminal line.
+    Declutters vertically so adjacent bubbles never overlap."""
+    last_bottom = TITLE_H + 10
+    for idx, (r_idx, text, honesty) in enumerate(ANNOTS):
+        if idx not in shown or r_idx >= n_prompt_rows:
+            continue
+        anchor_y = row_y(r_idx) + 11
+        lines = textwrap.wrap(text, 44) or [text]
+        bh = len(lines) * 24 + 20
+        bw = min(GUT_W, max(ann_f.getlength(l) for l in lines) + 32)
+        top = max(anchor_y - bh / 2, last_bottom + 12)
+        center = top + bh / 2
+        bg, br, fg = (BUBG_BG, BUBG_BR, GREEN) if honesty else (BUB_BG, BUB_BR, COPPER_LT)
+        d.ellipse([TERM_RIGHT - 4, anchor_y - 4, TERM_RIGHT + 4, anchor_y + 4], fill=br)
+        d.line([TERM_RIGHT + 4, anchor_y, BUB_X, center], fill=br, width=2)
+        d.rounded_rectangle([BUB_X, top, BUB_X + bw, top + bh], radius=11, fill=bg, outline=br, width=1)
+        ty = top + 10
+        for l in lines:
+            d.text((BUB_X + 16, ty), l, font=ann_f, fill=fg)
+            ty += 24
+        last_bottom = top + bh
 
-    img = Image.new("RGB", (W, H), BG)
+
+def draw_footer(d, show_text):
+    d.rectangle([0, FOOT_Y, W, FOOT_Y + FOOT_H], fill=BAND)
+    d.rectangle([0, FOOT_Y, W, FOOT_Y + 2], fill=COPPER)        # accent rule above the band
+    if not show_text:
+        return
+    d.rectangle([28, FOOT_Y + 30, 36, FOOT_Y + 92], fill=GREEN)  # green marker block
+    d.text((52, FOOT_Y + 24), "THE POINT", font=mono_lbl, fill=GREEN)
+    d.text((52, FOOT_Y + 46),
+           "Same one-liner. The scaffolding a senior adds — named, so you don't have to remember to, every time.",
+           font=foot_f, fill=CREAM)
+    d.text((52, FOOT_Y + 82),
+           "It never invents the answer to “is this idempotent?” — it flags it. That refusal to guess is the point.",
+           font=foot_sf, fill=DIM)
+
+
+def scene(typed_cmd, n_rows, shown_bubbles, footer_text):
+    img = Image.new("RGB", (W, H), CANVAS)
     d = ImageDraw.Draw(img)
+    draw_title_band(d)
+    draw_footer(d, footer_text)
+    draw_terminal(d, typed_cmd, n_rows)
+    draw_bubbles(d, n_rows, shown_bubbles)
+    return img
 
-    # title
-    d.text((PADX, 22), "One line in. The prompt a senior would have written, out.",
-           font=font_title, fill=FG)
-    d.text((PADX, 52), "Same request. Every added line is a decision the one-liner left unstated - not padding.",
-           font=font_sm, fill=DIM)
 
-    # INPUT
-    y = top
-    tag = "YOU TYPE"
-    d.rounded_rectangle([PADX, y, PADX + font_sm.getlength(tag) + 18, y + 22], radius=6, fill=BLUE_TAG_BG)
-    d.text((PADX + 9, y + 3), tag, font=font_sm, fill=BLUE)
-    pre = "/promptsmith:sharpen "
-    d.text((PADX, y + 32), pre, font=font_b, fill=GREEN)
-    d.text((PADX + font.getlength(pre), y + 32), INPUT_CMD[len(pre):], font=font, fill=FG)
-
-    # OUTPUT tag
-    tag2 = "YOU GET BACK - a complete, review-ready prompt"
-    d.rounded_rectangle([PADX, body_start - 30, PADX + font_sm.getlength(tag2) + 18, body_start - 8],
-                        radius=6, fill=GREEN_TAG_BG)
-    d.text((PADX + 9, body_start - 27), tag2, font=font_sm, fill=GREEN)
-
-    paint_block(d, PADX, body_start)
-
-    # caption
-    cap_y = H - 58
-    d.text((PADX, cap_y), "Same one-liner. The invisible scaffolding a senior adds - named, so you don't have to",
-           font=font_sm, fill=DIM)
-    d.text((PADX, cap_y + 20), "remember to, every time. It never invents the answer to \"is this idempotent?\" - it flags it.",
-           font=font_sm, fill=DIM)
-    d.text((W - PADX - font_b.getlength("promptsmith"), cap_y + 10), "promptsmith", font=font_b, fill=BLUE)
-
-    out = r"C:\dev\promptsmith\docs\assets\proof-prompt-delta.png"
+def build_png():
+    img = scene(CMD, len(ROWS), set(range(len(ANNOTS))), True)
+    out = os.path.join(HERE, "proof-prompt-delta.png")
     img.save(out)
     print("PNG:", out, img.size)
-
-
-# ================================================================ ANIMATED GIF
-GW, GH = 1240, 620
-GPAD = 24
-
-
-def gbase():
-    img = Image.new("RGB", (GW, GH), BG)
-    d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, GW - 1, 34], fill=PANEL)
-    for i, c in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
-        d.ellipse([GPAD + i * 22, 12, GPAD + 12 + i * 22, 24], fill=c)
-    d.text((GW / 2, 17), "PowerShell", font=font, fill=DIM, anchor="mm")
-    return img, d
-
-
-def gframe(typed=None, cursor=False, intro=False, n_rows=0, annots_on=None, caption=False):
-    img, d = gbase()
-    y = 34 + GPAD
-    pre = "PS C:\\dev> "
-    d.text((GPAD, y), pre, font=font, fill=GREEN)
-    if typed is not None:
-        d.text((GPAD + font.getlength(pre), y), typed, font=font, fill=FG)
-        if cursor:
-            cx = GPAD + font.getlength(pre) + font.getlength(typed)
-            d.rectangle([cx, y, cx + 9, y + 16], fill=FG)
-    y += LINE_H
-    if intro:
-        y += 6
-        d.text((GPAD, y), "-> the prompt promptsmith hands back:", font=font, fill=DIM)
-        y += LINE_H + 4
-        paint_block(d, GPAD, y, n_rows=n_rows, annots_on=annots_on)
-    if caption:
-        cy = GH - 46
-        d.text((GPAD, cy), "Same one-liner. The scaffolding a senior adds, made explicit -",
-               font=font_sm, fill=GREEN)
-        d.text((GPAD, cy + 18), "and it flags what it can't know instead of guessing.",
-               font=font_sm, fill=GREEN)
-    return img
 
 
 def build_gif():
@@ -183,30 +209,22 @@ def build_gif():
         frames.append(img)
         durs.append(ms)
 
-    # Phase 1 — type the one-liner
     typed = ""
-    for ch in INPUT_CMD:
+    for ch in CMD:
         typed += ch
-        add(gframe(typed=typed, cursor=True), 20)
-    add(gframe(typed=typed, cursor=True), 650)
-
-    # Phase 2 — reveal the fleshed prompt, line by line
+        add(scene(typed, 0, set(), False), 20)
+    add(scene(CMD, 0, set(), False), 650)
     for n in range(1, len(ROWS) + 1):
-        add(gframe(typed=typed, intro=True, n_rows=n), 55)
-    add(gframe(typed=typed, intro=True, n_rows=len(ROWS)), 800)
+        add(scene(CMD, n, set(), False), 55)
+    add(scene(CMD, len(ROWS), set(), False), 700)
+    shown = set()
+    for idx in range(len(ANNOTS)):
+        shown = set(shown) | {idx}
+        add(scene(CMD, len(ROWS), set(shown), False), 110)
+        add(scene(CMD, len(ROWS), set(shown), False), 600)
+    add(scene(CMD, len(ROWS), set(range(len(ANNOTS))), True), 3200)
 
-    # Phase 3 — pop the margin annotations in, one at a time
-    annot_idxs = [i for i, r in enumerate(ROWS) if r[2]]
-    on = set()
-    for idx in annot_idxs:
-        on = set(on) | {idx}
-        add(gframe(typed=typed, intro=True, n_rows=len(ROWS), annots_on=set(on)), 90)
-        add(gframe(typed=typed, intro=True, n_rows=len(ROWS), annots_on=set(on)), 620)
-
-    # Phase 4 — caption, long hold
-    add(gframe(typed=typed, intro=True, n_rows=len(ROWS), annots_on=set(annot_idxs), caption=True), 3200)
-
-    out = r"C:\dev\promptsmith\docs\assets\proof-prompt-delta.gif"
+    out = os.path.join(HERE, "proof-prompt-delta.gif")
     frames[0].save(out, save_all=True, append_images=frames[1:], duration=durs, loop=0, optimize=True)
     print("GIF:", out, "frames:", len(frames))
 

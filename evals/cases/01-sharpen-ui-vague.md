@@ -1,7 +1,7 @@
 ---
 id: "01"
 route: sharpen
-command: /promptsmith:sharpen
+command: /guildproof:sharpen
 expected-lenses: [visual-design, ux-designer, accessibility]
 tests: gap-fill on a vague request, real push-back, lens auto-pick
 ---
@@ -9,7 +9,7 @@ tests: gap-fill on a vague request, real push-back, lens auto-pick
 ## Input
 
 ```
-/promptsmith:sharpen make the settings page nicer
+/guildproof:sharpen make the settings page nicer
 ```
 
 ## Must

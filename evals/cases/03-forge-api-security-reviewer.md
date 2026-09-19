@@ -1,7 +1,7 @@
 ---
 id: "03"
 route: forge
-command: /promptsmith:forge-agent
+command: /guildproof:forge-agent
 expected-lenses: [api-design, security-reviewer, skeptic]
 tests: forge durability, gallery seeding, voice + self-challenge + output contract
 ---
@@ -9,7 +9,7 @@ tests: forge durability, gallery seeding, voice + self-challenge + output contra
 ## Input
 
 ```
-/promptsmith:forge-agent an agent that reviews backend endpoints for security holes
+/guildproof:forge-agent an agent that reviews backend endpoints for security holes
 ```
 
 ## Must

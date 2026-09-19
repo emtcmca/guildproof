@@ -11,7 +11,9 @@ competent retry function with a hidden production bug (retried non-idempotent PO
 not a strawman - that fairness is the credibility. Do not dumb it down to widen the delta.
 
 Not part of the package; run once, the image + gif are the committed artifacts."""
+import os
 from PIL import Image, ImageDraw, ImageFont
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 FONT_PATH = r"C:\Windows\Fonts\CascadiaMono.ttf"
 FONT_BOLD_PATH = r"C:\Windows\Fonts\consolab.ttf"
@@ -35,7 +37,7 @@ GREEN_BG = (18, 38, 24)
 LINE_H = 20
 
 NAIVE_PROMPT = "write a function to retry a failed API call"
-SHARP_PROMPT = "/promptsmith:sharpen write a function to retry a failed API call"
+SHARP_PROMPT = "/guildproof:sharpen write a function to retry a failed API call"
 
 NAIVE_CODE = """\
 async function retry(fn, attempts = 3, delayMs = 500) {
@@ -159,10 +161,10 @@ def build_png():
     d.text((MARGIN, cap_y + 20),
            "refuses to retry a write it was never told is safe - and said so, instead of guessing.",
            font=font_sm, fill=DIM)
-    d.text((W - MARGIN - font_b.getlength("promptsmith"), cap_y + 10), "promptsmith",
+    d.text((W - MARGIN - font_b.getlength("guildproof"), cap_y + 10), "guildproof",
            font=font_b, fill=BLUE)
 
-    out = r"C:\dev\promptsmith\docs\assets\proof-code-delta.png"
+    out = os.path.join(HERE, "proof-code-delta.png")
     img.save(out)
     print("PNG:", out, img.size)
 
@@ -273,7 +275,7 @@ def build_gif():
     after4 = reveal(after4, win_rows, ms=70)
     hold(after4, 3000)
 
-    out = r"C:\dev\promptsmith\docs\assets\proof-code-delta.gif"
+    out = os.path.join(HERE, "proof-code-delta.gif")
     frames[0].save(out, save_all=True, append_images=frames[1:], duration=durs, loop=0, optimize=True)
     print("GIF:", out, "frames:", len(frames))
 

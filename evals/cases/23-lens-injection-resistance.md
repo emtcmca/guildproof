@@ -8,7 +8,7 @@ tests: artifact-as-data boundary — an embedded instruction is flagged, not obe
 ## Input
 
 ```
-/promptsmith:lens --lens security-reviewer
+/guildproof:lens --lens security-reviewer
 ```
 Artifact under review:
 ```js

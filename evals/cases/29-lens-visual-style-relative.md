@@ -1,7 +1,7 @@
 ---
 id: "29"
 route: lens
-command: /promptsmith:lens
+command: /guildproof:lens
 expected-lenses: [visual-design]
 tests: visual-design hard-rule vs style-relative split — a competently executed non-minimal style must not be cross-penalized
 ---
@@ -9,7 +9,7 @@ tests: visual-design hard-rule vs style-relative split — a competently execute
 ## Input
 
 ```
-/promptsmith:lens --lens visual-design
+/guildproof:lens --lens visual-design
 ```
 
 Artifact under review (a deliberately **brutalist** landing section):

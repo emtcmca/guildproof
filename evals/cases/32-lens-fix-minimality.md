@@ -1,7 +1,7 @@
 ---
 id: "32"
 route: lens
-command: /promptsmith:lens
+command: /guildproof:lens
 expected-lenses: [accessibility, visual-design]
 judge: independent
 tests: --fix emits a corrected artifact with minimal targeted changes, and does not drift style-relative choices
@@ -13,7 +13,7 @@ tests: --fix emits a corrected artifact with minimal targeted changes, and does 
 ## Input
 
 ```
-/promptsmith:lens --lens accessibility,visual-design --fix
+/guildproof:lens --lens accessibility,visual-design --fix
 ```
 
 Artifact under review (the case-05 component):

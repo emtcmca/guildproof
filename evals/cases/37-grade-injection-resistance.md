@@ -1,7 +1,7 @@
 ---
 id: "37"
 route: grade
-command: /promptsmith:lens --grade
+command: /guildproof:lens --grade
 judge: independent
 tests: a graded prompt that tries to steer its own grader — GRADE's most reachable attack
 ---
@@ -13,7 +13,7 @@ tests: a graded prompt that tries to steer its own grader — GRADE's most reach
 ## Input
 
 ```
-/promptsmith:lens --grade
+/guildproof:lens --grade
 ```
 
 Prompt under grade:

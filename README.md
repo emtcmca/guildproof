@@ -1,14 +1,14 @@
-# promptsmith
+# guildproof
 
 **Prompt & context engineering for agents — as a Claude Code plugin.**
 
-![`/promptsmith:sharpen` turning a one-line request into a full prompt, in a live terminal run](docs/assets/sharpen-demo.gif)
+![`/guildproof:sharpen` turning a one-line request into a full prompt, in a live terminal run](docs/assets/sharpen-demo.gif)
 
 You already know the move: a rough request gets *far* better results once you've spelled out
 the tone you wanted, the constraints you forgot to state, the edge cases you didn't think of,
 and asked the agent to push back on you and review the work like a seasoned professional.
 
-`promptsmith` makes that scaffolding a command instead of something you retype every time.
+`guildproof` makes that scaffolding a command instead of something you retype every time.
 
 - **No dependencies. No API keys. No model calls.** It's pure method + structure. Your agent
   (Claude Code, or anything you paste the output into) does the reasoning. Model-agnostic by
@@ -17,7 +17,7 @@ and asked the agent to push back on you and review the work like a seasoned prof
   you can extend, and a 20-agent specialist gallery.
 - **Not on Claude Code?** Thirteen of these ship as host-agnostic skills you can install into
   Codex, Copilot, or anything else that reads `SKILL.md` —
-  `npx skills add emtcmca/promptsmith-skills`. See [Option C](#option-c--any-other-agent).
+  `npx skills add emtcmca/guildproof-skills`. See [Option C](#option-c--any-other-agent).
 
 ---
 
@@ -26,7 +26,7 @@ and asked the agent to push back on you and review the work like a seasoned prof
 Because there is no runtime, you can run a piece of this by hand right now — no install, no
 plugin, no API key, in whatever chat you already have open.
 
-**1.** Open **[`agents/debugger.md`](https://raw.githubusercontent.com/emtcmca/promptsmith/main/agents/debugger.md)** and copy the whole file. It's one self-contained file, about 60 lines.
+**1.** Open **[`agents/debugger.md`](https://raw.githubusercontent.com/emtcmca/guildproof/main/agents/debugger.md)** and copy the whole file. It's one self-contained file, about 60 lines.
 
 **2.** Paste it as the **first message** in a new conversation with any capable model.
 
@@ -118,7 +118,7 @@ had to make, and offers a `--deep` interview to resolve them one question at a t
 
 **Layer 1 — sharpen a vague ask:**
 ```
-/promptsmith:sharpen make the settings page feel calmer and more trustworthy
+/guildproof:sharpen make the settings page feel calmer and more trustworthy
 ```
 → a copy-pasteable prompt with the tone adjectives *named* (calm, ordered, trustworthy), the
 accessibility/UX/visual lenses folded into the requirements, guardrails from a red-team pass, and
@@ -129,7 +129,7 @@ the assumptions it made, the push-back worth hearing, and the open questions.
 needs a schema *and* an API *and* a security pass *and* tests to agree with each other. That's the
 signal to reach for the coordinator — not a first move, an escalation:
 ```
-/promptsmith:orchestrate add public read-only shareable links to user dashboards
+/guildproof:orchestrate add public read-only shareable links to user dashboards
 ```
 What happens (the proven flow — from a live run of 7 specialists plus 1 independent verifier,
 8 agents in total, logged in `evals/runs/`):
@@ -155,7 +155,7 @@ What happens (the proven flow — from a live run of 7 specialists plus 1 indepe
 
 The value a skilled person adds to a prompt is invisible scaffolding — the tone they wanted, the
 constraints they forgot to state, the edge cases they didn't think of, the push-back they need to
-hear. promptsmith makes that scaffolding explicit, repeatable, and auditable — the two runs above
+hear. guildproof makes that scaffolding explicit, repeatable, and auditable — the two runs above
 are what that looks like end to end, not a claim to take on faith.
 
 The two-layer split is deliberate. Layer 1 (`/sharpen`, `/forge-agent`, `/lens`) stays portable:
@@ -172,18 +172,18 @@ with evals, logged in `evals/runs/`.
 ### Option A — as a plugin (recommended)
 
 ```
-/plugin marketplace add emtcmca/promptsmith
-/plugin install promptsmith
+/plugin marketplace add emtcmca/guildproof
+/plugin install guildproof
 ```
 
 (For local development against a clone, add the working copy instead:
-`/plugin marketplace add C:\Dev\promptsmith`.)
+`/plugin marketplace add /path/to/your/guildproof-clone`.)
 
 Verify, in order:
 
-1. Type `/promptsmith` and confirm all four autocomplete — `/promptsmith:sharpen`,
-   `/promptsmith:forge-agent`, `/promptsmith:lens`, `/promptsmith:orchestrate`.
-2. Run `/promptsmith:lens --lens skeptic` on any short paragraph. If it reports running the
+1. Type `/guildproof` and confirm all four autocomplete — `/guildproof:sharpen`,
+   `/guildproof:forge-agent`, `/guildproof:lens`, `/guildproof:orchestrate`.
+2. Run `/guildproof:lens --lens skeptic` on any short paragraph. If it reports running the
    `skeptic` lens, the bundled lens library resolved correctly — that is the check that
    actually proves the install, not the autocomplete.
 
@@ -195,9 +195,9 @@ Copy four things into your `~/.claude/` directory (Windows: `C:\Users\<you>\.cla
 |---|---|---|
 | `commands/` | `~/.claude/commands/` | the four commands |
 | `skills/` | `~/.claude/skills/` | the engine + coordinator |
-| `lenses/` | `~/.claude/promptsmith-lenses/` | the lens pass |
-| `templates/` | `~/.claude/promptsmith-templates/` | `/sharpen`, `/forge-agent`, `/lens --grade` output |
-| `agents/` | `~/.claude/promptsmith-agents/` | gallery seeding + `/orchestrate` routing |
+| `lenses/` | `~/.claude/guildproof-lenses/` | the lens pass |
+| `templates/` | `~/.claude/guildproof-templates/` | `/sharpen`, `/forge-agent`, `/lens --grade` output |
+| `agents/` | `~/.claude/guildproof-agents/` | gallery seeding + `/orchestrate` routing |
 
 Installed this way the commands are bare — `/sharpen`, `/forge-agent`, `/lens`, `/orchestrate` —
 because standalone commands aren't namespaced.
@@ -212,7 +212,7 @@ The commands and the orchestrator are Claude Code features, but the prompts unde
 Thirteen of them are published as plain skills:
 
 ```bash
-npx skills add emtcmca/promptsmith-skills
+npx skills add emtcmca/guildproof-skills
 ```
 
 That installs the engine (`prompt-engineering`) plus twelve specialists from the gallery into
@@ -223,26 +223,26 @@ plugin-bundled gallery and cannot run from a plain skills install), and eight of
 gallery agents that were left out of the mirror. What you keep: the same prompt bodies, generated
 from this repo and stamped with the commit they came from.
 
-Source and provenance: [emtcmca/promptsmith-skills](https://github.com/emtcmca/promptsmith-skills).
+Source and provenance: [emtcmca/guildproof-skills](https://github.com/emtcmca/guildproof-skills).
 
 ### Uninstall
 
 If you installed as a plugin (Option A):
 
 ```
-/plugin uninstall promptsmith
-/plugin marketplace remove emtcmca/promptsmith
+/plugin uninstall guildproof
+/plugin marketplace remove emtcmca/guildproof
 ```
 
 If you installed manually (Option B), delete what you copied:
 
 - `~/.claude/commands/sharpen.md`, `forge-agent.md`, `lens.md`, `orchestrate.md`
 - `~/.claude/skills/prompt-engineering/` and `~/.claude/skills/orchestration/`
-- `~/.claude/promptsmith-lenses/`, `~/.claude/promptsmith-templates/`,
-  `~/.claude/promptsmith-agents/`
+- `~/.claude/guildproof-lenses/`, `~/.claude/guildproof-templates/`,
+  `~/.claude/guildproof-agents/`
 
-That's the full footprint. promptsmith writes exactly one file on its own, and only after asking:
-`~/.claude/promptsmith-coverage-gaps.md`, the log `/orchestrate` appends to when a request slice
+That's the full footprint. guildproof writes exactly one file on its own, and only after asking:
+`~/.claude/guildproof-coverage-gaps.md`, the log `/orchestrate` appends to when a request slice
 falls outside every agent's purview. Delete it too if you created one. Nothing else is written
 and no state is left behind.
 
@@ -251,16 +251,16 @@ and no state is left behind.
 ## Usage
 
 > **Command names are namespaced.** Installed as a plugin (Option A), the commands are
-> `/promptsmith:sharpen`, `/promptsmith:forge-agent`, `/promptsmith:lens`, and
-> `/promptsmith:orchestrate` — type
-> `/promptsmith` to autocomplete them. Claude Code namespaces every plugin command to avoid
+> `/guildproof:sharpen`, `/guildproof:forge-agent`, `/guildproof:lens`, and
+> `/guildproof:orchestrate` — type
+> `/guildproof` to autocomplete them. Claude Code namespaces every plugin command to avoid
 > collisions; bare `/sharpen` exists only with the manual/standalone install (Option B).
 > The examples below use the namespaced form.
 
 ### Sharpen a request
 
 ```
-/promptsmith:sharpen update the dashboard to feel calmer and more authoritative
+/guildproof:sharpen update the dashboard to feel calmer and more authoritative
 ```
 
 You get a copy-pasteable prompt block (role, objective, requirements with the *named* tone
@@ -270,19 +270,19 @@ then the assumptions it made, the push-back worth hearing, and open questions.
 Force specific lenses:
 
 ```
-/promptsmith:sharpen redesign the signup form --lens ux-designer,accessibility
+/guildproof:sharpen redesign the signup form --lens ux-designer,accessibility
 ```
 
 Go deep (interview instead of assume):
 
 ```
-/promptsmith:sharpen draft a violation notice for an unresolved fence dispute --deep
+/guildproof:sharpen draft a violation notice for an unresolved fence dispute --deep
 ```
 
 ### Forge a reusable agent
 
 ```
-/promptsmith:forge-agent a reviewer that critiques HOA letters for tone and compliance
+/guildproof:forge-agent a reviewer that critiques HOA letters for tone and compliance
 ```
 
 Returns a full system prompt — role, objective, standing operating principles (with the
@@ -292,31 +292,31 @@ contract — ready to drop into a subagent, a skill, or any system-prompt field.
 ### Review through a lens
 
 ```
-/promptsmith:lens (paste a component, prompt, or draft) --lens visual-design,accessibility
+/guildproof:lens (paste a component, prompt, or draft) --lens visual-design,accessibility
 ```
 
 Returns findings (✅ checked / ⚠️ weak / ❌ failing) per lens, worst-first, plus the top 3
 fixes by impact. Add `--fix` to get a corrected version in the same run:
 
 ```
-/promptsmith:lens (paste a component, prompt, or draft) --lens accessibility --fix
+/guildproof:lens (paste a component, prompt, or draft) --lens accessibility --fix
 ```
 
 ### Grade a prompt — `/lens --grade`
 
 ```
-/promptsmith:lens (paste a system prompt) --grade
+/guildproof:lens (paste a system prompt) --grade
 ```
 
 Returns a **scored verdict** — PASS / WEAK / FAIL — with the nine concerns a complete prompt
 resolves marked ✅/⚠️/❌, an adversarial quality pass, and the 2–3 fixes that raise the score most.
 It grades *coverage, not conformance*: a prompt that resolves a concern in one fluent sentence
-passes, and is never docked for failing to look like promptsmith output.
+passes, and is never docked for failing to look like guildproof output.
 
 Then compare versions and catch what you broke:
 
 ```
-/promptsmith:lens (paste the revision) --grade --against (paste the original)
+/guildproof:lens (paste the revision) --grade --against (paste the original)
 ```
 
 Per-dimension deltas, with **regressions called out even when the revision wins overall** — the
@@ -324,7 +324,7 @@ thing a one-shot rewrite hides, and the reason to measure instead of eyeballing.
 
 Plain `/lens` gives you findings; `--grade` gives you a measurement, which is what makes two
 versions comparable. Same command, one flag — this is the score → change → re-score →
-keep-only-what-didn't-regress loop promptsmith runs on itself in `evals/`, pointed at your prompts.
+keep-only-what-didn't-regress loop guildproof runs on itself in `evals/`, pointed at your prompts.
 
 ---
 
@@ -352,8 +352,8 @@ A lens is a professional's checklist in a markdown file. The 12 built-in lenses:
 Drop a markdown file into either of these — they're loaded automatically and override
 built-ins of the same name:
 
-- `~/.claude/promptsmith-lenses/` — available everywhere
-- `./.promptsmith-lenses/` — specific to one project
+- `~/.claude/guildproof-lenses/` — available everywhere
+- `./.guildproof-lenses/` — specific to one project
 
 Format:
 
@@ -368,7 +368,7 @@ applies-to: comma, separated, topics, that, auto-select, this, lens
 - Another check. Keep them concrete and answerable.
 ```
 
-Then: `/promptsmith:sharpen ... --lens my-lens` (or let auto-select pick it up by topic).
+Then: `/guildproof:sharpen ... --lens my-lens` (or let auto-select pick it up by topic).
 
 ---
 
@@ -377,7 +377,7 @@ Then: `/promptsmith:sharpen ... --lens my-lens` (or let auto-select pick it up b
 The common `/sharpen` *out-of-scope* items (new features, copywriting, performance,
 backend/API, SEO) are exactly the jobs a single task agent should refuse but a user often
 needs next. The `agents/` gallery holds ready-to-paste **specialist system prompts** for
-them — the kind `/promptsmith:forge-agent` produces, saved so you don't rebuild them cold.
+them — the kind `/guildproof:forge-agent` produces, saved so you don't rebuild them cold.
 
 A roster of 20 specialists across spec → plan → build → test → review → document:
 
@@ -386,13 +386,13 @@ A roster of 20 specialists across spec → plan → build → test → review �
 - **Write:** `copy-rewrite`, `docs-writer`, `sop-writer`, `governance-letter`
 - **Meta:** `research-synthesizer`, `prompt-engineer`, `mcp-integrator`
 
-Each carries a named **voice** so it speaks in character at injection. `/promptsmith:forge-agent`
+Each carries a named **voice** so it speaks in character at injection. `/guildproof:forge-agent`
 checks this gallery first and **adapts** a close match instead of starting cold. Forge your
 own, then drop it in `agents/` to grow the roster. Full list + format in
 [`docs/agent-gallery.md`](docs/agent-gallery.md).
 
 > The gallery is also the dispatch roster for the **orchestration layer** (`/orchestrate`,
-> shipped — see the live run above): promptsmith as a coordinator that sharpens a prompt,
+> shipped — see the live run above): guildproof as a coordinator that sharpens a prompt,
 > dispatches the right specialists, and assembles their work. That layer is Claude-Code-native;
 > the core three commands stay zero-call and paste-anywhere. See [`ROADMAP.md`](ROADMAP.md).
 
@@ -417,7 +417,7 @@ reasoning. That's what makes it model-agnostic and zero-cost.
 ## Repo layout
 
 ```
-promptsmith/
+guildproof/
   .claude-plugin/      plugin.json + marketplace.json (install metadata)
   commands/            /sharpen, /forge-agent, /lens, /orchestrate
   skills/
@@ -435,7 +435,7 @@ promptsmith/
 
 ## Docs
 
-- [USING-PROMPTSMITH.md](docs/USING-PROMPTSMITH.md) — the full how-to (human or agent): install,
+- [USING-GUILDPROOF.md](docs/USING-GUILDPROOF.md) — the full how-to (human or agent): install,
   command chooser, every command, lenses, the gallery, orchestration, the eval harness.
 - [COMMAND-SHEET.md](docs/COMMAND-SHEET.md) — one-page reference: commands, flags, lenses, gallery,
   recipes.

@@ -1,7 +1,7 @@
 ---
 id: "04"
 route: forge
-command: /promptsmith:forge-agent
+command: /guildproof:forge-agent
 expected-lenses: [editorial, skeptic]
 tests: forge in a writing domain, voice specificity, faithfulness guardrail
 ---
@@ -9,7 +9,7 @@ tests: forge in a writing domain, voice specificity, faithfulness guardrail
 ## Input
 
 ```
-/promptsmith:forge-agent an assistant that writes customer onboarding emails in our brand voice
+/guildproof:forge-agent an assistant that writes customer onboarding emails in our brand voice
 ```
 
 ## Must

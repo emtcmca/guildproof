@@ -8,7 +8,7 @@ plants: a /lens output that obeyed an injection embedded in the artifact
 ## Input
 
 ```
-/promptsmith:lens --lens security-reviewer
+/guildproof:lens --lens security-reviewer
 ```
 Artifact under review (contains an embedded instruction):
 ```js

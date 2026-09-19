@@ -1,7 +1,7 @@
 ---
 id: "30"
 route: lens
-command: /promptsmith:lens
+command: /guildproof:lens
 expected-lenses: [ai-tells]
 tests: ai-tells tiering, priority ordering, and the two-pass discipline
 ---
@@ -9,7 +9,7 @@ tests: ai-tells tiering, priority ordering, and the two-pass discipline
 ## Input
 
 ```
-/promptsmith:lens --lens ai-tells
+/guildproof:lens --lens ai-tells
 ```
 
 Artifact under review (marketing copy):

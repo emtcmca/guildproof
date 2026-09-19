@@ -1,6 +1,6 @@
 # Contributing
 
-promptsmith is prompts, not code. That changes what a good contribution looks like: the
+guildproof is prompts, not code. That changes what a good contribution looks like: the
 highest-value thing you can send is **a real bad output**, because it can become a test case.
 
 ## The most useful contribution
@@ -18,8 +18,8 @@ defect you hit is how it stops missing that one.
 | You want to change | Where |
 |---|---|
 | A command, agent, lens, or template | here, in this repo |
-| The skills published for non-Claude-Code agents | here — [promptsmith-skills](https://github.com/emtcmca/promptsmith-skills) is generated from this repo and never hand-edited |
-| Install or packaging for `npx skills add` | [promptsmith-skills](https://github.com/emtcmca/promptsmith-skills/issues) |
+| The skills published for non-Claude-Code agents | here — [guildproof-skills](https://github.com/emtcmca/guildproof-skills) is generated from this repo and never hand-edited |
+| Install or packaging for `npx skills add` | [guildproof-skills](https://github.com/emtcmca/guildproof-skills/issues) |
 
 A fix made directly in the mirror is overwritten the next time it regenerates, and its CI fails
 on the drift in the meantime. Fix the prompt here and the mirror picks it up.
@@ -27,7 +27,7 @@ on the drift in the meantime. Fix the prompt here and the mirror picks it up.
 ## Adding a lens
 
 You do not need a fork or a PR to use your own lens — drop a markdown file in
-`~/.claude/promptsmith-lenses/` and `/lens` will find it. See "Add your own lens" in the README.
+`~/.claude/guildproof-lenses/` and `/lens` will find it. See "Add your own lens" in the README.
 
 Send a PR only if the lens is general enough that a stranger would want it. A lens that encodes
 one team's house style is a local file, not a repo change.

@@ -1,14 +1,14 @@
 ---
 id: "36"
 route: grade
-command: /promptsmith:lens --grade
+command: /guildproof:lens --grade
 tests: --against comparison — per-dimension deltas, and naming a regression even when the revision wins overall
 ---
 
 ## Input
 
 ```
-/promptsmith:lens --grade --against
+/guildproof:lens --grade --against
 ```
 
 **Version B (the revision, under grade):**

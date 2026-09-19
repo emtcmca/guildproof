@@ -1,8 +1,8 @@
-# Using promptsmith
+# Using guildproof
 
-A practical sheet for a new user — human or agent — to get value out of promptsmith fast.
+A practical sheet for a new user — human or agent — to get value out of guildproof fast.
 
-promptsmith is prompt & context engineering delivered as a Claude Code plugin, in **two layers**:
+guildproof is prompt & context engineering delivered as a Claude Code plugin, in **two layers**:
 
 - **Layer 1 (core)** — zero model calls, model-agnostic, paste-anywhere. Three commands that
   turn rough input into sharp output: `/sharpen`, `/forge-agent`, `/lens`.
@@ -16,14 +16,14 @@ promptsmith is prompt & context engineering delivered as a Claude Code plugin, i
 
 **As a plugin (recommended):**
 ```
-/plugin marketplace add emtcmca/promptsmith
-/plugin install promptsmith
+/plugin marketplace add emtcmca/guildproof
+/plugin install guildproof
 ```
-Verify: type `/promptsmith` — `/promptsmith:sharpen`, `:forge-agent`, `:lens`, `:orchestrate`
+Verify: type `/guildproof` — `/guildproof:sharpen`, `:forge-agent`, `:lens`, `:orchestrate`
 should autocomplete. (Plugin commands are namespaced — bare `/sharpen` only exists with the
 manual/standalone install in the README.)
 
-Then run `/promptsmith:lens --lens skeptic` on any short paragraph. If it reports running the
+Then run `/guildproof:lens --lens skeptic` on any short paragraph. If it reports running the
 `skeptic` lens, the bundled lens library resolved correctly. Autocomplete alone doesn't prove the
 install — the commands can load while the files they read don't.
 
@@ -33,11 +33,11 @@ install — the commands can load while the files they read don't.
 
 | You have… | Use | You get back |
 |---|---|---|
-| a rough one-off task | `/promptsmith:sharpen` | a complete, gap-filled, reviewed **prompt** |
-| an assistant you want to reuse | `/promptsmith:forge-agent` | a durable **system prompt** |
-| something to critique (code, prompt, UI, draft) | `/promptsmith:lens` | **findings**, worst-first |
-| a prompt to *score* (or two to compare) | `/promptsmith:lens --grade` | a **scored verdict** + top fixes |
-| a multi-domain build/task | `/promptsmith:orchestrate` | **one synthesized deliverable** |
+| a rough one-off task | `/guildproof:sharpen` | a complete, gap-filled, reviewed **prompt** |
+| an assistant you want to reuse | `/guildproof:forge-agent` | a durable **system prompt** |
+| something to critique (code, prompt, UI, draft) | `/guildproof:lens` | **findings**, worst-first |
+| a prompt to *score* (or two to compare) | `/guildproof:lens --grade` | a **scored verdict** + top fixes |
+| a multi-domain build/task | `/guildproof:orchestrate` | **one synthesized deliverable** |
 
 Rule of thumb: one domain → a core command (or one gallery agent). More than one domain that
 must end as a single coherent result → `/orchestrate`.
@@ -46,51 +46,51 @@ must end as a single coherent result → `/orchestrate`.
 
 ## 3. The core commands
 
-### `/promptsmith:sharpen <rough request>`
+### `/guildproof:sharpen <rough request>`
 Turns a vague ask into an executable prompt: role, objective, context, requirements (with the
 tone adjectives named), guardrails from a red-team pass, success criteria, output format, and
 out-of-scope — then the assumptions it made, the push-back worth hearing, and open questions.
 ```
-/promptsmith:sharpen make the settings page feel calmer and more trustworthy
-/promptsmith:sharpen draft a violation notice for a fence dispute --lens editorial --deep
+/guildproof:sharpen make the settings page feel calmer and more trustworthy
+/guildproof:sharpen draft a violation notice for a fence dispute --lens editorial --deep
 ```
 - `--lens a,b` — force specific lenses (else it auto-picks by topic).
 - `--deep` — interview you one question at a time instead of assuming.
 
-### `/promptsmith:forge-agent <description>`
+### `/guildproof:forge-agent <description>`
 Turns "an agent that reviews HOA letters for tone" into a complete, reusable system prompt —
 role, a named **voice**, operating principles, method (with a baked-in self-challenge step),
 guardrails, and an output contract. It seeds from the gallery when a close match exists and
 states what it adapted from.
 ```
-/promptsmith:forge-agent a reviewer that critiques API endpoints for security holes
+/guildproof:forge-agent a reviewer that critiques API endpoints for security holes
 ```
 
-### `/promptsmith:lens <artifact> [--lens a,b] [--fix]`
+### `/guildproof:lens <artifact> [--lens a,b] [--fix]`
 Reviews an existing prompt/page/component/draft through expert lenses and returns findings
 (✅ checked / ⚠️ weak / ❌ failing), worst-first, with the top-3 fixes. By default it critiques
 and does not rewrite. Add `--fix` and it emits a corrected version of the artifact in its own
 form — prose stays prose, code stays code, a prompt comes back sharpened — making the minimal
 targeted change that resolves each finding.
 ```
-/promptsmith:lens (paste a React component) --lens accessibility,visual-design
-/promptsmith:lens (paste a React component) --lens accessibility --fix
+/guildproof:lens (paste a React component) --lens accessibility,visual-design
+/guildproof:lens (paste a React component) --lens accessibility --fix
 ```
 
-### `/promptsmith:lens <prompt> --grade [--against <v2>] [--rubric a,b]`
+### `/guildproof:lens <prompt> --grade [--against <v2>] [--rubric a,b]`
 The same command, in **grade mode**: instead of lens findings it *scores a prompt* — a PASS /
 WEAK / FAIL verdict, the nine concerns a complete prompt resolves marked ✅/⚠️/❌, an adversarial
 quality pass, and the 2–3 fixes that raise the score most. It grades **coverage, not
 conformance** — a prompt that resolves a concern in one fluent sentence passes, and is never
-penalized for not looking like promptsmith output.
+penalized for not looking like guildproof output.
 
 `--against` scores two versions on the same rubric and reports per-dimension deltas, **naming any
 dimension that regressed even when the revision wins overall**. That is what eyeballing a rewrite
 misses, and it's the same score → change → re-score → keep-only-what-didn't-regress loop the
 project runs on itself in `evals/`.
 ```
-/promptsmith:lens (paste a system prompt) --grade
-/promptsmith:lens (paste the revision) --grade --against (paste the original)
+/guildproof:lens (paste a system prompt) --grade
+/guildproof:lens (paste the revision) --grade --against (paste the original)
 ```
 
 **Plain `/lens` vs `/lens --grade`:** default `/lens` answers *what's wrong with this?* through a
@@ -108,7 +108,7 @@ A lens is a professional's checklist in a markdown file. The 12 built-ins: `visu
 default).
 
 **Add your own** (no fork): drop a markdown file with `name:` + `applies-to:` frontmatter into
-`~/.claude/promptsmith-lenses/` (everywhere) or `./.promptsmith-lenses/` (one project). It's
+`~/.claude/guildproof-lenses/` (everywhere) or `./.guildproof-lenses/` (one project). It's
 auto-loaded and selectable by `--lens <name>` or by topic.
 
 ---
@@ -131,7 +131,7 @@ Forge a new one with `/forge-agent` and drop it in `agents/` to grow the roster.
 
 ---
 
-## 6. Orchestration — `/promptsmith:orchestrate <multi-domain request>`
+## 6. Orchestration — `/guildproof:orchestrate <multi-domain request>`
 
 For work that spans several specialists. The coordinator:
 1. **Gates** — declines if it's really single-domain (routes you to one command instead).
@@ -144,7 +144,7 @@ For work that spans several specialists. The coordinator:
 6. **Synthesizes** one coherent deliverable — not a pile of agent outputs.
 
 ```
-/promptsmith:orchestrate add public read-only shareable links to user dashboards
+/guildproof:orchestrate add public read-only shareable links to user dashboards
 ```
 - **Smart approval gate:** small/low-risk plans (≤3 agents) auto-run; larger ones pause for your
   approval first. `--gate` forces the pause; `--no-gate` runs autonomously; `--dry` shows the
@@ -155,9 +155,9 @@ coverage gaps, and what each agent contributed.
 
 ---
 
-## 7. For agents using promptsmith
+## 7. For agents using guildproof
 
-- Invoke a command via the Skill tool with the namespaced name (e.g. `promptsmith:sharpen`),
+- Invoke a command via the Skill tool with the namespaced name (e.g. `guildproof:sharpen`),
   passing the request as args.
 - The engines are plain method + structure (`skills/prompt-engineering/SKILL.md` for Layer 1,
   `skills/orchestration/SKILL.md` for Layer 2) — an agent can read and run them directly.
@@ -169,7 +169,7 @@ coverage gaps, and what each agent contributed.
 ## 8. Testing & refining (the eval harness)
 
 `evals/` is a host-judged harness: structural invariants + an adversarial skeptic rubric over 27
-cases. Run it by saying **"run the promptsmith evals"** (all) or **"run eval case 17"** (one).
+cases. Run it by saying **"run the guildproof evals"** (all) or **"run eval case 17"** (one).
 It writes a dated scorecard to `evals/runs/`. To refine: change a lens/engine/agent, re-run the
 same cases, diff the scorecards, keep only non-regressing improvements.
 
@@ -177,7 +177,7 @@ same cases, diff the scorecards, keep only non-regressing improvements.
 
 ## Quick start (60 seconds)
 
-1. `/plugin marketplace add emtcmca/promptsmith` → `/plugin install promptsmith`
-2. `/promptsmith:sharpen <your vaguest current task>` — see it filled in.
-3. Multi-part task? `/promptsmith:orchestrate <it>` and watch it decompose.
-4. Want a reusable assistant? `/promptsmith:forge-agent <what it should do>`.
+1. `/plugin marketplace add emtcmca/guildproof` → `/plugin install guildproof`
+2. `/guildproof:sharpen <your vaguest current task>` — see it filled in.
+3. Multi-part task? `/guildproof:orchestrate <it>` and watch it decompose.
+4. Want a reusable assistant? `/guildproof:forge-agent <what it should do>`.

@@ -1,5 +1,5 @@
 {
-  "name": "promptsmith",
+  "name": "guildproof",
   "owner": {
     "name": "Eric Tetzlaff"
   },
@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "promptsmith",
+      "name": "guildproof",
       "source": "./",
       "description": "Sharpen rough requests into complete prompts, author reusable agent system prompts, and review drafts through built-in and custom expert lenses."
     }

@@ -1,7 +1,7 @@
-# promptsmith eval runner — protocol
+# guildproof eval runner — protocol
 
 The host (Claude Code) follows this to run and score cases. No external infra, no API keys —
-the host both runs and judges, matching promptsmith's zero-call ethos.
+the host both runs and judges, matching guildproof's zero-call ethos.
 
 ## Inputs
 

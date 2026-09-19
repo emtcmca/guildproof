@@ -1,9 +1,9 @@
 blank_issues_enabled: true
 contact_links:
   - name: Installing into an agent that is not Claude Code
-    url: https://github.com/emtcmca/promptsmith-skills
+    url: https://github.com/emtcmca/guildproof-skills
     about: >-
       The commands and /orchestrate are Claude Code features. Thirteen of these prompts
       ship as host-agnostic skills for Codex, Copilot, Cursor, and anything else that
-      reads SKILL.md -- npx skills add emtcmca/promptsmith-skills. Install and packaging
-      issues for that path belong in the promptsmith-skills repo.
+      reads SKILL.md -- npx skills add emtcmca/guildproof-skills. Install and packaging
+      issues for that path belong in the guildproof-skills repo.

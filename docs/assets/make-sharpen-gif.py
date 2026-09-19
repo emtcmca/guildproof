@@ -1,7 +1,9 @@
-"""One-off generator for docs/assets/sharpen-demo.gif — a real /promptsmith:sharpen run,
+"""One-off generator for docs/assets/sharpen-demo.gif — a real /guildproof:sharpen run,
 typed out terminal-style. Not part of the package; run once, gif is the committed artifact."""
+import os
 import textwrap
 from PIL import Image, ImageDraw, ImageFont
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 FONT_PATH = r"C:\Windows\Fonts\CascadiaMono.ttf"
 FONT_BOLD_PATH = r"C:\Windows\Fonts\consolab.ttf"
@@ -19,7 +21,7 @@ LINE_H = 20
 font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
 font_bold = ImageFont.truetype(FONT_BOLD_PATH, FONT_SIZE)
 
-PROMPT = "/promptsmith:sharpen update the settings page to feel calmer and more trustworthy"
+PROMPT = "/guildproof:sharpen update the settings page to feel calmer and more trustworthy"
 
 BODY = """\
 ```
@@ -89,8 +91,8 @@ def render(lines, cursor=False):
         color = FG
         f = font
         if kind == "prompt":
-            d.text((PAD, y), "PS C:\\dev\\promptsmith>", font=font, fill=GREEN)
-            offset = font.getlength("PS C:\\dev\\promptsmith> ")
+            d.text((PAD, y), "PS C:\\dev\\guildproof>", font=font, fill=GREEN)
+            offset = font.getlength("PS C:\\dev\\guildproof> ")
             d.text((PAD + offset, y), text, font=font, fill=FG)
             y += LINE_H
             continue
@@ -139,7 +141,7 @@ frames.append(render(shown))
 durations.append(2500)
 
 frames[0].save(
-    r"C:\dev\promptsmith\docs\assets\sharpen-demo.gif",
+    os.path.join(HERE, "sharpen-demo.gif"),
     save_all=True,
     append_images=frames[1:],
     duration=durations,

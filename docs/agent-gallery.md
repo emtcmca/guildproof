@@ -1,6 +1,6 @@
 # Pre-forged agent gallery
 
-Ready-to-paste specialist **system prompts** — the kind `/promptsmith:forge-agent` produces,
+Ready-to-paste specialist **system prompts** — the kind `/guildproof:forge-agent` produces,
 saved so you don't rebuild them cold each time.
 
 Each file is a complete agent: paste its body into a Claude Code subagent, a `SKILL.md`, a
@@ -35,7 +35,7 @@ are exactly the jobs a single task agent should refuse but a user often needs ne
 
 ## How `/forge-agent` uses this
 
-Before building an agent from scratch, `/promptsmith:forge-agent` checks this gallery for a
+Before building an agent from scratch, `/guildproof:forge-agent` checks this gallery for a
 close match. If one exists, it **adapts** that agent to your description (swapping domain,
 tone, and lenses) instead of starting cold — faster, and consistent in shape. If nothing
 matches, it forges fresh and you can drop the result here to grow the gallery.
@@ -70,7 +70,7 @@ Everything below the frontmatter is the paste-ready system prompt. Keep them dur
 the same standard `/forge-agent` holds.
 
 **`description` is not optional and not decorative.** It is the only frontmatter field the host
-uses to *auto-select* an agent by task context — `role`, `voice`, and `lenses` are promptsmith's
+uses to *auto-select* an agent by task context — `role`, `voice`, and `lenses` are guildproof's
 own schema, which the host ignores. An agent shipped without a `description` still loads, but it
 renders as an unlabeled entry the host cannot match to a task, so it is reachable only if
 something names it explicitly. Write it as *what it does*, then *when to invoke it*.
@@ -82,10 +82,10 @@ enforce in 100% of agents; a hand-added agent must carry them too.
 
 ## Add your own
 
-Forge one with `/promptsmith:forge-agent ...`, then save the System Prompt block as
-`~/.claude/promptsmith-agents/<name>.md`, using the frontmatter above. It becomes a seed for
+Forge one with `/guildproof:forge-agent ...`, then save the System Prompt block as
+`~/.claude/guildproof-agents/<name>.md`, using the frontmatter above. It becomes a seed for
 future forges.
 
 Save it **there**, not in the plugin's own `agents/` directory: a plugin install lives in a cache
 directory that is wiped on every update, so an agent saved inside it disappears the next time
-promptsmith updates. `~/.claude/` survives.
+guildproof updates. `~/.claude/` survives.

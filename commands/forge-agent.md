@@ -1,6 +1,6 @@
 ---
 description: "Author a complete, reusable agent system prompt from a short description — role, objective, method, guardrails, output contract, and baked-in push-back."
-usage: "/promptsmith:forge-agent <description of the agent you want> [--lens name,name] [--deep] — e.g. /promptsmith:forge-agent a reviewer that critiques HOA letters for tone and compliance"
+usage: "/guildproof:forge-agent <description of the agent you want> [--lens name,name] [--deep] — e.g. /guildproof:forge-agent a reviewer that critiques HOA letters for tone and compliance"
 category: "dev"
 ---
 
@@ -13,10 +13,10 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/prompt-engineering/SKILL.md` in full. This co
 **FORGE** path.
 
 > **Paths.** `${CLAUDE_PLUGIN_ROOT}` is this plugin's install directory, substituted
-> automatically — never a literal folder in the user's project. If promptsmith was installed
+> automatically — never a literal folder in the user's project. If guildproof was installed
 > standalone (README Option B, no plugin root), read from `~/.claude/` instead:
-> `~/.claude/skills/…`, `~/.claude/promptsmith-templates/`, `~/.claude/promptsmith-lenses/`,
-> `~/.claude/promptsmith-agents/`. Never resolve these against the user's working directory.
+> `~/.claude/skills/…`, `~/.claude/guildproof-templates/`, `~/.claude/guildproof-lenses/`,
+> `~/.claude/guildproof-agents/`. Never resolve these against the user's working directory.
 
 ## Step 2 — Parse arguments
 

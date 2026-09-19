@@ -1,11 +1,11 @@
-# promptsmith evals
+# guildproof evals
 
-A light, host-judged harness to test and refine promptsmith. Lives here, **not** loaded as a
+A light, host-judged harness to test and refine guildproof. Lives here, **not** loaded as a
 plugin component (`evals/` isn't a scanned dir), so the plugin surface stays clean.
 
 ## Why it's shaped this way
 
-promptsmith is zero-call and model-agnostic — the host model does the reasoning, so two runs
+guildproof is zero-call and model-agnostic — the host model does the reasoning, so two runs
 of `/sharpen` are never byte-identical. You can't assert `expected == actual`. So the harness
 judges in two passes:
 
@@ -14,7 +14,7 @@ judges in two passes:
 2. **Quality rubric** — the host scores each output against a skeptic-framed rubric, per
    dimension, ✅/⚠️/❌ + a one-line reason. The judge is told to *break* the output, not bless it.
 
-Fittingly, promptsmith judges itself: the `skeptic` lens and `prompt-engineer` agent are the
+Fittingly, guildproof judges itself: the `skeptic` lens and `prompt-engineer` agent are the
 judges.
 
 ## Layout
@@ -52,7 +52,7 @@ The `known-bad/` fixtures must periodically FAIL — a judge that can't say no i
 
 ## How to run
 
-Tell Claude Code: **"run the promptsmith evals"** (all cases) or **"run eval case 02"**.
+Tell Claude Code: **"run the guildproof evals"** (all cases) or **"run eval case 02"**.
 It follows `runner.md`: executes each case the way a user would, checks invariants, judges the
 rubric adversarially, and writes a scorecard to `runs/`.
 

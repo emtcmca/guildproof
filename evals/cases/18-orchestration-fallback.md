@@ -8,13 +8,13 @@ tests: Step 0 gate — a single-domain request must NOT orchestrate
 ## Input
 
 ```
-/promptsmith:orchestrate rewrite this paragraph to sound warmer and less corporate
+/guildproof:orchestrate rewrite this paragraph to sound warmer and less corporate
 ```
 
 ## Must
 
 - **Decline to orchestrate.** Step 0 recognizes this is single-domain (copy editing) and falls
-  back — routes to `copy-rewrite` (or `/promptsmith:sharpen`), with a one-line reason.
+  back — routes to `copy-rewrite` (or `/guildproof:sharpen`), with a one-line reason.
 - Spend zero fan-out: no decomposition, no subagents.
 
 ## Must not

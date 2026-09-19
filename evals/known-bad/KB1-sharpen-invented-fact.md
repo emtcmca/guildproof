@@ -8,7 +8,7 @@ plants: a fabricated fact asserted as established
 ## Input
 
 ```
-/promptsmith:sharpen draft a violation notice for an unresolved fence-height dispute
+/guildproof:sharpen draft a violation notice for an unresolved fence-height dispute
 ```
 
 ## Bad output (must FAIL)

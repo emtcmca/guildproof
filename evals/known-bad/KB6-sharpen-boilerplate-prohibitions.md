@@ -8,7 +8,7 @@ plants: a sharpen output whose PROHIBITIONS block is boilerplate disconnected fr
 ## Input
 
 ```
-/promptsmith:sharpen add a "remember me" checkbox to the login form
+/guildproof:sharpen add a "remember me" checkbox to the login form
 ```
 
 ## Bad output (must FAIL — excerpt)
