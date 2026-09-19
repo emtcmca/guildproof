@@ -1,0 +1,127 @@
+{
+  "specialist": "security-review",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Findings run in descending risk order (HIGH, HIGH, MEDIUM, MEDIUM, MEDIUM) and one item is then singled out: '## Highest-Severity Issue / The public share endpoint returns the dashboard's full config field without filtering or validation, exposing any secrets embedded in it to anyone holding the token.' Exploitability reasoning sits inside the ranking: 'The 128-bit token space is large, but the *number of shares in existence* is much smaller; an attacker can discover them.' The config finding is ranked above the earlier-in-code-path rate-limit finding, so this is not code order.",
+          "present_note": ""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**Impact:** Enables enumeration attacks (testing thousands of tokens to find valid shares) and DoS via high-volume valid requests. The 128-bit token space is large, but the *number of shares in existence* is much smaller; an attacker can discover them.' Actor (attacker), action (testing thousands of tokens), objective (find valid shares), not merely 'rate limiting is missing'."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Observed is stated as observed: 'requireSession() gates both create and revoke; the public read endpoint has zero gates... Database is the sink; parameterized queries are present.' Unobserved is marked as unobserved: 'No request body validation shown in create endpoint', 'no authentication or rate limiting is visible', and 'No indication of what config contains or whether it should be redacted.'"
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "A dedicated section enumerates the unverified surface: '## Confirm-These' containing 'Is there middleware-level rate limiting on the GET /share/:token endpoint?' and 'Is there audit logging for share access (logging not shown in the provided code)?' and 'Is the /share/:token endpoint protected by a CORS policy, or can cross-origin requests read it?'"
+        }
+      ],
+      "notable": "Two substantive errors. (1) The enumeration argument is backwards: 'The 128-bit token space is large, but the number of shares in existence is much smaller; an attacker can discover them.' A smaller share population makes guessing HARDER, not easier - the hit probability is shares/2^128. This is stated confidently and is the reasoning that props up the MEDIUM rating. (2) 'Consider returning 403 Forbidden instead of 404 to avoid leaking validity' is inverted - a 403 on a non-existent token leaks more than a uniform 404, and the code already returns a single undifferentiated 404. Also odd: one Confirm-These item answers itself ('Are share tokens cryptographically random via crypto.randomBytes (answer: yes, visible in code)?'), which is not a question needing confirmation, and the expiration fix puts the expiry check in the DELETE endpoint rather than in the public GET query, which would not stop an expired token from being read. Finding 2 (permission granularity) speculates about 'any fields that might carry write permissions if the frontend is the only authz gate' with nothing in the artifact supporting a write path."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Findings are bucketed and ordered by risk ('## High-Risk Findings', '## Medium-Risk Findings', '## Low-Risk Findings') and then re-stated as an explicit ordering: '## Recommendations (Priority Order) / 1. **Immediate:** Add rate limiting to `/share/:token` / 2. **Immediate:** Add token expiration... 6. **Ongoing:** Audit `dashboard.config` for XSS vulnerabilities'. Not flat and not code order."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched every finding for an actor-action-objective chain. The closest is 'An attacker can brute-force 32-character hex tokens at scale' (actor and action, but no stated objective and no account of what the attacker gains). Everything else is control-gap phrasing: 'No Rate Limiting on Token Guessing', 'No Token Expiration', 'No Share Link Access Logging', 'No Visibility into Share Ownership', 'No Share Link Rotation', 'Cross-site requests could revoke shares' (no actor, no lure, no objective), 'If `config` contains user input, XSS is possible' (no actor, no delivery path, no payoff). No output-wide statement of who does what to get what."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'The DELETE endpoint uses `requireSession()` but CSRF tokens aren't shown in the code. Cross-site requests could revoke shares.' - what is in the artifact (requireSession) is separated from what is not observed and therefore assumed (CSRF validation), and the fix carries the same marker: 'validateCsrfToken(), // Must be present'. Finding 6 likewise anchors to observed lines ('The catch block at line 74-76...', '...at line 94')."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for any statement of review scope or of what was not examined - no 'Confirm These', 'Not checked', 'Out of scope', 'Assumptions', or 'Limitations' heading exists, and no sentence names an area the reviewer did not look at. The only non-observation marker is the incidental 'CSRF tokens aren't shown in the code' inside finding 4, which is a property of one finding rather than a scope statement. The closing section runs the other way, asserting verified-sounding conclusions with no caveat: '## What's Working Well / - Parameterized SQL queries (no SQL injection) / - Ownership verification before share creation / - Safe error messages on public endpoints'."
+        }
+      ],
+      "notable": "Finding 6 is internally contradictory and reads as a finding kept for volume: it is titled 'Information Disclosure via Error Messages', given 'Severity: LOW-MEDIUM', and then the body says 'This is actually good - no information leakage'. Finding 8 is titled 'Missing Content Security Policy for Shared Dashboards' but its body and fix are about sanitizing config against XSS; CSP is never mentioned again. Finding 5 ('No Visibility into Share Ownership') is a product feature request, not a vulnerability, and its supplied SQL has a redundant double ownership predicate. The rate-limit fix advises 'Use Redis or in-memory cache for DDoS resistance', which conflates a counter store with DDoS resistance and would not survive multi-instance deployment. Most importantly, X asserts brute-force of 32-character hex tokens is feasible 'at scale' and never acknowledges the 128-bit entropy that makes it infeasible - W, Y and Z all address the entropy; X ranks this HIGH without it. Line citations (74-76, 94) cannot be checked because the reviewed artifact is not in the bundle."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Every finding carries an explicit exploitability term beside impact, and the order tracks the product: 'Impact: Discovery of shared dashboards, service degradation. / Likelihood: High; no auth gate, trivial to automate.' versus the lower-ranked 'Impact: Leaks which tokens have been created/used... / Likelihood: Low; requires timing precision and network stability, but feasible.' The ordering is HIGH, HIGH, MEDIUM, MEDIUM, MEDIUM, LOW, and the top is then synthesised as a compound: 'No rate limiting + no expiration = indefinite brute-force window.'"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'Vector: GET /share/:token endpoint has no rate limit. An attacker can spam requests with random tokens to enumerate valid shares or trigger DoS.' and, separately, 'Impact: A malicious site can trick an authenticated user into creating/deleting share links without their knowledge.' Both name the actor, the action and what the actor gets."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Observation: 'Untrusted inputs: URL token parameter (32-char hex), dashboard IDs in params. Trust boundary: Public GET endpoint (no auth required) vs. authenticated POST/DELETE (require session).' Assumption is labelled as such per finding: 'POST /api/dashboards/:id/share and DELETE endpoint use session auth but show no CSRF token validation or SameSite cookie enforcement' and 'Likelihood: Medium; depends on cookie SameSite settings and whether CSRF tokens are validated elsewhere (unshown code).'"
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'## Confirm These' lists the unexamined surface explicitly, including 'Rate limiting: Is rate limiting applied at the middleware layer (not shown in this snippet)?', 'Config contents: What fields does the `config` column contain?', and 'Deployment model: Is this endpoint fronted by a WAF or load balancer that might provide rate limiting?'"
+        }
+      ],
+      "notable": "The timing-attack finding (MEDIUM) is the weak one and it is wrong in two places. 'Use constant-time token comparison and ensure the 404 response takes the same time regardless of lookup result (e.g., always query the database, use `EXISTS` rather than `COUNT`)' - constant-time comparison does not apply to an indexed database lookup, and EXISTS versus COUNT is not a timing-equalisation technique. The impact claim 'reducing the effective entropy of the brute-force space' is also false: learning that a guessed token exists is the same bit the 404/200 already gives, and it does not reduce entropy. Y rates it MEDIUM while its own likelihood line says Low, which is the one place where its severity does not follow its own exploitability-times-impact rule. 'Is `crypto.randomBytes()` properly seeded, or could the RNG be predictable?' is near-vacuous for a CSPRNG. Otherwise this is the only output that both quantifies likelihood per finding and names the bearer-token trust model up front ('Bearer model: The token is the sole credential... possession = access')."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Risk-tiered sections ('## Critical Issues', '## Medium Issues', '## Minor Issues') with descending severity labels inside them, plus an explicit ranked plan: '## Recommended Action Items (Priority Order) / 1. **Add rate limiting to GET /share/:token** - 1-2 hours / 2. **Add token expiration with optional TTL** - 2-3 hours ... 6. **Add granular permissions (VIEW/EDIT)** - 4-6 hours'. Not flat, not code order."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched all nine findings for an actor and an objective. Only one names an actor at all - 'an attacker with sufficient resources could attempt brute force enumeration' - and it states no objective and no gain, while conceding in the same bullet that the entropy is 'strong'. Every other finding is framed as an absent control or a passive possibility: 'Missing Rate Limiting on Public View Endpoint', 'No Token Expiration', 'No Access Audit Trail', 'No Granular Access Controls', 'Missing Input Validation', 'No CORS or Referrer Protection', 'Public endpoint could be embedded in cross-origin contexts', 'A user could create unlimited active share links'. The one leak scenario is authorless: 'If a link is accidentally shared publicly or leaked, it provides permanent access to the dashboard.'"
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for any separation of observed artifact facts from assumptions about the surrounding system - no 'Assumptions', 'Confirm', 'Out of scope', 'not shown', 'not visible', 'unverified' or middleware/proxy/WAF caveat appears anywhere. Claims about absent controls are asserted flatly as facts about the system rather than as absences in the snippet: 'The public view endpoint does not log who accessed the shared dashboard or when', 'Token parameter is not validated for format', 'All shared links provide full read access to dashboard config', 'The DELETE endpoint returns success without confirming the revocation occurred'. The nearest hedge is 'No Referrer-Policy or X-Frame-Options headers mentioned', where 'mentioned' gestures at the artifact boundary without stating it, and the positives section asserts verified conclusions outright ('Uses parameterized queries throughout (SQL injection safe)')."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a scope or limitations statement - what the review did not examine - and found none: no 'Confirm These', 'Assumptions', 'Not checked', 'Out of scope' or 'Limitations' heading, and no sentence naming an unexamined area. The closing sections run the opposite way, presenting the review as complete and gateable: '## Before Merge / - [ ] Rate limiting implemented / - [ ] Token expiration schema and logic added ... - [ ] Load testing with rate limiting enabled', with no item covering anything the reviewer could not see."
+        }
+      ],
+      "notable": "Finding 7's title and body disagree: it is headed 'Generic Error Messages on Protected Routes' but the body is about the DELETE endpoint 'returns success without confirming the revocation occurred' and recommends checking affected row count - error messages are never discussed. Section heading 'Critical Issues' contains nothing rated above HIGH, so the label overstates its own contents. The action-item time estimates ('1-2 hours', '4-6 hours', '30 minutes') are invented with no basis available in a code review and no hedge. Finding 1 undercuts its own HIGH rating in-line ('the token uses 128 bits of entropy (strong)') without reconciling the two. Finding 5's token-format regex is a negligible-value control presented as a security fix. The positives list states 'Proper ownership verification on DELETE endpoint' and then 'Ownership check prevents unauthorized dashboard access' as two separate wins, which is one fact counted twice."
+    }
+  ],
+  "methodology_notes": "Where this was hard, and where a second judge could reasonably split from me:\n\n1. Item 1 barely discriminated, and I read it narrowly on purpose. As written it contrasts ranking with \"listing them flat or in code order,\" so I scored it as \"is there a risk ordering rather than a source-order or unranked list.\" All four have one, so all four passed. Under a stricter reading - that the output must actually factor exploitability, not just stamp severities - only Y clearly qualifies (it prints a per-finding \"Likelihood\" line) and W partially (it argues about token space inside the finding). X and Z would fail that stricter reading: both bucket by severity and then rank a plan, but neither ever reasons about how hard an attack is. A judge taking that reading would score X and Z absent on item 1, and I would not call that wrong.\n\n2. Items 3 and 4 overlap, and X sits exactly on the seam. X has one non-observation marker, \"CSRF tokens aren't shown in the code,\" inside a single finding. I credited item 3 on it (observed requireSession is separated from unobserved CSRF validation) and denied item 4, on the grounds that item 4 asks for an explicit statement of what the review did not check and a parenthetical inside one finding is not a scope statement. Using one sentence to pass one item and fail a near-neighbour item is the shakiest call in this set. A judge could defensibly deny X on both, or grant both.\n\n3. Item 2 forced a line on how much of the chain must be stated. I required all three parts - who, what, what they get. That let W through on \"testing thousands of tokens to find valid shares\" and failed X on \"attacker can brute-force 32-character hex tokens at scale\" and Z on \"an attacker with sufficient resources could attempt brute force enumeration,\" where the payoff is implied but never written. The gap between W's phrasing and Z's is real but it is narrow, and a judge applying a looser standard would pass both X and Z here. I applied the bundle's \"partial credit does not exist\" rule against the near-misses rather than in their favour.\n\n4. I could not verify a single claim about the artifact. The reviewed code is not in the bundle - only the four reviews are. Line citations (X's \"line 74-76\", \"line 94\"), schema claims, and statements like \"Ownership verification before share creation\" are unfalsifiable from what I was given. Errors recorded in `notable` are therefore limited to internal contradictions, security reasoning that is wrong on its own terms, and self-undercutting severity ratings. If any output invented a code fact, I had no way to catch it, and that cuts in favour of all four.\n\n5. One asymmetry worth stating: the two outputs with a \"Confirm These\" section (W, Y) swept items 3 and 4 on the strength of that section's existence. That section is cheap to add. I checked that in both cases the section names genuinely unverifiable things (middleware rate limiting, config contents, WAF fronting) rather than padding, and it does, so I let the credit stand - but the checklist does reward a structural habit here more than it rewards being right, and W is in fact the output with the most badly wrong security reasoning in the set (its inverted enumeration argument and its 403-instead-of-404 advice) while scoring 4 of 4."
+}

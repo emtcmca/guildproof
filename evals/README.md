@@ -24,7 +24,7 @@ evals/
   README.md     this file
   rubric.md     structural invariants + quality dimensions per route, and the scoring scale
   runner.md     the protocol the host follows: run case → check → judge → write scorecard
-  cases/        37 input fixtures (one per file): the input + case-specific must / must-not
+  cases/        38 input fixtures (one per file): the input + case-specific must / must-not
   runs/         dated scorecards — the regression trail, committed
   known-bad/    6 negative fixtures the harness MUST FAIL — the test of the test (calibration)
 ```

@@ -1,0 +1,102 @@
+{
+  "specialist": "api-reviewer",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Three of the four required contract concerns are explicitly present: status codes (\"POST /v1/orders returns 200 with error in body, not 4xx\"), idempotency (\"Make refund idempotent using an idempotency key\"), and pagination (\"Paginate using cursor (primary key) not offset. Set a max page size\"). Error SHAPE as a contract concern is what I searched for and did not find: there is no request to define, document, or standardize an error response schema/format for consumers. I searched for \"error schema\", \"error response format\", \"error shape\", \"status code table\", and any listing of error codes/fields. The only error-body content is the security-framed finding \"Error messages in 200 response leak structure\" whose fix is \"Return 4xx with generic error message to clients; log detailed error server-side\" \u2014 that is about message content and leakage, not the shape of the error contract."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for the words \"break\"/\"breaking change\", \"version\", \"deprecat\", \"migrat\", \"backward compatible\", and for any statement that a recommended fix (200 -> 400, PATCH merge semantics, header auth instead of ?key=) would break consumers already coded against the current behavior. None present. The word \"partner\" appears nowhere in output W at all; it speaks only of \"clients\". The one use of \"breaks\" is about the current design harming clients (\"HTTP 200 on validation failure breaks client contracts\"), not about the change being breaking or about existing integrations needing migration."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"PATCH /v1/orders/{id} \u2014 can caller A modify caller B's order by changing the id? No mention of user ownership checks.\" and \"GET /v1/orders?page=N \u2014 returns 50 orders per page. Does it return *all* orders in the system, or only the authenticated user's? If all orders, this is a data leak.\" and \"Nothing prevents a single client from hammering POST /v1/orders or GET /v1/orders?page=1000 continuously.\""
+        }
+      ],
+      "notable": "Strongest security coverage of the four (IDOR across all three resource endpoints, DoS, credential leakage, offset abuse), but it is the only output that misses the REST semantic point that a full-replace PATCH is really PUT \u2014 it instead frames full replace as a lost-update/concurrency risk (correct, but a different issue). Two reasoning defects: (a) the \"Error messages in 200 response leak structure\" finding attributes visibility/logging of error text to the 200 status code, which is a non-sequitur \u2014 the body is equally visible at 400; (b) the \"Highest-severity issue\" heading is singular but the section lists four separate issues, so it never actually picks one. Also asserts \"page=9999999 ... if offset-based, cause full-table scans\" \u2014 directionally right about deep-offset cost, loosely stated as a full-table scan."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Status codes: \"Return 400 (Bad Request) or 422 (Unprocessable Entity) with the error body. HTTP 200 means success; errors need appropriate 4xx codes.\" Idempotency: \"Make refund idempotent \u2014 return 200 if already refunded, or reject with 409 (Conflict) / 400 (Bad Request) on the second attempt.\" Pagination: \"**GET /v1/orders?page=N** lacks: - Whether `page` is 1-indexed or 0-indexed - What happens if N is out of range (return empty? 404?) - Total count of orders or page count\". Error shape: \"**Define error response schema** \u2014 how are non-validation errors returned (500s, etc.)?\" plus \"**Add HTTP status code table** \u2014 document all possible responses per endpoint (200, 201, 400, 404, 409, 500, etc.).\""
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for \"breaking change\", statements that a proposed fix would break existing consumers, migration/compatibility guidance, and any description of partner integrations breaking. The only adjacent text is \"**Version the API** \u2014 `/v1/` is good; stick with it and document deprecation policy,\" which neither names a breaking change nor says what would break for anyone already integrated. Its recommendation to replace PATCH with PUT (\"if full replacement, use PUT instead\") is a contract-breaking change and is not flagged as one."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an attacker or abusing partner and a concrete misuse path: the words \"attacker\", \"abuse\", \"IDOR\", \"ownership\", \"authorization\", \"caller A\"/\"caller B\", \"DoS\", \"enumerate\", \"scrape\", \"replay\". None appear. The closest content is passive exposure (\"exposes credentials in logs, browser history, and referrer headers\") and a documentation ask (\"**Add rate limiting info** \u2014 how many requests per minute are allowed?\"). No actor is ever described doing anything with the surface \u2014 no cross-tenant access, no double-refund by a malicious caller, no deep-page or volume abuse."
+        }
+      ],
+      "notable": "Shortest output and the only one that gives an explicit verdict with a named blocker set (\"**NO-GO for partner release.** Issues #1, #2, and #3 are blockers\"), which is useful. Two substantive errors. First, a confidently wrong security claim: \"Query parameters are not private; headers are stripped from logs by standard HTTP tooling\" \u2014 standard tooling does not strip headers; it simply tends not to log them by default, while it routinely does log the full request line including the query string. Second, it conflates idempotency with conflict rejection: \"return 200 if already refunded, or reject with 409 (Conflict) / 400 (Bad Request) on the second attempt\" \u2014 a 409 on retry is precisely not idempotent and would still leave a client that lost its response unable to tell a duplicate from a failure. It also misses authorization entirely, so the single largest risk on a multi-partner surface (cross-partner data access) goes unmentioned."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Status codes: \"200 with `{ \"error\": \"...\" }` is not HTTP-compliant. Validation failures must return 4xx (400 Bad Request).\" Idempotency: \"Refund operations must be idempotent. Calling the same endpoint with the same request twice should produce the same result (idempotent key pattern, or refund state tracking).\" Pagination: \"GET /v1/orders?page=N returns 50 items per page, but no metadata about total, has_more, or current_page\" with a documented response envelope. Error shape: \"**Status:** No error codes, error types, or list of possible error messages... **Fix:** Document error scenarios\" followed by an explicit per-code list (\"400: validation_error\", \"409: order_duplicate\", \"500: internal_error\")."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### 10. No versioning deprecation strategy **Status:** v1 exists, but no plan for v2 or how breaking changes are handled. **Impact:** When you need to change the API, partners won't know what to expect. **Fix:** Publish versioning policy: \"Major version bumps for breaking changes (e.g., v2). v1 will be sunset on [DATE] with 12 months notice.\"\""
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for \"attacker\", \"abuse\", \"IDOR\", \"authorization\", \"ownership\", \"tenant\", \"caller A\", \"DoS\", \"enumerate\", \"scrape\", \"replay\" \u2014 none appear. Every harm described is accidental or a documentation gap: \"Network retry, browser back-button, or user double-click causes unintended duplicate refunds\" (accident, not misuse), key exposure framed as passive leakage (\"API keys will be exposed in logs and caches\"), and rate limiting framed purely as partner convenience (\"Partners don't know how much they can call the API; may trigger rate limits unexpectedly\"). No actor deliberately misusing the surface, and no cross-partner access question is raised anywhere."
+        }
+      ],
+      "notable": "Best-documented output for a partner-facing contract (concrete error-code taxonomy, pagination envelope JSON, mutable-field rules, ordering ambiguity on \"newest first\" \u2014 the only output to catch that \"newest by created_at or updated_at?\" is undefined). Weaknesses: it never raises authorization or tenancy at all, and it files \"No rate limiting documented\" under **Minor Issues** framed as a DX gap, which understates it on a surface that moves money. The invented error codes (insufficient_funds, order_duplicate) are labeled as examples, so they read as illustration rather than fabricated fact, but a careless reader could take them as the real taxonomy. Its own #4 fix (split PUT for replace / PATCH for partial) is itself a breaking change to any existing PATCH caller and is not flagged as such, even though #10 discusses breaking-change policy in the abstract."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Status codes: \"**CRITICAL \u2014 POST returns 200 on validation failure.** ... Should return 400 Bad Request. Status codes are the contract; hiding failure in the body breaks every standard HTTP client and monitoring tool.\" Idempotency: \"**CRITICAL \u2014 Refund is non-idempotent.** Calling `POST /v1/orders/{id}/refund` twice refunds twice... **Fix:** make it idempotent \u2014 check if already refunded before applying a second one, or use an idempotency-key header to deduplicate requests.\" Pagination: \"**MEDIUM \u2014 GET pagination unbounded.** No limit on `page=N`... Add `MAX_PAGE=1000` or use cursor-based pagination.\" Error shape: \"**Fix:** document all response codes and the error shape for each\" and \"What error shape is returned on non-2xx status codes? (e.g., `{ \"error\": \"...\", \"code\": \"...\" }` or something else?)\""
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for \"breaking\", \"breaking change\", \"version\"/\"versioning\", \"deprecat\", \"migrat\", \"sunset\", \"backward compatible\", and for any statement about what would break for existing or future partner integrations. None present \u2014 \"/v1/\" appears only inside endpoint paths. The word \"partner\" does not appear in output Z at all. Every fix it proposes (400 instead of 200, header auth instead of `?key=`, ownership filtering on GET) changes observable behavior, and none is identified as a change that would break a consumer coded against today's behavior."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**HIGH \u2014 No authorization check visible on PATCH.** What stops caller A from patching caller B's order? Full-object replacement means overwriting any field (amount, status, owner).\" plus \"**HIGH \u2014 No authorization check visible on POST /refund.** Can any authenticated caller refund any order?\" and \"Caller can request `page=999999` and force a table scan.\""
+        }
+      ],
+      "notable": "The only output that separates authorization per endpoint (PATCH, GET, /refund) rather than lumping it, and the only one that notes full-object replacement lets a caller overwrite `amount`, `status` and `owner` \u2014 the sharpest single abuse observation in the bundle. It is also the most disciplined about epistemic status, marking \"(not specified)\" per field in its contract table and routing unknowns into explicit confirm-items with a stated default (\"Assume no; if yes, state it explicitly\"). Two defects: the row \"\u2705 **Input validation \u2014 assume validated upstream or missing.**\" uses a pass marker for what it simultaneously calls a gap, which is incoherent as written; and \"does the sort order change between requests if new orders arrive? (TOCTOU race)\" misapplies the term \u2014 unstable offset pagination under inserts is page drift, not a time-of-check/time-of-use bug. \"Networks duplicate packets\" is also loose (requests, not packets). Its \"Highest-Severity Issue\" section correctly compounds three findings into one failure story rather than just restating the top item."
+    }
+  ],
+  "methodology_notes": "Three calls were genuinely close, and a second judge could reasonably differ on each.\n\n1. Item 1 hinges entirely on \"error shape\" for OUTPUT W. W plainly covers status codes, idempotency and pagination as contract concerns and even opens with a \"## Contract\" section, so it fails the item on one of four required components. I read \"error shape as a contract concern\" as: is the error response format defined so a consumer can parse it. W only discusses the error body through a leakage lens (\"Error messages in 200 response leak structure\") and never asks for a schema or format, while X, Y and Z each explicitly ask for an error schema/response-code documentation. A judge who reads \"error shape\" more loosely as \"engages with the fact that errors are returned as {error: ...} in the body\" would score W present, and the item would then be 4/4 across the bundle \u2014 which would also make it useless as a discriminator. I applied the strict reading and marked it absent; this is the single score in this bundle I would most expect disagreement on.\n\n2. Item 2 is the weakest fit to what these outputs actually were asked to do. No output flags any of its OWN recommended fixes as a breaking change, and none describes an existing partner integration breaking \u2014 plausibly because the framing is pre-release (\"Pre-Partner Release\", \"Block Publication\", \"before partners begin integration\"), so there may be no existing integrations to break. Under a strict reading of \"flags breaking changes\" as \"identifies a breaking change in the reviewed surface\", all four are absent. I credited Y alone because it is the only output that names breaking changes explicitly, ties them to partner expectations, and prescribes version-bump plus sunset notice. X's \"stick with it and document deprecation policy\" is the same territory in one clause with no breaking-change framing and no partner-impact statement, so I ruled it a gesture rather than a hit. That W/X/Y/Z all silently recommend behavior-breaking fixes (200\u2192400, PATCH\u2192PUT, query-key\u2192header) without flagging them is, in my reading, the substantive finding this item exposes; Y's credit is for the policy discussion, not for catching that.\n\n3. Item 3 turns on whether accidental duplication counts as an abuse path. Y describes \"browser back-button, or user double-click causes unintended duplicate refunds\" \u2014 a real misuse path, but accidental and by an end user, not a partner or attacker deliberately misusing the surface. The item says \"how a partner or attacker misuses this surface, concretely\", so I required a named actor exploiting the surface. On that basis W and Z clearly pass (cross-caller PATCH/refund, listing all orders, deep-page table scan) and X and Y clearly fail \u2014 neither ever raises authorization or tenancy at all. I am confident about X; Y is the borderline one.\n\nOther constraints on this scoring: I do not have the original user message, only the four answers, so I cannot check whether any output invented facts about the endpoints that the prompt contradicted, or whether the prompt itself asked for breaking-change analysis. All four reproduce the same five-endpoint surface consistently, which suggests the surface was given in the prompt, but the confirm-items and invented examples (Y's error taxonomy, Z's field names) could not be checked against source. I scored the four independently and in file order, and deliberately did not normalize toward a spread."
+}

@@ -1,0 +1,17 @@
+specialist,label,arm,rep
+debugger,W,A,1
+debugger,X,B,1
+debugger,Y,A,2
+debugger,Z,B,2
+security-review,W,B,2
+security-review,X,A,1
+security-review,Y,B,1
+security-review,Z,A,2
+api-reviewer,W,B,1
+api-reviewer,X,A,2
+api-reviewer,Y,A,1
+api-reviewer,Z,B,2
+verifier,W,A,2
+verifier,X,B,2
+verifier,Y,B,1
+verifier,Z,A,1

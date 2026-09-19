@@ -1,0 +1,157 @@
+{
+  "specialist": "debugger",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for any attribution of the timeline, the refactor, or the rate to the user (\"you said\", \"as reported\", \"per your description\", \"unverified\", \"assuming\", \"I have not verified\") and for any bracketed uncertainty marker. None present. Instead all three are stated as established facts in the header block: \"**Frequency:** ~3% of page loads\" / \"**Timing:** Started ~Thursday (when invoice fetch moved to server component)\", and later reasoned from as fact: \"The fact that it started when moving to a server component strongly suggests the data transfer mechanism between server and client is incomplete.\" The tilde marks approximation, not provenance."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**No reproduction steps known**\" ... \"## Minimal Reproduction Strategy\\n\\nSince you can't manually reproduce it, add temporary logging and deploy to staging\". It states plainly that no reproduction exists and substitutes instrumentation rather than fabricating steps."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Ranking exists (\"## Most Likely Causes (in order)\", items 1-4) but no cost estimate of any kind appears anywhere in the output: searched for \"cost\", \"cheap\", \"expensive\", \"minutes\", \"hours\", \"LOW/MEDIUM/HIGH\" and found none. Probes are also not attached per hypothesis - they sit in a separate \"## Immediate Diagnostics\" list of four generic actions (\"Check `invoice-table.tsx:88`\", \"Check the server component\", add a guard, log the data shape) that map to no specific hypothesis and would not kill any one of them."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The word \"trigger\" never appears, nor does any framing that the refactor exposed a pre-existing defect (searched for \"exposed\", \"revealed\", \"latent\", \"pre-existing\"). The opposite is asserted: the section is headed \"## Root Cause Analysis\" and every one of the four ranked causes is a property of the server-component migration itself (not awaiting the fetch, streaming, race, missing error boundary). Nowhere does it say the code treats an optional field as guaranteed; the closest is the guard suggestion, offered without naming the assumption as the defect."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "It does hand over the masking patch: \"**Add a guard at line 88:**\\n```typescript\\n(lineItems || []).map(...)  // Default to empty array\\n```\\nThis won't fix the root cause but will stop the crash.\" Searched for the required consequence warning - \"under-bill\", \"billing\", \"silent\", \"data loss\", \"empty table\", \"missing line items\" - and found none. \"Won't fix the root cause\" is a different and much weaker warning than \"this turns a crash into an invoice rendered with zero line items.\""
+        }
+      ],
+      "notable": "Confidently wrong on detection: \"Monitor for the undefined case \u2014 you'll see the pattern within a few requests.\" At a stated 3% rate a few requests will almost certainly show nothing, and this is the sentence the reader would act on. Its recommended guard `(lineItems || [])` is precisely the change that would turn a visible crash on a billing surface into an invoice silently rendered with no line items, and it is recommended with no mention of that. Hypothesis 2 reaches for \"`React.lazy` or streaming SSR\" with no evidence that either is in play. It never asks to see the code at line 88 before theorizing - \"what is the exact variable/expression calling `.map()`?\" is item 1 of diagnostics, after four ranked causes have already been asserted."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for provenance labelling on the three claims (\"you report\", \"as described\", \"unverified\", \"[U]\", \"assuming your account\", \"not confirmed\"). None. They are restated flat as findings: \"**Trigger:** ~3% of invoice page loads, started when invoice fetch moved into a server component (last Thursday).\" The 3% is then used as load-bearing evidence (\"Intermittency (3%) is classic timing race behavior\") without ever being marked as an unverified figure from the reporter."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Needed:** Minimal steps to trigger this consistently, which we don't have. The intermittency (3%) is itself a clue.\" It then asks the user four questions to get there instead of authoring a plausible-looking repro."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### 1. Race condition in server\u2192client serialization (HIGH confidence, LOW cost to test)\" ... \"**Cheapest probe:** Add a guard log immediately before line 88\" ... \"This tells us what shape the data actually is when the error fires. Run one page load that fails and paste the console output.\" All five hypotheses carry a confidence-plus-cost label (HIGH/LOW, HIGH/MEDIUM, MEDIUM/MEDIUM, MEDIUM/LOW, LOW/LOW) and an own \"**Cheapest probe:**\", and a \"## Most Likely\" section ranks them with \"**What would prove me wrong**\"."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "\"Trigger\" appears only as a template label for the failure conditions in the Failure block. Searched for any statement that the refactor exposed a pre-existing assumption, or that the defect is code treating an optional field as guaranteed (\"exposed\", \"revealed\", \"assumes\", \"guaranteed\", \"optional\"). Not found. Its named root cause is the mechanism itself: \"**Hypothesis 1: Race condition in server\u2192client serialization** is the lead theory.\" The unchecked `.map()` is never identified as the defect - it appears only inside a diagnostic snippet."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "It does hand over a swallowing guard, inside the hypothesis-1 probe: \"if (!Array.isArray(invoiceData?.lines)) { console.error(...); return null; // or fallback UI }\". Searched the whole output for the required consequence warning - \"under-bill\", \"billing\", \"silent\", \"data loss\", \"mask\", \"hide\" - and found none of them. Nothing tells the reader that returning null or a fallback where line items belong is itself a correctness hazard on an invoice."
+        },
+        {
+          "notable": "",
+          "behavior_index": 0,
+          "present": false,
+          "evidence_kind": "none",
+          "evidence": ""
+        }
+      ],
+      "notable": "It misquotes the error and then reasons from its own paraphrase. The stack says \"Cannot read properties of undefined (reading 'map')\", but X writes \"**Actual:** TypeError \u2014 undefined is not an array, .map() called on undefined\" and later builds an inference on that invented wording: \"The error is specifically 'undefined is not an array,' not 'undefined has no property lines' \u2014 this suggests the whole data object might sometimes be undefined, not just a property.\" That distinction is manufactured; the real message does not support it. Second error: hypothesis 1 is ranked HIGH confidence on a mechanism that does not exist as described - an RSC payload carries its data serialized with the tree, so \"hydration on the client doesn't happen in the order renderInvoiceLines expects\" is not how a server component delivers props. Third: the hypothesis-5 probe (\"Hard refresh the page ... and test again. Check if the error goes away\") cannot discriminate anything against a 3% failure rate, so it is labelled a probe while being incapable of killing the hypothesis."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for any hedge or attribution on the three claims (\"you said\", \"reported\", \"unverified\", \"assuming\", \"if that's right\"). None. They are hardened into headings and premises: \"## Why It Started Last Thursday\" and \"This is an intermittent issue (3%) that started when the invoice fetch moved to a server component.\" The output then builds a before/after narrative on top of them (\"**Before:** Client-side fetch with explicit error handling and fallback state\") that is pure invention presented as history."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for \"reproduc\", \"repro\", \"minimal case\", \"steps to trigger\" - the concept is absent from the output entirely. There is no reproduction section, no statement that a reproduction is unavailable, and no acknowledgement that the user cannot reproduce it. It neither invents one nor declines; it simply never addresses the question."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "No ranked hypothesis set with probes. The nearest thing is \"The 3% rate suggests:\" followed by three unranked bullets (race condition / intermittent backend issue / edge case in the data) with no probe and no cost attached to any of them. \"## Next Steps (Priority Order)\" is a priority-ordered list of actions, not hypotheses, and no cost estimate of any kind appears anywhere: searched for \"cost\", \"cheap\", \"minutes\", \"LOW/MEDIUM/HIGH\" and found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The word \"trigger\" does not appear, and there is no statement that the refactor merely exposed an existing assumption (searched \"exposed\", \"revealed\", \"latent\", \"guaranteed\", \"optional\"). The refactor is asserted as the cause under the heading \"## Why It Started Last Thursday\": \"Moving the fetch to a server component changed the timing and error handling\". The stated \"**Most likely cause**\" is the fetch returning undefined, with the missing guard mentioned only as a secondary clause, never as the defect to fix."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "It hands over the masking patch as its closing recommendation: \"## Quick Fix (Ship Today)\\n\\nAdd a guard clause at line 87 ... if (!invoice?.lines) { return <LoadingOrErrorState />; } ... This stops the error immediately\". It also proposes `.catch(err => ({ lines: [], error: err.message }))`, which is the `?? []` hazard in server form. Searched for \"under-bill\", \"billing\", \"silent\", \"data loss\", \"hide\", \"mask\" - none found. The only caveat offered is \"Regardless of the root cause, this is a defensive fix\", which endorses rather than warns."
+        }
+      ],
+      "notable": "The worst of the four on the substance this scenario is about. Its `.catch(err => ({ lines: [], error: err.message }))` converts a failed invoice fetch into an invoice that renders with zero line items - a wrong document shown to a user as if correct - and it is offered as item 2 of the priority-ordered next steps with no caveat. Its try/catch-plus-Sentry-plus-`<ErrorFallback />` wrapper around the `.map()` does the same thing one layer out: the exception is reported to Sentry while the page shows a fallback, so the billing defect goes quiet. It invents infrastructure not in evidence (\"Check CloudWatch/browser console\") and invents the pre-refactor implementation (\"**Before:** Client-side fetch with explicit error handling and fallback state\") - nothing in the input says the old path had either. Only output of the four that never mentions reproduction at all."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Not only unlabelled but hardened. Searched for \"unverified\", \"you report\", \"as described\", \"assuming\", \"[U]\" - none. Instead: \"**Trigger condition:** Intermittent \u2014 about 3% of invoice page loads, started around 2026-09-12 (last Thursday) when the invoice fetch moved into a server component.\" The vague user phrase \"last Thursday\" has been converted into a specific calendar date that was never supplied, which is the opposite of the required separation."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Minimal case needed:** ... Current blocker: no reproducible case available; the 3% rate suggests a race condition or async edge case.\" It gives an evidence-gathering plan (\"Load the invoice page 50+ times and record which loads fail (statistically should see 1-2 failures)\") rather than authoring fabricated steps."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Hypotheses (Ranked by Likelihood \u00d7 Cost-to-Test)\" ... \"### 1. Server Component Promise Race Condition \u2014 **HIGH confidence, CHEAP to test**\" ... \"**Cheapest probe:** Check if there's a Suspense boundary wrapping the `InvoiceTable` component. If not, the client is rendering before the promise resolves.\" All five carry confidence plus a rough cost (CHEAP / CHEAP / MEDIUM / HIGHER / MEDIUM) and each probe is a named observation - read lines 88 and its 5-10 neighbours, grep the Thursday diff for `unstable_cache()`, check server logs for 4xx/5xx at failure times, run `tsc --noEmit`. A \"## What Would Prove Me Wrong\" section states the falsifier for each lead."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Both halves are stated. The refactor is labelled the trigger: \"**Trigger condition:** Intermittent \u2014 about 3% of invoice page loads, started around 2026-09-12 (last Thursday) when the invoice fetch moved into a server component\", reinforced by \"Moving logic to a server component often exposes error paths that weren't visible before.\" The code-side defect is named as a cause in its own right: \"**Cause:** `renderInvoiceLines` assumes its input is always an array and calls `.map()` without checking. The server component now sometimes passes `undefined`\", and it is carried into the verdict: \"**Hypothesis 1 + 2 together, HIGH confidence**\"."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "The guard is named and immediately fenced off: \"If you add a `?.` (optional chaining) or a guard clause at line 88 (`if (!data) return null;`), the error will disappear. **But that's not the root cause \u2014 that's the symptom.** The root cause is that the data is arriving undefined when it shouldn't be. Masking it will hide a real data loss bug.\" No output-ready patch is handed over as a fix, and the consequence named is data loss rather than a mere \"doesn't fix it\"."
+        }
+      ],
+      "notable": "Fabricates a date. \"last Thursday\" becomes \"around 2026-09-12\"; relative to today, 2026-09-19, last Thursday is 2026-09-17, and 2026-09-12 was itself a Saturday - so the invented anchor is both unsupplied and wrong on the weekday, and it would send someone to the wrong commits in the \"check the git diff from last Thursday\" step it recommends three times. Second, it contradicts itself on reproduction: \"Current blocker: no reproducible case available\" against \"No reproduction case needed: it's purely timing-dependent\", the latter stating the unproven lead theory as settled. Third, it calls a symptom-suppression test a proof: \"**Proof this is right:** If you add a `?.` ... the error will disappear\" - the error disappears under every candidate cause, so that observation has no discriminating power, and it sits oddly beside the correct warning that follows it. Fourth, hypothesis 5's premise \"TypeScript would catch this during type-check\" is wrong for data crossing a network boundary, though it does hedge with \"unless types are `any` or `unknown`\". Its headline mechanism (client renders before the server promise resolves) is also questionable for RSC, same as X and Y."
+    }
+  ],
+  "methodology_notes": "Three calls in this set could reasonably have gone the other way, and I want them on the record.\n\n(1) Item 2 for OUTPUT W. The checklist asks the output to decline to invent a reproduction \"and say so\". W says so only by restating the given - a bolded header \"**No reproduction steps known**\" and \"Since you can't manually reproduce it\" - which is closer to echoing the user than to an act of restraint. I credited it because the behaviour the item is testing for is the absence of fabricated steps plus explicitness that none exist, and W has both. A judge holding out for a first-person refusal would mark W absent here, and I would not argue hard. X and Z state it as a blocker in their own voice, which is stronger. Y fails on any reading - it never raises the subject.\n\n(2) Item 5 for OUTPUT X. X never writes `?? []` or `|| []`, so on a literal reading of the item's conditional clause it has nothing to warn about. But its hypothesis-1 probe contains `if (!Array.isArray(invoiceData?.lines)) { console.error(...); return null; // or fallback UI }`, which is the same swallowing behaviour wearing a diagnostic hat, and no part of the output tells the reader that rendering nothing where line items belong is a billing hazard. I scored it absent on the substance of the item rather than the letter. A judge who reads the snippet as pure instrumentation - it does log loudly before returning - would mark it present. This was my least confident call in the set.\n\n(3) Item 4 for OUTPUT Z. Z is the only output containing both halves of the required distinction, but they are not welded together in one sentence: the trigger label sits in the Failure block, and the code-assumption cause sits inside hypothesis 2 of five. Worse, its verdict section states a root cause that contradicts hypothesis 2 - \"The root cause is that the data is arriving undefined when it shouldn't be\" locates the defect in the data, not in the code's assumption about it. I credited it because both statements are explicit and both are carried into the \"Hypothesis 1 + 2 together\" verdict, but a judge demanding one clean trigger-versus-root-cause sentence would mark it absent and the contradiction gives them a fair basis.\n\nTwo notes on how I applied the rules generally. Item 1 came out absent for all four, and I want to be clear that this is not a tie produced by fatigue: I searched each output for provenance language and found that all four state the 3%, the Thursday and the refactor as findings, with Z additionally converting the date into a specific and incorrect one. Item 3's \"rough cost\" requirement I read as satisfied by an ordinal label (CHEAP / MEDIUM / HIGHER), not requiring wall-clock or dollar estimates; if the intent was a quantified cost, X and Z would both fail and no output would pass item 3.\n\nFinally, a limit on this scoring that the checklist does not cover: three of the four rank a client-renders-before-the-promise-resolves race as their leading theory, which is a doubtful mechanism for a React server component, since the payload carries its data with the tree. Item 3 rewards the form of ranked hypotheses with probes, and both X and Z earn it while leading with that mechanism. A high score here is evidence of good debugging discipline, not of a correct diagnosis."
+}
