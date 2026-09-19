@@ -1,0 +1,8 @@
+- Only the dashboard's owner, in the dashboard's organization, can create a link. Anyone else
+  gets 404.
+- Tokens are unguessable (at least 128 bits from a CSPRNG) and stored only as a hash.
+- Links expire (30 days or less by default) and can be revoked. Expired, revoked and unknown
+  tokens all return the same 404.
+- GET /share/:token returns only the dashboard's title and config: nothing about the owner, the
+  organization, or other dashboards.
+- The public route is read-only.

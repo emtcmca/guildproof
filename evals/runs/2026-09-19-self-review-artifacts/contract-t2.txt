@@ -1,0 +1,8 @@
+- Retries only failures that can succeed on retry: network errors (ECONNRESET, ETIMEDOUT and
+  similar), 429, and 5xx. Never other 4xx.
+- Never retries a non-idempotent call (createCharge, refund) unless the caller supplies an
+  idempotency key that is sent unchanged on every attempt. Reads (getCharge) may retry freely.
+- Exponential backoff with jitter. Honors Retry-After on 429/503.
+- Bounded by a total time budget, not only an attempt count.
+- After the last attempt, the original error reaches the caller unchanged (status, code intact).
+

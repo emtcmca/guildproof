@@ -1,0 +1,7 @@
+GET /api/invoices/:id returns one invoice that belongs to the caller's organization, as an
+InvoiceDTO: { id, number, amount_cents, status, due_date, customer_name }.
+- An invoice in another organization, or one that doesn't exist, returns the same 404.
+- Nothing else about the invoice or the customer leaves the server (no email, tax_id,
+  payment_token, portal_password_hash, org_id, customer_id).
+- Malformed ids never produce a 500.
+
