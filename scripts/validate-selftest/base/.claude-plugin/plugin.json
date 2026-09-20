@@ -1,0 +1,6 @@
+{
+  "name": "fixture",
+  "description": "A fixture plugin with a 3-agent gallery and six known-bad fixtures.",
+  "version": "0.1.0",
+  "commands": "./commands"
+}

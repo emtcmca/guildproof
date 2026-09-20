@@ -166,7 +166,31 @@ jobs:
           [ "$code" -ne 0 ] || { echo "FAIL: gemini selftest passed with no key configured"; exit 1; }
           grep -qi 'key' gem.txt || { echo "FAIL: no key-related reason given"; exit 1; }
 
-  # The structure job — counts on disk against counts claimed in prose, run by
-  # scripts/validate.mjs — is added in the commit that introduces that script. It is kept out
-  # of here until then so this workflow's first run reports on the harness rather than on a
-  # missing file.
+  # ---------------------------------------------------------------------------------------
+  # Do the numbers in the prose match the files on disk?
+  #
+  # This repo's signature failure is publishing a count that does not match the tree, and it
+  # has gone wrong in both directions: a launch draft claimed 27 agents when 20 shipped, docs
+  # said 20 while a working tree held 23, a count taken in the wrong working directory read 40
+  # against an actual 37, a manual-install line said four things above a five-row table, and
+  # two files still said 37 eval cases after the suite reached 38. Every one of those was
+  # caught by a person noticing. This job is what notices instead.
+  # ---------------------------------------------------------------------------------------
+  structure:
+    name: structure and published counts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The selftest runs FIRST and deliberately so. It lays seven broken fixtures over a
+      # correct mini-repo and fails unless the real checks catch all seven — plus one clean
+      # fixture they must NOT flag. A check that has only ever been observed to pass proves
+      # nothing, which is the same reason this repo ships known-bad eval fixtures.
+      - name: 'the validator can still fail'
+        run: node scripts/validate.mjs --selftest
+
+      - name: 'validate this commit'
+        run: node scripts/validate.mjs

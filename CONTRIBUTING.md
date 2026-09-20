@@ -8,7 +8,7 @@ highest-value thing you can send is **a real bad output**, because it can become
 A prompt that produced a weak, wrong, or overconfident result — with the input, the output, and
 what specifically was wrong with it. There is an issue template for exactly this.
 
-`evals/` is a 37-case regression suite with 6 deliberately-broken calibration fixtures
+`evals/` is a 38-case regression suite with 6 deliberately-broken calibration fixtures
 (`evals/known-bad/`) that the suite must always FAIL. That corpus exists because nine straight
 all-PASS runs are indistinguishable from a broken judge. It still misses things. A concrete
 defect you hit is how it stops missing that one.

@@ -83,7 +83,7 @@ Files live in `agents/`. Forge a new one with `/forge-agent` and drop it in to g
 
 ## Eval harness (test & refine)
 
-- Run: say **"run the guildproof evals"** (all 37 cases) or **"run eval case 17"** (one).
+- Run: say **"run the guildproof evals"** (all 38 cases) or **"run eval case 17"** (one).
 - Output: a dated scorecard in `evals/runs/`.
 - Refine: change a lens/engine/agent → re-run the same cases → diff scorecards → keep only
   non-regressing improvements.

@@ -1,0 +1,11 @@
+{
+  "name": "fixture",
+  "version": "0.9.9",
+  "plugins": [
+    {
+      "name": "fixture",
+      "source": "./",
+      "description": "A fixture plugin."
+    }
+  ]
+}
