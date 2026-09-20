@@ -1,0 +1,83 @@
+{
+  "benchmark": "B4-knownbad",
+  "commit": "9a711147ae32a431f007fdc4dbab0d85c29d8737",
+  "judge_model": "claude-sonnet-5",
+  "k": 2,
+  "correctly_failed": 6,
+  "total": 6,
+  "gate": "PASS",
+  "cells": [
+    {
+      "fixture": "KB1",
+      "judge": 1,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB1",
+      "judge": 2,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB2",
+      "judge": 1,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB2",
+      "judge": 2,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB3",
+      "judge": 1,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB3",
+      "judge": 2,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB4",
+      "judge": 1,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB4",
+      "judge": 2,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB5",
+      "judge": 1,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB5",
+      "judge": 2,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB6",
+      "judge": 1,
+      "verdict": "FAIL",
+      "cached": true
+    },
+    {
+      "fixture": "KB6",
+      "judge": 2,
+      "verdict": "FAIL",
+      "cached": true
+    }
+  ]
+}

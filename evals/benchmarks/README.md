@@ -68,6 +68,15 @@ Every case in `evals/cases/`, plus the six known-bad fixtures, run at the exact 
 - The known-bad fixtures must all FAIL. That's the proof the judge can say no.
 - **Reported:** PASS / WEAK / FAIL counts, and KB fixtures correctly failed out of 6.
 
+**Known-bad half: RUN 2026-09-20 at `9a71114`. 6 of 6 correctly failed, k=2, blinded.** Plus a
+positive control — a known-good output through the identical path — scoring WEAK/WEAK, which is
+what rules out the result being a judge stuck on FAIL. Run doc:
+[`evals/runs/2026-09-20-b4-knownbad.md`](../runs/2026-09-20-b4-knownbad.md); runner:
+[`evals/harness/run-knownbad.py`](../harness/run-knownbad.py), exit-coded so it works as a gate.
+
+**The 38 numbered cases have NOT been re-run at this commit.** The last full-suite blind run is
+2026-07-21, which predates both the rename and case 41. That half of B4 is still open.
+
 ---
 
 # Coverage: what carries evidence and what does not

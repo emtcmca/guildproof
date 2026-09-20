@@ -231,7 +231,7 @@ Verify, in order:
 
 ### Option B — manual (standalone, bare command names)
 
-Copy four things into your `~/.claude/` directory (Windows: `C:\Users\<you>\.claude\`):
+Copy five things into your `~/.claude/` directory (Windows: `C:\Users\<you>\.claude\`):
 
 | Copy this | To here | Needed for |
 |---|---|---|
