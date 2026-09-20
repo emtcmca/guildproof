@@ -1,11 +1,12 @@
 {
   "benchmark": "B4-suite",
-  "commit": "2c8e80cdb7182c2e1a86dc7b206f0c07b255f00a",
+  "commit": "457211635f3716fee905da5afdfdb182cc30a73e",
   "producer_model": "claude-sonnet-5",
   "judge_model": "claude-sonnet-5",
   "counts": {
-    "FAIL": 5,
-    "WEAK": 5,
+    "FAIL": 3,
+    "WEAK": 10,
+    "PASS": 1,
     "UNMEASURED-BY-TRANSPORT": 4
   },
   "cases": [
@@ -27,7 +28,7 @@
     {
       "id": "04",
       "route": "forge",
-      "verdict": "FAIL"
+      "verdict": "WEAK"
     },
     {
       "id": "05",
@@ -37,7 +38,7 @@
     {
       "id": "06",
       "route": "lens",
-      "verdict": "FAIL"
+      "verdict": "WEAK"
     },
     {
       "id": "07",
@@ -58,6 +59,26 @@
       "id": "10",
       "route": "agent",
       "verdict": "FAIL"
+    },
+    {
+      "id": "11",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "12",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "13",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "14",
+      "route": "agent",
+      "verdict": "PASS"
     },
     {
       "id": "17",
