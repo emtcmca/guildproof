@@ -48,6 +48,11 @@ prompt rewriter for a coding agent on the same install channel.
   fresh machine across Linux, macOS and Windows, after first asserting that no vendor CLI and no
   API key is present — otherwise a green result would only mean it worked somewhere already set
   up. Also asserts, from outside the runner, that no known-bad fixture leaks its answer.
+- **B4 suite runner** (`evals/harness/run-suite.py`, `evals/runs/2026-09-20-b4-suite.md`). Runs the
+  numbered cases unattended, with the producer and the judge as separate OS processes for every
+  case. Its most useful output was not the verdicts: reaching a trustworthy result required fixing
+  five transport bugs and four defects in `evals/rubric.md` where the ruler contradicted the
+  shipped contract. One case went FAIL to PASS on a byte-identical output, re-judged only.
 - **`scripts/validate.mjs`** — zero-dependency structure check: counts on disk against counts
   claimed in prose, required frontmatter, no phantom agent or lens references, no dead command
   namespace. Carries a selftest against deliberately broken fixtures, so the check itself can
@@ -79,10 +84,14 @@ Stated here rather than left to be discovered:
 - **`/sharpen` has never been benchmarked**, and it is the oldest and most central claim here.
 - **`/orchestrate` and `/forge-agent` carry no measurement.** Four eval cases and one live
   seven-agent run exist for orchestration; that is a demonstration, not a rate.
-- B4's other half — the 38 numbered cases — has not been re-run since 2026-07-21, which
-  predates both the rename and case 41.
-- k = 2 throughout, and the eval judge is a Claude model. Judge choice was measured rather than
-  assumed, but a non-Claude judge would be a stronger design.
+- B4's numbered half ran 2026-09-20: 34 of 38 judged, 2 PASS / 24 WEAK / 8 FAIL, with the 4
+  `/orchestrate` cases unmeasured by transport. Those verdict counts are a regression gate and
+  not a rate. Reaching a trustworthy result required fixing five transport bugs and four defects
+  in the rubric itself.
+- **k = 2 for the cross-model study and the known-bad gate, but k = 1 for the numbered suite**,
+  which is thin for anything in it that reads as a recall miss. Every eval judge is a Claude
+  model. Judge choice was measured rather than assumed, but a non-Claude judge would be a
+  stronger design and is not yet calibrated.
 
 ## [0.3.0] — 2026-07-21
 

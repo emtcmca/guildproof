@@ -293,8 +293,15 @@ applies-to: comma, separated, topics, that, auto-select, this, lens
 - **Behavior compliance is not correctness.** Every item scores whether a behavior is present,
   with a quote. An output can hit every item and be wrong on the substance, and the judges
   recorded cases where it was.
-- **The 38 numbered eval cases were not re-run at the tagged commit.** The last full blind run is
-  2026-07-21, which predates the rename and predates case 41.
+- **The numbered eval suite is a regression gate, not a score, and its verdict counts are not a
+  rate.** 34 of the 38 cases were re-judged on 2026-09-20 (2 PASS, 24 WEAK, 8 FAIL; the 4
+  `/orchestrate` cases need a host that can dispatch subagents, so they are unmeasured rather
+  than passing). Do not read that as a 6% pass rate. PASS requires zero ⚠️ marks across roughly
+  15 to 20 marks per case, under a judge told to default to ⚠️ when uncertain, and the suite has
+  no bare arm to cancel judge harshness against. The bare-versus-prompted numbers above are
+  comparisons and mean something; these are absolutes and do not.
+  [`evals/runs/2026-09-20-b4-suite.md`](evals/runs/2026-09-20-b4-suite.md) has the 8 failures,
+  each named, and the four rubric defects the run found in its own measuring instrument.
 
 The full list, with the blinding limits and the harness artifacts that survive into the numbers:
 [`docs/FINDINGS.md`, section 6](docs/FINDINGS.md#6-method-limits) and

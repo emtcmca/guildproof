@@ -74,8 +74,17 @@ what rules out the result being a judge stuck on FAIL. Run doc:
 [`evals/runs/2026-09-20-b4-knownbad.md`](../runs/2026-09-20-b4-knownbad.md); runner:
 [`evals/harness/run-knownbad.py`](../harness/run-knownbad.py), exit-coded so it works as a gate.
 
-**The 38 numbered cases have NOT been re-run at this commit.** The last full-suite blind run is
-2026-07-21, which predates both the rename and case 41. That half of B4 is still open.
+**Suite half: RUN 2026-09-20 at `1c5d7c6`. 34 of 38 judged: 2 PASS, 24 WEAK, 8 FAIL**, plus the 4
+`/orchestrate` cases reported UNMEASURED-BY-TRANSPORT because `claude -p` cannot dispatch
+registered subagents. Run doc: [`evals/runs/2026-09-20-b4-suite.md`](../runs/2026-09-20-b4-suite.md);
+runner: [`evals/harness/run-suite.py`](../harness/run-suite.py).
+
+**Read that distribution as a gate, never as a rate.** It is a single-arm absolute score with no
+bare arm to cancel judge harshness against, and PASS demands zero ⚠️ across ~15-20 marks from a
+judge instructed to default to ⚠️. The same property makes the repo's 2026-07-21 result of
+36 PASS / 1 WEAK implausible in the opposite direction; that run was judged inside the producing
+session. **Getting a trustworthy result took fixing five transport bugs and four defects in this
+rubric**, which is the run's most transferable finding and is written up in full.
 
 ---
 

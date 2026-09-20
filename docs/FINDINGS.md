@@ -25,7 +25,7 @@ This table is first on purpose. It comes from
 | Lens library extensibility | none | **No evidence.** | [Section 7](#7-what-is-not-measured-at-all) |
 | `docs-writer`, `frontend-builder`, `prompt-engineer`, `refactor-planner` | none | **No dedicated eval case.** | [Section 7](#7-what-is-not-measured-at-all) |
 | The judge in this repo can fail a bad output | B4, known-bad half | **Measured** at the tagged commit. | [Section 4](#4-the-release-gate-b4-known-bad-half) |
-| The 38 numbered eval cases at the tagged commit | B4, suite half | **Not re-run.** Last full blind run is 2026-07-21. | [Section 7](#7-what-is-not-measured-at-all) |
+| The 38 numbered eval cases at the tagged commit | B4, suite half | **Run 2026-09-20 at `1c5d7c6`: 34 of 38 judged, 2 PASS / 24 WEAK / 8 FAIL, 4 unmeasured by transport. A gate, not a rate.** | [run doc](../evals/runs/2026-09-20-b4-suite.md) |
 
 ### The durability question
 
@@ -441,8 +441,9 @@ model pinned to `claude-sonnet-5`.
 
 It claims one thing, narrowly: the judge can still fail a bad output at the commit being tagged. It is
 not a claim that the suite is green at the commit being tagged. B4 as specified is every case in
-`evals/cases/` plus the six fixtures, and the 38 numbered cases were not re-run at this commit. See
-[Section 7](#7-what-is-not-measured-at-all).
+`evals/cases/` plus the six fixtures. The numbered half ran separately on 2026-09-20 at `1c5d7c6`
+and has its own document: [`evals/runs/2026-09-20-b4-suite.md`](../evals/runs/2026-09-20-b4-suite.md).
+Its verdict counts are a regression gate and not a rate, for the reasons that document states.
 
 ### The positive control, and why 6 of 6 is not enough on its own
 
@@ -667,9 +668,12 @@ judges recorded in guildproof-arm outputs.
 - **`/lens --grade`.** Covered by cases 35, 36 and 37, which are structural cases. There is no
   with-versus-without benchmark.
 - **`docs-writer`, `frontend-builder`, `prompt-engineer`, `refactor-planner`.** No dedicated eval case.
-- **The 38 numbered cases in `evals/cases/`, at the tagged commit.** Not re-run. The most recent full-suite
-  blind run is 2026-07-21, reported as 36 PASS / 1 WEAK / 0 FAIL, which predates the rename to guildproof
-  and predates case 41, so it covers fewer cases than exist today. That half of B4 is open.
+- **The 4 `/orchestrate` cases (17, 18, 19, 22).** Reported UNMEASURED-BY-TRANSPORT in the 2026-09-20 suite
+  run, never as passing: `claude -p` cannot dispatch registered subagents, so the model would improvise a
+  shape that is not the product. Measuring orchestration is benchmark B5. The other 34 cases were judged;
+  see the run doc. Note the prior 2026-07-21 result of 36 PASS / 1 WEAK / 0 FAIL is not comparable to it:
+  that run was judged inside the producing session, and PASS is close to unreachable under an independent
+  adversarial judge.
 - **Four of B2's eight inputs**, one per specialist pair, have not run at either tier.
 
 ---
