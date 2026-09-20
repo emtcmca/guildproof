@@ -159,9 +159,30 @@ Two stages, and the second reuses B1's machinery.
 
 ## Priority order
 
+**Ahead of all of it, and ahead of the tag, 2026-09-20: fix the harness before running more of it.**
+Two defects from the first Codex adversarial review outrank every benchmark below, because both
+corrupt what a reader can do with the numbers that already exist.
+
+0a. **The published reproduce sequence does not reproduce.** `run-crossmodel.py` defaults `--outdir`
+    to `out-crossmodel`; `judge-crossmodel.py` hard-codes `runs/2026-09-20-crossmodel-v2-artifacts`
+    and skips existing scorecards. Following the documented sequence generates fresh answers and
+    then re-judges the committed historical ones, so a skeptic spends money and gets our published
+    result back as apparent confirmation. Nothing else here matters as much: a benchmark nobody can
+    re-run is a claim, not a measurement.
+0b. **No cache carries a fingerprint.** `run-knownbad.py` reuses any cell that exists and stamps
+    the current commit onto the summary; `--force` in `run-crossmodel.py` writes only when the
+    output is absent. The same class of bug already made a fix look applied once today, in
+    `run-suite.py`'s bundle cache.
+
+Then, and only then:
+
 1. **B1.** It tests the repo's original thesis, and it is the only benchmark that could give
    guildproof a second measured leg. Write the contracts first and publish whatever comes back.
    The verifier result is strong enough that B1 does not need to succeed. It needs to be known.
+1b. **A bare arm for the numbered suite**, and a third arm for the verifier study carrying only a
+    short output contract. The first makes the suite interpretable at all; the second tests how
+    much of the measured advantage is bought by naming the required sections rather than by the
+    rest of the prompt. Both were proposed independently by the Codex review.
 2. **B4** at the release tag, for the six known-bad fixtures.
 3. **B5**, because `/orchestrate` is advertised prominently and carries no measurement.
 4. Remaining B2 inputs across the pinned model matrix.
