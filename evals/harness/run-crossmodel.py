@@ -106,8 +106,16 @@ TARGETS = [
     {"key": "claude-opus", "transport": "claude", "model": "claude-opus-5", "family": "Claude", "tier": "frontier"},
     {"key": "gpt-5", "transport": "codex", "model": "gpt-5.6-luna", "family": "OpenAI", "tier": "mid"},
     {"key": "gpt-6", "transport": "codex", "model": "gpt-6-astra", "family": "OpenAI", "tier": "frontier"},
-    {"key": "gemini-flash", "transport": "gemini", "model": "gemini-3.8-flash", "family": "Google", "tier": "mid"},
-    {"key": "gemini-pro", "transport": "gemini", "model": "gemini-3.1-pro-preview", "family": "Google", "tier": "frontier"},
+    # Google gives a clean GENERATION ladder at a constant tier: 3.5 (May 2026) through
+    # 3.8, flash throughout. That isolates capability from tier, which a pro-vs-flash
+    # comparison cannot. 3.1-pro is kept as the one older-but-larger data point: there is
+    # no pro newer than 3.1 on this key, so "frontier" is not well defined across the grid
+    # and the tier label is deliberately not used for Google.
+    {"key": "gemini-3.5-flash", "transport": "gemini", "model": "gemini-3.5-flash", "family": "Google", "tier": "gen-3.5"},
+    {"key": "gemini-3.6-flash", "transport": "gemini", "model": "gemini-3.6-flash", "family": "Google", "tier": "gen-3.6"},
+    {"key": "gemini-3.7-flash", "transport": "gemini", "model": "gemini-3.7-flash", "family": "Google", "tier": "gen-3.7"},
+    {"key": "gemini-flash", "transport": "gemini", "model": "gemini-3.8-flash", "family": "Google", "tier": "gen-3.8"},
+    {"key": "gemini-pro", "transport": "gemini", "model": "gemini-3.1-pro-preview", "family": "Google", "tier": "gen-3.1-pro"},
 ]
 
 REPS = [1, 2]
@@ -231,6 +239,10 @@ def main():
     ap.add_argument("--input", help="file holding the user message, sent verbatim to both arms")
     ap.add_argument("--outdir", default="out-crossmodel")
     ap.add_argument("--only", help="run a single target key")
+    ap.add_argument("--transport", choices=["claude", "codex", "gemini"],
+                    help="run only targets on one transport. Useful when memory is tight: a "
+                         "gemini cell is an HTTPS call (~30 MB) while a claude cell spawns a "
+                         "whole Claude Code process (~500 MB).")
     ap.add_argument("--probe", action="store_true", help="isolation probe only, no eval")
     ap.add_argument("--check", action="store_true",
                     help="report which targets this machine can run, then exit. Spends nothing.")
@@ -241,7 +253,9 @@ def main():
     a = ap.parse_args()
 
     env = gemini_env()
-    targets = [t for t in TARGETS if not a.only or t["key"] == a.only]
+    targets = [t for t in TARGETS
+               if (not a.only or t["key"] == a.only)
+               and (not a.transport or t["transport"] == a.transport)]
 
     avail = availability(env)
     print("Targets on this machine:")
