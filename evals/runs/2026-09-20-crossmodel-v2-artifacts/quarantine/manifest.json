@@ -1,0 +1,50 @@
+[
+  {
+    "key": "gpt",
+    "transport": "codex",
+    "model": null,
+    "family": "OpenAI",
+    "tier": "frontier",
+    "arm": "A",
+    "rep": 1,
+    "file": "gpt-A1.md",
+    "ok": true,
+    "chars": 920
+  },
+  {
+    "key": "gpt",
+    "transport": "codex",
+    "model": null,
+    "family": "OpenAI",
+    "tier": "frontier",
+    "arm": "A",
+    "rep": 2,
+    "file": "gpt-A2.md",
+    "ok": true,
+    "chars": 1114
+  },
+  {
+    "key": "gpt",
+    "transport": "codex",
+    "model": null,
+    "family": "OpenAI",
+    "tier": "frontier",
+    "arm": "B",
+    "rep": 1,
+    "file": "gpt-B1.md",
+    "ok": true,
+    "chars": 2885
+  },
+  {
+    "key": "gpt",
+    "transport": "codex",
+    "model": null,
+    "family": "OpenAI",
+    "tier": "frontier",
+    "arm": "B",
+    "rep": 2,
+    "file": "gpt-B2.md",
+    "ok": true,
+    "chars": 2790
+  }
+]
