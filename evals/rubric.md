@@ -80,7 +80,12 @@ can't FAIL isn't judging.
 - Followed by assumptions + push-back + open questions + install note.
 
 ### LENS
-- Per-lens block, findings prefixed ✅/⚠️/❌.
+- Per-lens block, findings prefixed ✅/⚠️/❌, or `—` for an item the artifact does not exercise.
+  **`—` is a fourth mark, not a defect.** `commands/lens.md` Step 4 defines it, because ✅ means
+  tested-and-met and an inapplicable item was never tested. Scoring a `—` as a missing mark, or
+  expecting a ✅ in its place, is a scoring error. (Added 2026-09-20 with the mark itself. The
+  command file gained it and this line did not, which is why a judge waved through an output that
+  improvised `n/a` instead: half a fix in the ruler is a fix that has not landed.)
 - Findings ordered worst-first.
 - Ends with a top-3-fixes list. **Then, mode-dependent, and the modes differ:**
   - **Without `--fix`:** the `/guildproof:sharpen` offer closes the output.

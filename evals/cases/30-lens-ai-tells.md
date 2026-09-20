@@ -38,10 +38,24 @@ Ready to transform your workflow? [Insert CTA here]
 - Catch the template phrases: "In today's rapidly evolving landscape," "It's not just X — it's
   Y," "Let's dive in," "Ready to transform…?"
 - Quote each offending span rather than only naming the category.
-- Produce the cleaned rewrite, then run the **second pass** and report it.
+- Give each finding its **proposed replacement**, inline. This case runs WITHOUT `--fix`, and
+  `lenses/ai-tells.md:53-55` is explicit that the no-fix path is findings only: "**Do not emit a
+  rewritten artifact** - the command's default contract is critique, not rewrite, and a lens may
+  not override it." So a cleaned rewrite here is a CONTRACT VIOLATION, not a requirement.
+  The rewrite-plus-second-pass expectation belongs to a `--fix` case; case 31 is that case.
 
 ## Must not
 
-- Introduce new tells in the rewrite (the second pass exists to catch exactly that).
+- **Emit a rewritten artifact.** No `--fix` was passed, so a rewrite breaks the lens's own rule
+  (`lenses/ai-tells.md:55`). Proposed replacements per finding are correct; an assembled
+  rewrite is not.
 - Flag every Tier 3 word on a single appearance — Tier 3 is a density signal.
 - Leave the placeholders unflagged, or fill them with invented values.
+
+## Note on this case, 2026-09-20
+
+The Must list used to require "Produce the cleaned rewrite" while the Input passes no `--fix`.
+That contradicted `lenses/ai-tells.md:53-55`, and the 2026-09-20 B4 suite run failed this case
+for obeying the lens rather than the case. The producer was right and the case was wrong. This
+is the fifth instance in that run of the measuring instrument disagreeing with the shipped
+contract, and the only one that lived in a case file rather than in `evals/rubric.md`.

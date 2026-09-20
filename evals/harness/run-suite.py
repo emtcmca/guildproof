@@ -33,6 +33,7 @@ Usage:
     python evals/harness/run-suite.py --tabulate               # scorecard from cells on disk
 """
 import argparse
+import hashlib
 import json
 import os
 import pathlib
@@ -245,7 +246,28 @@ def build_system_bundle(case, work_dir):
     cmd_file = ROUTE_COMMANDS.get(case["route"])
     cmd_file = cmd_file if (cmd_file and cmd_file.exists()) else None
 
-    sig = f"{base.stem}{'-' + cmd_file.stem if cmd_file else ''}{'-gallery' if needs_gallery else ''}"
+    # The cache key HASHES the inputs. It used to be the route name alone, with an
+    # `if out.exists(): return out` early exit and nothing comparing the cached file to the files
+    # it was built from.
+    #
+    # That silently broke a measured before/after. `commands/lens.md` was edited to add the
+    # not-applicable mark, the bundle was never rebuilt, and so the fix reached NO producer in the
+    # run that was supposed to test it: `grep -c "does not apply to this artifact"` returned 1 for
+    # the command file and 0 for the bundle. The 05 FAIL-to-WEAK delta recorded afterwards is
+    # therefore confounded, and was reported as evidence the fix worked. It is not.
+    #
+    # A stale cache is the worst kind of harness bug, because it makes a fix look applied. Hashing
+    # the inputs means editing any of them produces a different filename, so staleness is not
+    # expressible rather than merely unlikely.
+    inputs = [base] + lenses + templates + ([cmd_file] if cmd_file else [])
+    if needs_gallery:
+        inputs += sorted((REPO / "agents").glob("*.md"))
+    h = hashlib.sha256()
+    for p in inputs:
+        h.update(p.name.encode("utf-8"))
+        h.update(p.read_bytes())
+    sig = (f"{base.stem}{'-' + cmd_file.stem if cmd_file else ''}"
+           f"{'-gallery' if needs_gallery else ''}-{h.hexdigest()[:12]}")
     out = work_dir / f"bundle-{sig}.md"
     if out.exists():
         return out
@@ -427,8 +449,20 @@ def main():
         c = next((x for x in cases if x["id"] == args.show), None)
         if not c:
             raise SystemExit(f"no case {args.show}")
-        sp = route_prompt(c)
-        print(f"### PRODUCER system prompt file: {sp}")
+        # Build the real bundle, not the base prompt. --show exists so a reader can audit exactly
+        # what a producer receives, and it was printing the route file's path while the producer
+        # was actually given a bundle assembled from the route file plus the command file plus the
+        # lens library plus the templates. An audit tool that shows something other than what ran
+        # is worse than no audit tool.
+        bundle = build_system_bundle(c, out_dir / "_bundles")
+        print(f"### PRODUCER system prompt: {bundle}")
+        print(f"### assembled from: {route_prompt(c)}"
+              f"{', ' + str(ROUTE_COMMANDS[c['route']]) if c['route'] in ROUTE_COMMANDS else ''}"
+              f", lenses/, templates/"
+              f"{', agents/' if c['route'] == 'forge' else ''}")
+        if bundle:
+            print(f"### ({len(bundle.read_text(encoding='utf-8')):,} chars; "
+                  f"cache key hashes every input, so an edit to any of them rebuilds it)")
         print(f"### PRODUCER user message:\n{PRODUCER_PREAMBLE}{c['input']}")
         print(f"\n### JUDGE prompt:\n{judge_prompt(c, '<the captured output>', rubric)}")
         raise SystemExit(0)
