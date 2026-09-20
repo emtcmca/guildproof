@@ -99,6 +99,11 @@ const COUNT_ERROR_FILES = [
   // across a line break so the per-line scan never saw it. It is the how-to a new installer is
   // sent to, so a wrong count there is in front of a user.
   'docs/USING-GUILDPROOF.md',
+  // Added 2026-09-20. This file told every reader "Thirteen of these prompts ship as
+  // host-agnostic skills" when 22 do, at the exact moment they are deciding whether their host
+  // is covered. It went unflagged because "prompts" maps to no tracked directory, so the claim
+  // was rewritten to "All twenty gallery specialists", which does.
+  '.github/ISSUE_TEMPLATE/config.yml',
 ];
 
 // ---------------------------------------------------------------------------
