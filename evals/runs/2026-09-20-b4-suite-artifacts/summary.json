@@ -1,0 +1,87 @@
+{
+  "benchmark": "B4-suite",
+  "commit": "2c8e80cdb7182c2e1a86dc7b206f0c07b255f00a",
+  "producer_model": "claude-sonnet-5",
+  "judge_model": "claude-sonnet-5",
+  "counts": {
+    "FAIL": 5,
+    "WEAK": 5,
+    "UNMEASURED-BY-TRANSPORT": 4
+  },
+  "cases": [
+    {
+      "id": "01",
+      "route": "sharpen",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "02",
+      "route": "sharpen",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "03",
+      "route": "forge",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "04",
+      "route": "forge",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "05",
+      "route": "lens",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "06",
+      "route": "lens",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "07",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "08",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "09",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "10",
+      "route": "agent",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "17",
+      "route": "orchestration",
+      "verdict": "UNMEASURED-BY-TRANSPORT",
+      "why": "needs a host that can dispatch registered subagents"
+    },
+    {
+      "id": "18",
+      "route": "orchestration",
+      "verdict": "UNMEASURED-BY-TRANSPORT",
+      "why": "needs a host that can dispatch registered subagents"
+    },
+    {
+      "id": "19",
+      "route": "orchestration",
+      "verdict": "UNMEASURED-BY-TRANSPORT",
+      "why": "needs a host that can dispatch registered subagents"
+    },
+    {
+      "id": "22",
+      "route": "orchestration",
+      "verdict": "UNMEASURED-BY-TRANSPORT",
+      "why": "needs a host that can dispatch registered subagents"
+    }
+  ]
+}
