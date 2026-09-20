@@ -95,6 +95,10 @@ const COUNT_ERROR_FILES = [
   // stale "37-case" number as the command sheet. It is the first file a would-be
   // contributor opens, so a wrong count there is as public as one in the README.
   'CONTRIBUTING.md',
+  // Added 2026-09-20 after it was caught carrying "over 27 cases" against 38 on disk, wrapped
+  // across a line break so the per-line scan never saw it. It is the how-to a new installer is
+  // sent to, so a wrong count there is in front of a user.
+  'docs/USING-GUILDPROOF.md',
 ];
 
 // ---------------------------------------------------------------------------
@@ -162,7 +166,11 @@ const CLAIM_PATTERNS = [
   { target: 'lenses',    needsMarker: false, re: new RegExp(`(${NUM})\\s+(?:built-in|expert)(?:\\s+expert)?\\s+lenses\\b`, 'gi') },
   { target: 'lenses',    needsMarker: false, re: new RegExp(`(${NUM})\\s+built-ins?\\b`, 'gi') },
   { target: 'lenses',    needsMarker: false, re: new RegExp(`(${NUM})\\s+review\\s+checklists\\b`, 'gi') },
-  { target: 'knownBad',  needsMarker: false, re: new RegExp(`(${NUM})\\s+known-bad\\b`, 'gi') },
+  // "known-bad" must be followed by the thing being counted. Bare `N known-bad` also matched
+  // "12 known-bad cells", which is 12 judge scorings of 6 fixtures, and reported it as a claim
+  // that 12 fixtures exist. Cells, runs and scorings are all legitimately more numerous than
+  // fixtures, so the noun has to be named.
+  { target: 'knownBad',  needsMarker: false, re: new RegExp(`(${NUM})\\s+known-bad\\s+(?:regression\\s+)?fixtures?\\b`, 'gi') },
   { target: 'knownBad',  needsMarker: false, re: new RegExp(`(${NUM})\\s+KB\\s+fixtures?\\b`, 'gi') },
   { target: 'knownBad',  needsMarker: false, re: new RegExp(`(${NUM})\\s+(?:deliberately-broken\\s+)?calibration\\s+fixtures?\\b`, 'gi') },
   { target: 'evalCases', needsMarker: false, re: new RegExp(`(${NUM})[-\\s]case\\s+(?:regression\\s+)?suite\\b`, 'gi') },
@@ -180,7 +188,11 @@ const CLAIM_PATTERNS = [
  * Only the tail of the preceding text counts — "the core three commands" must NOT
  * qualify, because "the" attaches to "core", not to the number.
  */
-const MARKER_TAIL = /(?:\b(?:the|all|its|these|those)\s+(?:\*\*)?|\*\*|\b(?:gallery|roster|guild|suite|library)\s*[(:\-–—]\s*)$/i;
+// `over` earns its place here: "an adversarial skeptic rubric over 27 cases" is an inventory
+// claim about the suite, and it sat stale in docs/USING-GUILDPROOF.md against 38 on disk because
+// nothing marked it as one. The risk of a false positive from `over` is low, because a claim only
+// counts at all when its noun maps to a real tracked directory.
+const MARKER_TAIL = /(?:\b(?:the|all|its|these|those|over)\s+(?:\*\*)?|\*\*|\b(?:gallery|roster|guild|suite|library)\s*[(:\-–—]\s*)$/i;
 function hasInventoryMarker(line, index) {
   return MARKER_TAIL.test(line.slice(Math.max(0, index - 30), index));
 }
@@ -319,8 +331,23 @@ function checkCounts(ctx, inv) {
     const lines = readLines(path.join(ctx.root, rel));
     const seen = new Set(); // dedupe: two patterns can match the same claim on one line
 
-    lines.forEach((line, i) => {
+    lines.forEach((rawLine, i) => {
       const lineNo = i + 1;
+      // Scan the line joined to the next one, because these docs are hard-wrapped and a claim
+      // splits across the break. `docs/USING-GUILDPROOF.md` said "over 27" at the end of one
+      // line and "cases." at the start of the next, against 38 cases on disk. A per-line regex
+      // cannot see that, so the stale count sat in a reader-facing doc while this checker
+      // reported the file clean. A wrapped claim is still a claim.
+      //
+      // Reporting stays on the FIRST line, where the number is. Findings that were already
+      // visible on one line dedupe against the single-line pass via `seen`, so joining cannot
+      // double-report.
+      // Join ONLY when this line ends with a number, which is the only way a claim can be split
+      // by the wrap. Joining unconditionally was tried first and was a net loss: it produced two
+      // false positives by manufacturing adjacencies that do not exist in the prose, and caught
+      // nothing. Narrowing it to a trailing number targets the real case and nothing else.
+      const wraps = new RegExp(`(?:${NUM})\\s*$`, 'i').test(rawLine);
+      const line = wraps && i + 1 < lines.length ? `${rawLine} ${lines[i + 1].trim()}` : rawLine;
       const disq = CLAIM_DISQUALIFIERS.find((d) => d.re.test(line));
 
       const hits = [];

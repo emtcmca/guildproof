@@ -14,18 +14,84 @@ guildproof is prompt & context engineering delivered as a Claude Code plugin, in
 
 ## 1. Install
 
-**As a plugin (recommended):**
+Three ways in. Option A is the one the README shows; B and C live here.
+
+### Option A — as a plugin (recommended)
+
 ```
 /plugin marketplace add emtcmca/guildproof
 /plugin install guildproof
 ```
 Verify: type `/guildproof` — `/guildproof:sharpen`, `:forge-agent`, `:lens`, `:orchestrate`
 should autocomplete. (Plugin commands are namespaced — bare `/sharpen` only exists with the
-manual/standalone install in the README.)
+manual/standalone install below.)
 
 Then run `/guildproof:lens --lens skeptic` on any short paragraph. If it reports running the
 `skeptic` lens, the bundled lens library resolved correctly. Autocomplete alone doesn't prove the
 install — the commands can load while the files they read don't.
+
+(For local development against a clone, add the working copy instead:
+`/plugin marketplace add /path/to/your/guildproof-clone`.)
+
+### Option B — manual (standalone, bare command names)
+
+Copy five things into your `~/.claude/` directory (Windows: `C:\Users\<you>\.claude\`):
+
+| Copy this | To here | Needed for |
+|---|---|---|
+| `commands/` | `~/.claude/commands/` | the four commands |
+| `skills/` | `~/.claude/skills/` | the engine + coordinator |
+| `lenses/` | `~/.claude/guildproof-lenses/` | the lens pass |
+| `templates/` | `~/.claude/guildproof-templates/` | `/sharpen`, `/forge-agent`, `/lens --grade` output |
+| `agents/` | `~/.claude/guildproof-agents/` | gallery seeding + `/orchestrate` routing |
+
+Installed this way the commands are bare — `/sharpen`, `/forge-agent`, `/lens`, `/orchestrate` —
+because standalone commands aren't namespaced.
+
+Skip any row and that capability degrades: no `lenses/` and the lens step has nothing to load;
+no `templates/` and the synthesis step has no skeleton; no `agents/` and `/forge-agent` can't
+seed from the gallery while `/orchestrate` has no roster to route to.
+
+### Option C — any other agent
+
+The commands and the orchestrator are Claude Code features, but the prompts underneath are not.
+All of them are published as plain skills:
+
+```bash
+npx skills add emtcmca/guildproof-skills
+```
+
+That installs 22 skills into any agent that reads `SKILL.md`: the engine
+(`prompt-engineering`), all twenty gallery specialists, and a standalone `prompt-grader`
+extracted from the engine's grading route. No plugin, no dependencies, no API keys.
+
+What you give up: the four slash commands and `/orchestrate`, which dispatches subagents from a
+plugin-bundled gallery and cannot run from a plain skills install. No gallery agent is left out.
+What you keep: the same prompt bodies, generated from this repo and stamped with the commit they
+came from.
+
+Source and provenance: [emtcmca/guildproof-skills](https://github.com/emtcmca/guildproof-skills).
+
+### Uninstall
+
+If you installed as a plugin (Option A):
+
+```
+/plugin uninstall guildproof
+/plugin marketplace remove emtcmca/guildproof
+```
+
+If you installed manually (Option B), delete what you copied:
+
+- `~/.claude/commands/sharpen.md`, `forge-agent.md`, `lens.md`, `orchestrate.md`
+- `~/.claude/skills/prompt-engineering/` and `~/.claude/skills/orchestration/`
+- `~/.claude/guildproof-lenses/`, `~/.claude/guildproof-templates/`,
+  `~/.claude/guildproof-agents/`
+
+That's the full footprint. guildproof writes exactly one file on its own, and only after asking:
+`~/.claude/guildproof-coverage-gaps.md`, the log `/orchestrate` appends to when a request slice
+falls outside every agent's purview. Delete it too if you created one. Nothing else is written
+and no state is left behind.
 
 ---
 
@@ -168,7 +234,7 @@ coverage gaps, and what each agent contributed.
 
 ## 8. Testing & refining (the eval harness)
 
-`evals/` is a host-judged harness: structural invariants + an adversarial skeptic rubric over 27
+`evals/` is a host-judged harness: structural invariants + an adversarial skeptic rubric over 38
 cases. Run it by saying **"run the guildproof evals"** (all) or **"run eval case 17"** (one).
 It writes a dated scorecard to `evals/runs/`. To refine: change a lens/engine/agent, re-run the
 same cases, diff the scorecards, keep only non-regressing improvements.
