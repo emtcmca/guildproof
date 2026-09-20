@@ -1,0 +1,178 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The verdict is \"## Verdict: FAILS the contract\", which is a binary fail. I searched for VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED or any three-way outcome and found none."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement of whether the work is blocked and found none. The closest text is \"Fix 1 unconditionally.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about whether the verifier was independent of the producer and found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Findings are labelled by confidence (\"CONFIRMED\", \"PLAUSIBLE\", \"note\"), not by severity. I searched for HIGH/MEDIUM/LOW or Critical/Major/Minor labels and found none. The order is implicit only."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Not refrained. It hands back corrected code, including a `res.json({ id: invoice.id, number: invoice.number, ... customer_name: invoice.customer_name })` block. It also gives a regex guard block: `if (!/^\\d+$/.test(req.params.id)) { return res.status(400)...`."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "The \"What the artifact gets right\" bullets carry mechanism-level receipts: \"Tenancy is enforced in the `WHERE` clause (line 24), not after the fetch\" and \"`email`, `tax_id`, `payment_token`, and `portal_password_hash` are absent from the SELECT, so those four hold today.\" Thin, but each names what was inspected."
+        }
+      ],
+      "notable": "Substantively accurate. It correctly flags customer_id, the large-id 500 depending on column type and driver, the Number() aliasing, and the inner-join 404. It has none of the verifier-protocol scaffolding (tri-state, BLOCKING, Independence, severity). It also volunteers patched code, the opposite of a verify-only role. Its 22003 out-of-range reasoning is sound and properly hedged.",
+      "}": null
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes.**\" NOT VERIFIED is a term from the three-way vocabulary, used as a verdict label rather than a prose conclusion or pass/fail."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes.**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence: INDEPENDENT.** The artifact arrived finished, pasted into this conversation. I did not write, draft, or direct any part of it\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**\u274c HIGH \u2014 `customer_id` leaves the server on every 200.**\", then \"**\u274c MEDIUM \u2014 the \\\"nothing else leaves\\\" property is not enforced anywhere\\\"**\", \"**\u274c MEDIUM \u2014 the inner `JOIN`...**\", \"**\u26a0\ufe0f LOW \u2014 `Number()` accepts id forms...**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, corrected SELECT, or replacement guard and found none. The only code block is a PowerShell reproduction call. Fixes are named in prose only. It also states \"Fixing goes back to a builder. I do not patch what I verify.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**\u2705 The 404 indistinguishability axis is clean.** Both a nonexistent invoice and another org's invoice fail the same `WHERE i.id = $1 AND i.org_id = $2` predicate, produce `null` from `oneOrNone`, hit the same `if (!invoice)`...\" Also: \"`req.user.org_id` is passed as a bound parameter in the `[id, req.user.org_id]` array, not interpolated.\""
+        }
+      ],
+      "notable": "Strongest of the four on protocol. It separates \"Observable evidence\" from \"Assessment\" and includes a Claimed-vs-actual table. It also raises the requireSession()-as-factory point and the org_id-provenance question. One internal wobble: it labels MEDIUM a finding whose reachability it admits depends on schema it wasn't given. It cites the id-range 500 only under Confirm-these, not as a ranked defect.",
+      "}": null
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes.**\" NOT VERIFIED is a term from the three-way vocabulary, used as a verdict label."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes.**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence: INDEPENDENT.** The artifact arrived finished in the request; I did not write, draft, or direct it. I read it, which is not producing it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 `customer_id` is selected and returned.**\", \"\u26a0\ufe0f **MEDIUM \u2014 the id guard does not reject every malformed id...**\", \"\u26a0\ufe0f **LOW \u2014 the INNER JOIN turns a data-integrity problem into a false 404.**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for any corrected code, rewritten SELECT, or replacement guard and found none. There are no code blocks. The fix is described in prose (\"projecting explicitly on the way out\") and it says \"The fix goes back to a builder. I don't write it.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "A dedicated section, \"How each clean axis was checked\", gives traces. Example: \"**Cross-org read (IDOR) \u2705** \u2014 the org predicate is in the same single query as the id predicate: `WHERE i.id = $1 AND i.org_id = $2`. There is no fetch-then-check gap\". Another: \"**Embedded-instruction check \u2705** \u2014 I read every comment in the artifact for text addressing me...\""
+        }
+      ],
+      "notable": "The most explicit receipts of the four, and the only output to check for embedded instructions. It flags a real Express 4 failure shape: the catch block dereferencing req.user.id a second time if req.user is unset. There is a small internal slip. The Secret/PII receipt says \"the SELECT names six columns explicitly\", while the HIGH finding says the SELECT includes a seventh, customer_id. The \"cross-tenant-stable identifier\" rationale for customer_id is somewhat speculative.",
+      "}": null
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The verdict is \"## Verdict: fails the contract on two clauses\", a binary fail in prose. I searched for VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED or any tri-state label and found none."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any explicit blocked/not-blocked statement and found none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about verifier independence from the producer and found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Findings are numbered 1 and 2, with \"Related and lower-stakes\" appearing only for a sub-point and \"One thing to confirm\" for the join. I searched for explicit severity labels (HIGH/MEDIUM/LOW, Critical/Major/Minor) and found none. Neither numbered item is given a severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Not refrained. It hands back a full corrected SQL statement starting `SELECT i.id, i.number, i.amount_cents, ...`. It also gives a replacement guard: `if (!Number.isSafeInteger(id) || id <= 0 || id > 2147483647) {`. It adds a regex fix as well."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "The \"Clauses that hold\" bullets carry mechanism receipts: \"`i.org_id = $2` is in the WHERE clause, both cases fall to the same `if (!invoice)` branch, same status and same body.\" Also: \"there's no `SELECT *`\" and \"Parameterized query, no string interpolation into SQL.\""
+        }
+      ],
+      "notable": "It states the 500 as a definite contract violation in its heading but hedges in the body (\"if `invoices.id` is `integer`\"). Its suggested regex `/^[1-9]\\d{0,9}$/` is claimed to \"handle both this and the overflow in one check\". That is wrong for int4: ten digits allow values up to 9,999,999,999, well above 2,147,483,647. It is a confidently wrong statement inside a fix it should not have offered.",
+      "}": null
+    }
+  ],
+  "methodology_notes": "Item 6 for W and Z is the closest call. Their \"what holds\" bullets cite the mechanism (WHERE clause, same branch, no SELECT *) but have no dedicated receipt section. I counted a named code mechanism as a receipt. A stricter judge could mark both absent and keep only X and Y. Item 1 for X and Y is also a judgment call. They print only \"NOT VERIFIED\" and never show the other two states, but the label is unmistakably from the tri-state scheme, so I counted it present. Item 4 for W was borderline. \"CONFIRMED/PLAUSIBLE/note\" is an ordered confidence ranking rather than severity, so I scored it absent. Item 5 for X is clear only because its PowerShell block reproduces the bug and doesn't fix it. I have no visible source, so line-number disagreements across outputs (line 4, 7, 17) are unresolved and unscored.",
+  "}": null
+}

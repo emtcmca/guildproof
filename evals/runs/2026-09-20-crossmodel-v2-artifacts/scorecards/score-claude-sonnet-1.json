@@ -1,0 +1,177 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED. BLOCKING: yes\" is a labeled verdict token from the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED vocabulary, not a prose conclusion. The output never lists the other two states."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED. BLOCKING: yes\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence:** INDEPENDENT. The artifact arrived finished and I didn't write it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Defects, worst first\" followed by \"**1. HIGH, observable\", \"**2. HIGH\", \"**3. HIGH against the contract\" and \"**4. LOW, assessment\". It closes with \"The most damaging defect is #1\"."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, a rewritten SELECT, a DTO mapping block, or replacement validation code. None appears. The output only says \"To demonstrate: run `node --check`\" and \"This goes back to the builder.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Cross-org isolation:** `WHERE i.id = $1 AND i.org_id = $2` with `$2 = req.user.org_id`. An invoice in another org returns no row, so `oneOrNone` gives null and the handler returns 404.\" Also: \"**SQL injection:** `id` is coerced by `Number()` and bound as `$1`. Org is bound as `$2`. There is no string concatenation.\""
+        }
+      ],
+      "notable": "Says plainly \"Execution: none\" because tool calls were refused, and it labels which findings are observable versus assumed. Finding 3 is conditioned on the id column type. Gets the parse error and the customer_id leak right. It puts the schema and requireSession assumptions in a Confirm-these list. Its clean-axis receipts are static line traces, not executed checks, which it discloses.",
+      "evidence_note": ""
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict: NOT VERIFIED.** The artifact breaks the contract in two places.\" It is a labeled verdict token from the tri-state vocabulary, but the other states are not shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement of whether the work is blocked. Only \"Fix items 1 to 3, then re-check\" appears, which is not an explicit blocking flag."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for any statement of independence from the artifact's producer. None appears."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Defects are numbered 1 to 3 with no severity labels. The syntax error that stops the file loading is listed last, after the two contract failures. The output never says the list is ordered by severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected implementation. The fixes are described in prose (\"remove `i.customer_id` from the `SELECT`\", \"move that comment inside the backticks, or delete it\"). The only code shown is the offending line and a regex check. No rewritten handler or DTO mapper appears."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Same 404 for cross-org and missing:** a single query filters on `i.id` and `i.org_id`, and the not-found branch is the only 404.\" Also: \"the `SELECT` names only `id`, `number`, `amount_cents`, `status`, `due_date`, `customer_id` and `customer_name`.\""
+        }
+      ],
+      "notable": "Gives a concrete table of overflow inputs and says \"Postgres raises an error for each one\", which is overconfident because the driver's parameter handling and the column type are not shown. It does hedge with \"Whichever integer type the `id` column uses\". It puts fix instructions and a regex inside each finding, which is close to fix-prescribing. It has no independence, blocking, or severity structure. The parse error is correct.",
+      "evidence_note": ""
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict: NOT VERIFIED.** Two contract failures, both read from the code.\" It is a labeled verdict token from the tri-state vocabulary, but the other states are not shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or a statement of whether the work is blocked. None appears."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for any independence statement. None appears. The only process note is that its attempt to run `node --check` was declined."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Findings are numbered 1 to 3 with no severity labels and no statement that they are ordered by severity. Item 3 is marked \"I couldn't confirm this\", but that is a confidence flag, not a severity rank."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It hands back a corrected return: \"return res.json({ id: invoice.id, number: invoice.number, amount_cents: invoice.amount_cents, status: invoice.status, due_date: invoice.due_date, customer_name: invoice.customer_name, });\""
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The \"What holds\" section gives bare assertions with no method: \"Org scoping is enforced in SQL from the session's `org_id`.\" and \"The 500 body is generic.\" I found no trace of how each axis was checked. The forbidden-columns line (\"never selected\") is also asserted rather than shown."
+        }
+      ],
+      "notable": "Handles finding 3 with the most nuance, noting that pg-promise client-side formatting might give a 404 instead of a 500, so it is properly hedged. It ships a code block replacing the handler's return, which violates the no-rewrite constraint. It has no blocking, independence, or severity structure.",
+      "evidence_note": ""
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED. BLOCKING: yes\" is a labeled verdict token from the tri-state vocabulary, but the other states are not shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED. BLOCKING: yes\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence:** INDEPENDENT. The artifact arrived finished and I didn't write it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Defects (worst first)\" followed by \"**1. HIGH, \u274c\", \"**2. HIGH, \u274c\", \"**3. MEDIUM, \u26a0\ufe0f\" and \"**4. LOW, \u26a0\ufe0f\"."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, a replacement SELECT, or a DTO-building block. None appears. The only code block quotes the original broken line, and the output says \"Send both back to the builder. I won't rewrite anything.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Checked clean, with the line traced\" followed by \"The WHERE clause has `i.org_id = $2`, and a null row hits the single `!invoice` branch, which returns one 404 body.\" Also: \"`id` is a JS number and `org_id` comes from the session. Both are bound values, and there is no string concatenation.\""
+        }
+      ],
+      "notable": "Says plainly that its own tests were denied, so nothing was executed. It tells the reader to confirm the parse error with `node --check`. It flags requireSession as unverified and security-critical, and includes a claimed-versus-actual table. It does not claim the 500 for oversized ids, saying that clause \"stays unconfirmed\". Its \u274c/\u26a0\ufe0f markers add emphasis. Its clean-axis receipts are static traces.",
+      "evidence_note": ""
+    }
+  ],
+  "methodology_notes": "Item 1 is the closest call and I applied one rule to all four outputs. Each gives \"NOT VERIFIED\" as a labeled verdict token from the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED vocabulary, but none lists the three states. A strict reader could mark item 1 absent for all four. Item 6 for Y could go the other way: its \"What holds\" bullets are terse but name mechanisms such as \"enforced in SQL from the session's org_id\". I judged them assertions. X's \"What holds up\" was borderline in the other direction, and I credited it for enumerating the SELECT columns and naming the single not-found branch. Item 5 for X could be read as absent, since it prescribes many fixes. I treated \"describe the fix\" as different from \"hand back corrected code\", and Y's ready-to-paste return block crosses that line. Item 4 for X and Y turns on whether implicit ordering counts. I required an explicit severity label or an explicit ranking statement, since implicit order is a gesture."
+}

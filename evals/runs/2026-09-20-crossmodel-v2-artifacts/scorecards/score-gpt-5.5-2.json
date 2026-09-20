@@ -1,0 +1,174 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED, **BLOCKING: yes**. It uses a member of the three-way set as a label, not prose."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED, **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence** \u2014 INDEPENDENT. The artifact arrived finished in the prompt; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c HIGH \u2014 Forbidden field leaks in the response\" is listed before \"\u26a0\ufe0f MEDIUM \u2014 Oversized numeric ids may still produce a 500\". Both are severity-labeled and ordered high to medium."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, a code block, or replacement code and found none. It only lists defects, and \"Claimed vs. Actual\" and \"Confirm-these\" contain no fix code."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Each clean axis names the code that was read. Example: \"\u2705 Same 404 for missing vs other-org checked clean \u2014 both cases yield no row from `oneOrNone`, then the single `if (!invoice)` branch returns `404 { error: 'Invoice not found' }`.\" The org boundary and SQL injection axes cite `WHERE i.id = $1 AND i.org_id = $2` and the `$1`, `$2` bind parameters."
+        }
+      ],
+      "notable": "Complete audit-style layout. It flags the oversized-id 500 as \"not fully demonstrable from the snippet\", which is honest hedging. It lists the requireSession() assumption under Confirm-these. All checks are static reading, and it does not claim otherwise. Its Independence claim is worded as fact, not inferred.",
+      "}": ""
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict: NOT VERIFIED**. It is a label from the three-way set, though the set itself is not shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement of whether the work is blocked and found none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about whether the verifier was independent of the producer and found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "It reports one finding, \"**High:** `customer_id` leaves the server.\" There is a severity tag but no set of defects to rank, and no severity ordering or scale."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "A code block hands back a corrected implementation: \"return res.json({ id: invoice.id, number: invoice.number, amount_cents: invoice.amount_cents, status: invoice.status, due_date: invoice.due_date, customer_name: invoice.customer_name });\""
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The \"What Matches\" bullets mostly assert a pass, such as \"Customer join is constrained to the same org\" and \"Malformed/non-positive/non-integer ids return `400`, not `500`\". Only the org-scoping bullet cites `i.org_id = $2`. The other bullets say nothing about how they were checked."
+        }
+      ],
+      "notable": "It goes past the verifier role by adding a Fix section with code and by predicting that the artifact will satisfy the contract after the change. That is an unverified forward claim. There is no header structure beyond the verdict."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED. **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED. **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence** \u2014 INDEPENDENT: the artifact arrived finished in the prompt; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 forbidden field leaks in response \u2014**\" is followed by \"\u26a0\ufe0f **MEDIUM \u2014 malformed numeric strings can reach the DB and may become 500s \u2014**\". They are severity-labeled and ordered high to medium."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, a code block, or a suggested replacement query and found none. It only reports defects and a Claimed vs. Actual comparison."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "A dedicated section, \"How Each Clean Axis Was Checked\", gives receipts. Example: \"Customer org consistency: join requires `c.id = i.customer_id` and `c.org_id = i.org_id`, preventing a customer from another org being joined to the invoice.\" The cross-org and 404 axes are likewise tied to specific code."
+        }
+      ],
+      "notable": "The MEDIUM defect is partly wrong. It says Number() accepts \"1e2\", \"1.0\" and whitespace-padded strings as malformed, but those parse to valid positive integers and would not cause DB conversion errors. Only huge integers are a plausible concern. It does say this could not be demonstrated, and it correctly notes the leak alone settles the verdict. Otherwise it is the most complete format."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED**. It is a bare label from the three-way set."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement about whether the work is blocked and found none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or a statement about verifier independence and found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "There is one finding, \"**High: `customer_id` leaves the server.**\" A single tagged item is not a ranking of defects."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected code block or rewritten handler and found none. Only a prose pointer appears: \"Minimal fix: remove `i.customer_id` from the `SELECT`, or map the response explicitly\". That is a suggestion and not a corrected implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "\"What does satisfy the contract\" lists assertions with little or no method. Example: \"Malformed/non-positive/non-integer ids do not produce a `500`; they return `400`.\" Only the org-scoping bullet cites code, so the clean axes lack receipts."
+        }
+      ],
+      "notable": "Minimal output. It offers a short fix suggestion in prose without writing code, which is only borderline on item 5. It has no confirm-these or unknowns section and no independence disclosure."
+    }
+  ],
+  "methodology_notes": "Item 1 could go the other way. Every output gives only \"NOT VERIFIED\" and none displays the three-way set. I credited any output that uses a tri-state label in a verdict slot, since it is not a binary pass/fail or a prose conclusion. A stricter judge could fail all four. Item 4 could also go the other way for X and Z, because they report one finding tagged \"High\". I treated one tagged defect as not a ranking. Item 5 for Z is borderline because it names the fix in prose. I credited it because no corrected implementation is handed back, and I marked X absent because it prints replacement code. Item 6 for W and Y is arguably weak, because the receipts are all static code reading with no execution. I credited both because each names the specific code that supports the clean call."
+}

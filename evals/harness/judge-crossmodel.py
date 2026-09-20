@@ -31,12 +31,14 @@ import subprocess
 import sys
 
 HERE = pathlib.Path(__file__).parent
-CELLS = HERE / "out-crossmodel"
-BUNDLES = HERE / "judge-crossmodel"
-SCORES = HERE / "scores-crossmodel"
-KEY = HERE / "label-key-crossmodel.csv"
+CELLS = HERE.parent / "runs" / "2026-09-20-crossmodel-v2-artifacts"
+BUNDLES = CELLS / "judge-bundles"
+SCORES = CELLS / "scorecards"
+KEY = CELLS / "label-key.csv"
 
-TARGETS = ["claude-haiku", "claude-sonnet", "claude-opus", "gpt-5", "gpt-6",
+TARGETS = ["claude-haiku", "claude-sonnet", "claude-opus",
+           "gpt-5.5", "gpt-5.6-luna", "gpt-5.6-sol", "gpt-6-astra",
+           "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash",
            "gemini-flash", "gemini-pro"]
 
 # Pinned, never the bare "sonnet" alias. An alias resolves to whatever the CLI currently
@@ -46,13 +48,18 @@ PINNED_JUDGE_MODEL = "claude-sonnet-5"
 
 # A distinct permutation per target so position never correlates with arm.
 MAPPING = {
-    "claude-haiku":  {"W": ("A", 1), "X": ("B", 2), "Y": ("B", 1), "Z": ("A", 2)},
-    "claude-sonnet": {"W": ("B", 1), "X": ("A", 1), "Y": ("A", 2), "Z": ("B", 2)},
-    "claude-opus":   {"W": ("A", 2), "X": ("B", 1), "Y": ("B", 2), "Z": ("A", 1)},
-    "gpt-5":         {"W": ("B", 2), "X": ("A", 2), "Y": ("A", 1), "Z": ("B", 1)},
-    "gpt-6":         {"W": ("A", 1), "X": ("B", 1), "Y": ("A", 2), "Z": ("B", 2)},
-    "gemini-flash":  {"W": ("B", 1), "X": ("A", 2), "Y": ("B", 2), "Z": ("A", 1)},
-    "gemini-pro":    {"W": ("A", 2), "X": ("B", 2), "Y": ("A", 1), "Z": ("B", 1)},
+    "claude-haiku":     {"W": ("A", 1), "X": ("B", 2), "Y": ("B", 1), "Z": ("A", 2)},
+    "claude-sonnet":    {"W": ("B", 1), "X": ("A", 1), "Y": ("A", 2), "Z": ("B", 2)},
+    "claude-opus":      {"W": ("A", 2), "X": ("B", 1), "Y": ("B", 2), "Z": ("A", 1)},
+    "gpt-5.5":          {"W": ("B", 2), "X": ("A", 1), "Y": ("B", 1), "Z": ("A", 2)},
+    "gpt-5.6-luna":     {"W": ("B", 2), "X": ("A", 2), "Y": ("A", 1), "Z": ("B", 1)},
+    "gpt-5.6-sol":      {"W": ("A", 1), "X": ("B", 1), "Y": ("B", 2), "Z": ("A", 2)},
+    "gpt-6-astra":      {"W": ("A", 1), "X": ("B", 1), "Y": ("A", 2), "Z": ("B", 2)},
+    "gemini-3.5-flash": {"W": ("B", 1), "X": ("B", 2), "Y": ("A", 1), "Z": ("A", 2)},
+    "gemini-3.6-flash": {"W": ("A", 2), "X": ("A", 1), "Y": ("B", 2), "Z": ("B", 1)},
+    "gemini-3.7-flash": {"W": ("B", 2), "X": ("A", 1), "Y": ("B", 1), "Z": ("A", 2)},
+    "gemini-flash":     {"W": ("B", 1), "X": ("A", 2), "Y": ("B", 2), "Z": ("A", 1)},
+    "gemini-pro":       {"W": ("A", 2), "X": ("B", 2), "Y": ("A", 1), "Z": ("B", 1)},
 }
 
 # Verbatim from evals/benchmarks/README.md, committed before any run.
@@ -185,9 +192,9 @@ def run_judge(bundle_path, judge_no):
         return None, f"JSON parse failed: {e}"
 
 
-def judge():
+def judge(only=None):
     SCORES.mkdir(exist_ok=True)
-    for tgt in TARGETS:
+    for tgt in (only or TARGETS):
         bundle = BUNDLES / f"judge-in-{tgt}.md"
         if not bundle.exists():
             print(f"  skip {tgt}: no bundle")
@@ -273,11 +280,14 @@ if __name__ == "__main__":
     ap.add_argument("--blind", action="store_true")
     ap.add_argument("--judge", action="store_true")
     ap.add_argument("--tabulate", action="store_true")
+    ap.add_argument("--target", action="append",
+                    help="judge only this target; repeatable. Lets judging run in short "
+                         "foreground batches instead of one long background job.")
     a = ap.parse_args()
     if a.blind:
         blind()
     if a.judge:
-        judge()
+        judge(a.target)
     if a.tabulate:
         tabulate()
     if not (a.blind or a.judge or a.tabulate):

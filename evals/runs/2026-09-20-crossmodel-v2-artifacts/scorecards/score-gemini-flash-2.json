@@ -1,0 +1,177 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** | **BLOCKING: yes**\" \u2014 NOT VERIFIED is one label from the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED set. The other two labels are not listed."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** | **BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 The artifact and contract arrived finished in the prompt; no prior drafting or collaboration in this conversation.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"#### \u274c HIGH \u2014 Prohibited field `customer_id` returned in response payload\" followed by \"#### \u26a0\ufe0f MEDIUM \u2014 Large numeric ID causes 500 Internal Server Error\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected SQL query, corrected handler, or fix section. None found. The only code block is an illustrative JSON response body showing the leak."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Org Isolation & Anti-probing 404s: Line 24 enforces `AND i.org_id = $2` parameterized with `req.user.org_id`. Line 28 checks `if (!invoice)` ... returns status `404`\" and \"SQL Injection Prevention: Lines 10\u201325 use parameterized positional placeholders (`$1`, `$2`)\""
+        }
+      ],
+      "notable": "Strongest output. It has a Claimed vs. actual table that includes a row where the artifact matches the contract. It splits Confirm-these assumptions from confirmed defects. The 1e30 arithmetic for the 30-digit id is correct. The example JSON response body is fabricated for illustration, but it is presented as a demonstration.",
+      "evidence_note": ""
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED or any tri-state label. Found only the prose sentence \"The artifact **fails** verification against the contract.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement of whether the work is blocked. Not found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about the verifier's independence from the artifact's author. Not found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels (HIGH/MEDIUM/critical/major). Not found. The two sections are titled \"Violations\" and \"Potential Edge Case / Risk\", which is a category split, not a severity ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "\"### Recommended Fix\" followed by a full corrected implementation: \"const invoice = await db.oneOrNone(`SELECT i.id, i.number, i.amount_cents, i.status, i.due_date, c.name AS customer_name FROM invoices i JOIN customers c ...\""
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for any section or sentence explaining how org isolation, SQL parameterization, or id validation was checked. Not found. No axis is called clean with a receipt."
+        }
+      ],
+      "notable": "Hands back a rewritten query. Its 32-bit overflow reasoning is sound. It omits the clean axes entirely, so a reader cannot tell what was checked and found fine.",
+      "evidence_note": ""
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict**: NOT VERIFIED\" \u2014 NOT VERIFIED is one label from the tri-state set. The other two labels are not listed."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING**: yes\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence**: INDEPENDENT \u2014 Artifact arrived finished in the prompt; verifier had no role in drafting it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 Leak of forbidden field `customer_id` in response payload**\" and \"\u26a0\ufe0f **MEDIUM \u2014 Large integer values in `:id` can trigger HTTP 500**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected query, corrected handler, or fix recommendation. None found. The only code block reproduces the artifact's own SELECT with a comment marking the leaked field."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Org tenant isolation & IDOR prevention (\u2705): Line 22 checks `AND i.org_id = $2` with parameter `req.user.org_id`.\" and \"Non-numeric ID handling (\u2705): Lines 5\u20137 check `if (!Number.isInteger(id) || id <= 0)` and reject strings, floats, and negative numbers with HTTP 400\""
+        }
+      ],
+      "notable": "Structurally near-identical to W. The claim of \"no status or timing disparity in response construction\" is asserted with no timing check. Y places the 500 risk under Assessment and again under Defects, and lists only the leak under Observable evidence. The line numbers for the SELECT (16, and 10\u201323) are inconsistent with each other. Y also mentions a logger and req.user.id, which the visible text does not show.",
+      "evidence_note": ""
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a tri-state verdict label. Found only the prose \"The artifact **violates the contract** in the following ways\"."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line. Not found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line. Not found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a severity ranking. The only severity-like text is \"(Major Violation)\" on item 1 and \"(Edge Case Violation)\" on item 2. Those are labels, not a graded severity scale."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected SQL query or handler. None found. The \"Recommended Fix\" section is two prose steps (remove `i.customer_id`; bound the id). It contains no rewritten implementation. Borderline because it does prescribe fixes."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for any explanation of how org isolation, parameterization, or 404 handling was checked. Not found. No clean axis is stated."
+        }
+      ],
+      "notable": "The verdict is a prose conclusion, and it has no clean-axes section, so a reader learns nothing about what passed.",
+      "evidence_note": ""
+    }
+  ],
+  "methodology_notes": "Item 1 for W and Y could go the other way. Each prints only NOT VERIFIED and never lists the three-way set. I credited it because the label is the tri-state vocabulary. A judge who requires the full set to be shown would mark both absent. Item 5 for Z is borderline. Its Recommended Fix is prescriptive prose with no corrected implementation, so I marked it present. A stricter reading would count any fix recommendation as absent. X clearly fails item 5 because it prints a rewritten query. Item 4 for Z could be read as weakly present given \"Major Violation\", but the second item has no severity level, so I marked it absent. I did not check the artifact's line numbers because the artifact is not in the text I was given."
+}

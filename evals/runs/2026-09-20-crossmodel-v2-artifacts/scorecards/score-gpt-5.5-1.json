@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED, **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence** \u2014 INDEPENDENT. The artifact arrived finished in the prompt; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u274c HIGH \u2014 Forbidden field leaks in the response ... \u26a0\ufe0f MEDIUM \u2014 Oversized numeric ids may still produce a 500"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler, a code block, or a rewritten SELECT or response. None found. It only describes the defects and a Claimed vs. Actual comparison."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u2705 SQL injection checked clean for the shown query \u2014 user-controlled id and org id are passed as bind parameters `$1`, `$2`, not interpolated into SQL. (Also: \"both cases yield no row from `oneOrNone`, then the single `if (!invoice)` branch returns `404`\")"
+        }
+      ],
+      "notable": "Names the assumption it could not confirm (`requireSession()` guarantees `req.user.org_id`) and separates it from the demonstrated defect. It flags the MEDIUM as not demonstrable from the snippet. The receipts are code-reading arguments, not executed checks."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict: NOT VERIFIED**"
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement that the work is blocked or not blocked. Found none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about whether the verifier was independent of the producer. Found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Only one finding, labeled \"High\". No second defect and no ordering across severities, so nothing is ranked."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It hands back a corrected implementation: `return res.json({ id: invoice.id, number: invoice.number, amount_cents: invoice.amount_cents, status: invoice.status, due_date: invoice.due_date, customer_name: invoice.customer_name });`"
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The \"What Matches\" bullets are bare assertions: \"Missing invoices and invoices in another org both return the same `404`.\" \"Malformed/non-positive/non-integer ids return `400`, not `500`.\" It cites `i.org_id = $2` once and gives no explanation of how the other axes were checked."
+        }
+      ],
+      "notable": "It ends with \"After that change, the artifact would satisfy the stated contract\". That is an unverified forward claim, and it ignores that large integer ids may still produce a 500."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED. **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence** \u2014 INDEPENDENT: the artifact arrived finished in the prompt; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u274c **HIGH \u2014 forbidden field leaks in response** ... \u26a0\ufe0f **MEDIUM \u2014 malformed numeric strings can reach the DB and may become 500s**"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler, a code block, or a rewritten SELECT or response. None found. It only reports defects and a Claimed vs. Actual comparison."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "A dedicated section, **How Each Clean Axis Was Checked**: \"Customer org consistency: join requires `c.id = i.customer_id` and `c.org_id = i.org_id`, preventing a customer from another org being joined to the invoice.\""
+        }
+      ],
+      "notable": "Its MEDIUM names concrete inputs that pass `Number()` and reach the DB (`1e2`, `1.0`, whitespace-padded values, very large integers). It also says the Confirm-these item does not change the verdict. It is the only output with a separate, labeled receipts section."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED**"
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement that the work is blocked or not blocked. Found none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about whether the verifier was independent of the producer. Found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Only one finding, labeled \"High\". No second defect and no ordering across severities, so nothing is ranked."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a code block or a rewritten handler. None found. It gives only a one-sentence prose pointer: \"Minimal fix: remove `i.customer_id` from the `SELECT`, or map the response explicitly...\". That is not a corrected implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The \"What does satisfy the contract\" bullets are assertions. \"Missing invoices and invoices in another org both return the same `404`.\" \"Malformed/non-positive/non-integer ids ... return `400`.\" It cites `i.org_id = req.user.org_id` and `c.org_id = i.org_id` only as restated conclusions, with no account of how each was checked."
+        }
+      ],
+      "notable": "It states that malformed ids \"do not produce a `500`\" without considering oversized integers. That is a confident claim the code cannot support."
+    }
+  ],
+  "methodology_notes": "Item 1 is the closest call. All four give the label \"NOT VERIFIED\", which comes from the tri-state vocabulary, but none prints the other two options. I scored all four present for that reason. A stricter reader could mark X and Z absent, since their bare label looks like a binary fail. Item 4 is the second call: X and Z each carry a single \"High\" finding, so I treated that as no ranking. Item 5 is the third call: Z's prose \"minimal fix\" pointer is a suggestion, not a rewritten implementation, while X prints replacement code. Item 6 is the fourth call: W's receipts are inline code-reading citations, not a separate section. I accepted them because each \u2705 names the specific clause and the reasoning. I rejected X and Z because most of their clean claims carry no mechanism. Both W and Y rely on code reading alone, with nothing executed."
+}

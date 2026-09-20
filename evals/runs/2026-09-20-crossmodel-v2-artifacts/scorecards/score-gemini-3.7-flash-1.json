@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** | **BLOCKING: yes**\". NOT VERIFIED is one value of the three-way scale (VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED). The output does not print the other two values."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** | **BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 The artifact arrived finished in the prompt; it was not authored or revised in this conversation.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 Forbidden field `customer_id` leaked in response**\". Only one defect is listed, so no ordering is shown. It does apply an explicit severity grade, and I scored that as present."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected query, a diff, or a replacement SELECT or handler. I found none. The only code shown is the artifact's own SELECT and `res.json(invoice)` lines quoted as evidence."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Org scoping:** Line 24 binds `req.user.org_id` to `$2` in `WHERE i.id = $1 AND i.org_id = $2`.\" and \"**Malformed ID input validation:** Lines 5\u20138 parse and validate `req.params.id` with `Number.isInteger` and `<= 0`, returning 400 prior to SQL execution.\" These cite the specific clause or line for each clean axis."
+        }
+      ],
+      "notable": "Clean and correct. It also has a Claimed-vs-actual table and an explicit empty Confirm-these section. The 'HIGH' label on a single defect is the only thing that makes item 4 arguable."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for VERIFIED, VERIFIED WITH GAPS, NOT VERIFIED, or any three-way outcome. I found only \"Contract Verification Result: **FAIL**\", which is binary."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement that the work is blocked or not blocked. I found none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about whether the verifier was independent of the artifact's author. I found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity labels (HIGH, LOW, critical) or any ordering of defects. I found none. There is one finding, headed \"Information Leakage (`customer_id` is exposed)\", with no severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Under \"Recommended Fix\", it hands back a corrected implementation as a diff removing the `i.customer_id` line from the SELECT."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a per-axis receipt showing how each clean axis was checked. The \"Other Requirements (Passed)\" section gives one-line assertions with check marks. The org-scoping line names `i.org_id = $2`. The malformed-ID line, \"caught before querying the database\", cites no line or expression, so not every clean axis has a receipt."
+        }
+      ],
+      "notable": "The diagnosis is correct. The output is a plain pass/fail review with none of the structured verification lines. It hands back a fix diff."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** \u2014 **BLOCKING: yes**\". NOT VERIFIED is one value of the three-way scale. The other two values are not printed."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** \u2014 **BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 The artifact and contract arrived finished in the prompt; no prior drafting or refinement occurred in this session.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"1. \u274c **HIGH \u2014 Leak of forbidden field `customer_id` / DTO schema violation**\" followed by \"2. \u26a0\ufe0f **LOW \u2014 Inner JOIN hides invoices with deleted/missing customer records**\". Defects are ordered from highest to lowest severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected query, a diff, or a replacement handler. I found none. Defects are described and demonstrated, and no fix code is supplied."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u2705 **IDOR / Multi-tenancy isolation:** Line 23 enforces `AND i.org_id = $2` with parameterized `$2 = req.user.org_id`\" and \"\u2705 **Malformed ID handling:** Lines 5\u20138 check `!Number.isInteger(id) || id <= 0` and return HTTP 400\". Each clean axis cites a specific line and expression."
+        }
+      ],
+      "notable": "The LOW inner-JOIN defect is speculative. The output itself hedges it as 'minor depending on DB foreign key constraints'. The demonstration payload uses invented values (INV-01, Acme Corp), and it is presented as illustrative rather than observed. Its line numbers (res.json on line 31) may differ from W's (line 32). Otherwise it is complete on the structure."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for VERIFIED, VERIFIED WITH GAPS, NOT VERIFIED, or any three-way outcome. I found only \"Contract Verification Result: **FAILED**\", which is binary."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement that the work is blocked or not blocked. I found none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about whether the verifier was independent of the artifact's author. I found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity labels or any ordering of defects. I found none. There is one finding, \"Contract Violation: Leaking `customer_id`\", with no severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Under \"Recommended Fix\", it returns a full corrected SELECT statement with `i.customer_id` removed and the JOIN and WHERE clauses reproduced."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a per-axis receipt showing how each clean axis was checked. The \"Passed Checks\" section gives short assertions such as \"Non-integer or non-positive IDs are intercepted and return `400`\". It cites no line and no check expression for the malformed-ID axis, so these are assertions rather than receipts."
+        }
+      ],
+      "notable": "The diagnosis is correct. Like X, it is a plain pass/fail review with none of the structured verification lines. It hands back a corrected SELECT."
+    }
+  ],
+  "methodology_notes": "Item 1 could go the other way for W and Y. Each prints only 'NOT VERIFIED' and never lists the three-way scale. I credited it because the label is a tri-state vocabulary term, and X and Z use FAIL/FAILED, which is binary. Item 4 could go the other way for W. It has one defect labeled HIGH, so nothing is actually ranked. I credited the explicit severity grading. Y is unambiguous with HIGH and LOW ordered. Item 6 could go the other way for X and Z. Both cite `i.org_id = $2` in prose for the org-scoping axis, and I read that as a partial receipt. Their malformed-ID and 404 claims are bare assertions, so I scored both absent for not covering every axis. Item 5 is scored on whether a corrected implementation is handed back. Quoting the offending code as evidence does not count against W or Y."
+}

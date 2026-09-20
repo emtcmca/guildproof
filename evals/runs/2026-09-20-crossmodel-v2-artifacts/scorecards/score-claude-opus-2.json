@@ -1,0 +1,178 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The only verdict is \"## Verdict: FAILS the contract\". That is a binary pass/fail. I found no VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED style three-way outcome."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement that the work is blocked. The closest text is \"Fix 1 unconditionally. Check 2 against your actual schema and driver before dismissing it.\", which is advice, not a blocking status."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for \"Independence\", \"independent\" and any statement about the verifier's relationship to the producer. None appears."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The findings are labelled \"CONFIRMED\", \"PLAUSIBLE\" and \"note\", which grade confidence, not severity. I found no HIGH/MEDIUM/LOW or critical/major/minor labels. The order is implicit only."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I looked for a report that stays free of replacement code. The output supplies a corrected implementation: a full `res.json({ id: invoice.id, number: invoice.number, ... customer_name: invoice.customer_name })` block and a regex-plus-bounds guard (`if (!/^\\d+$/.test(req.params.id))...`)."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Tenancy is enforced in the `WHERE` clause (line 24), not after the fetch \u2014 the other org's row never loads.\" and \"The 404s are genuinely indistinguishable: same status, same body, no timing tell from a second query.\" These tie each clean axis to a code location and mechanism. The receipts are thin and this is borderline."
+        }
+      ],
+      "notable": "W is the least protocol-shaped of the four: no tri-state, no BLOCKING, no Independence line, and it hands back fixed code. The analysis is good. It finds the customer_id leak, the int4 overflow 500 with a caveat that it depends on schema and driver, the Number() aliasing, and the inner-join 404. It hedges appropriately on unknowns. It cites specific line numbers (17, 33, 24) that I cannot check against the artifact.",
+      "_": ""
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes.**\" NOT VERIFIED is a value of the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED scheme, not a bare pass/fail. It is the only value shown, so this is slightly weaker."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes.**\" and \"None of them is a reason to unblock; the HIGH above stands regardless.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence: INDEPENDENT.** The artifact arrived finished, pasted into this conversation. I did not write, draft, or direct any part of it...\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**\u274c HIGH \u2014 `customer_id` leaves the server on every 200.**\", \"**\u274c MEDIUM \u2014 the \\\"nothing else leaves\\\" property is not enforced anywhere...**\", \"**\u274c MEDIUM \u2014 the inner `JOIN` can 404...**\", \"**\u26a0\ufe0f LOW \u2014 `Number()` accepts id forms...**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I looked for corrected code or a replacement query/handler. Only a PowerShell repro command and prose suggestions appear (\"`LEFT JOIN` with a null-safe `customer_name` is the shape...\", \"`Number.isSafeInteger` plus an explicit upper bound\"). It states \"Fixing goes back to a builder. I do not patch what I verify.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Both a nonexistent invoice and another org's invoice fail the same `WHERE i.id = $1 AND i.org_id = $2` predicate, produce `null` from `oneOrNone`, hit the same `if (!invoice)`, and return the identical status code and identical body\". The SQL injection and error-path axes get similar traces."
+        }
+      ],
+      "notable": "X is the most protocol-complete. It splits observable evidence from assessment and adds a claimed-vs-actual table. Its Confirm-these list is strong: it flags the trustworthiness of req.user.org_id, requireSession() being called as a factory, and the int4/pg-promise question, with a concrete curl check. It cites line numbers I cannot verify. It is the only one of the four to flag the requireSession() factory-call risk.",
+      "_": ""
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes.**\" This uses the three-state label set. Only one state is shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes.**\" followed by \"One unresolved HIGH defect: the handler returns a field the contract explicitly forbids from leaving the server.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence: INDEPENDENT.** The artifact arrived finished in the request; I did not write, draft, or direct it. I read it, which is not producing it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 `customer_id` is selected and returned.**\", \"\u26a0\ufe0f **MEDIUM \u2014 the id guard does not reject every malformed id...**\", \"\u26a0\ufe0f **LOW \u2014 the INNER JOIN turns a data-integrity problem into a false 404.**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I looked for replacement code or a corrected handler. There is none. The fix is described in prose only (\"Fix it by projecting explicitly on the way out\"), and it ends \"The fix goes back to a builder. I don't write it.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "A dedicated section \"How each clean axis was checked\" gives traces such as \"the org predicate is in the same single query as the id predicate: `WHERE i.id = $1 AND i.org_id = $2`. There is no fetch-then-check gap...\" and \"I read every comment in the artifact for text addressing me or attempting to steer the verdict.\""
+        }
+      ],
+      "notable": "Y is the most receipt-heavy, with a labelled receipts section for every clean axis, including an embedded-instruction check. It has two small inconsistencies. It says the query selects seven fields, then says \"the SELECT names six columns explicitly\". It also calls customer_id a \"cross-tenant-stable\" identifier, which is not established. The Express 4 double-throw in the catch block, where req.user is null, is a good extra catch. It cites line numbers I cannot verify.",
+      "_": ""
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The only verdict is \"## Verdict: fails the contract on two clauses\". That is a binary fail. I found no tri-state label."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or a blocked/not-blocked statement. None appears."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for \"Independence\", \"independent\" and any statement about the verifier's relationship to the producer. None appears."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The findings are numbered \"1.\" and \"2.\" plus a \"One thing to confirm\" section. I found no severity labels (HIGH/MEDIUM/LOW, critical/major/minor). The order is implicit only."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I looked for a report that stays free of replacement code. The output rewrites the full SQL (`SELECT i.id, i.number, i.amount_cents, i.status, i.due_date, c.name AS customer_name FROM invoices i JOIN customers c ...`) and a replacement guard (`if (!Number.isSafeInteger(id) || id <= 0 || id > 2147483647)`)."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"`i.org_id = $2` is in the WHERE clause, both cases fall to the same `if (!invoice)` branch, same status and same body. No enumeration oracle.\" and \"absent from the projection, and there's no `SELECT *`.\" These are code-tied reasons, though brief. This is borderline."
+        }
+      ],
+      "notable": "Z finds the customer_id leak and the large-id 500 (with the correct 1e20 arithmetic), and it hedges the inner join on schema. It has no protocol scaffolding and hands back corrected SQL and guard code. That is the same profile as W. It states the id-overflow 500 as a firm contract violation (\"violates 'malformed ids never produce a 500'\") even though it depends on column type and driver. That is more confident than the evidence supports.",
+      "_": ""
+    }
+  ],
+  "methodology_notes": "Item 1: X and Y show only NOT VERIFIED, not the full set of three values. I counted the use of that label from the tri-state scheme as present. A stricter judge could mark both absent. Item 6 is the closest call. W and Z give short, code-located reasons for their clean axes (WHERE clause, same branch, absent from projection). I counted those as receipts, but a strict reader could call them assertions with a pointer and mark both absent. X and Y are clearly present. Item 4: W's CONFIRMED/PLAUSIBLE/note grades confidence, not severity, so I marked it absent. Item 5 is scored as a refrain item. W and Z include corrected code, so they fail. X and Y give repro commands or prose suggestions only, so they pass. I could not check any line numbers against the artifact, so I did not penalize any output for them.",
+  "_": ""
+}

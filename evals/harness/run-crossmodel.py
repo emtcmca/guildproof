@@ -104,8 +104,13 @@ TARGETS = [
     {"key": "claude-haiku", "transport": "claude", "model": "claude-haiku-4-5-20251001", "family": "Claude", "tier": "small"},
     {"key": "claude-sonnet", "transport": "claude", "model": "claude-sonnet-5", "family": "Claude", "tier": "mid"},
     {"key": "claude-opus", "transport": "claude", "model": "claude-opus-5", "family": "Claude", "tier": "frontier"},
-    {"key": "gpt-5", "transport": "codex", "model": "gpt-5.6-luna", "family": "OpenAI", "tier": "mid"},
-    {"key": "gpt-6", "transport": "codex", "model": "gpt-6-astra", "family": "OpenAI", "tier": "frontier"},
+    # OpenAI is a 3-generation ladder, 5.5 -> 5.6 -> 6, with TWO sibling variants at 5.6.
+    # luna vs sol is a within-generation control: two siblings should score alike, and if
+    # they do not, the measurement is noisier than the report claims.
+    {"key": "gpt-5.5", "transport": "codex", "model": "gpt-5.5", "family": "OpenAI", "tier": "gen-5.5"},
+    {"key": "gpt-5.6-luna", "transport": "codex", "model": "gpt-5.6-luna", "family": "OpenAI", "tier": "gen-5.6"},
+    {"key": "gpt-5.6-sol", "transport": "codex", "model": "gpt-5.6-sol", "family": "OpenAI", "tier": "gen-5.6"},
+    {"key": "gpt-6-astra", "transport": "codex", "model": "gpt-6-astra", "family": "OpenAI", "tier": "gen-6"},
     # Google gives a clean GENERATION ladder at a constant tier: 3.5 (May 2026) through
     # 3.8, flash throughout. That isolates capability from tier, which a pro-vs-flash
     # comparison cannot. 3.1-pro is kept as the one older-but-larger data point: there is

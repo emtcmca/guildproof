@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The only conclusion is prose: \"the implementation **does not fully satisfy the contract**.\" I found no VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED label or any other three-way verdict token."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement that the work is blocked. There is none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about whether the verifier was independent of the artifact's producer. There is none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The two findings are numbered 1 and 2 under plain headings. Neither carries a severity label such as HIGH or MEDIUM, and no ranking rationale is given."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler or rewritten SQL. The \"Suggested Fixes\" are two prose lines, \"Remove `i.customer_id`\" and \"Cap integer bounds... (e.g., `id > 2147483647`)\". No replacement implementation is given."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Only org isolation gets reasoning (\"The `WHERE` clause enforces both `i.id = $1` and `i.org_id = $2`\"). The non-numeric/negative 400 handling is called fine (\"non-numeric values and negative numbers return a `400`\") with no receipt. There is no per-axis section explaining how each clean axis was checked."
+        }
+      ],
+      "notable": "It correctly finds both defects: the customer_id leak and the large-integer 500. It assumes a 32-bit id column without saying so as an assumption. Its title is 'Data Exposure Violation' and it never labels severity. It has none of the verifier-style scaffolding."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The overall conclusion is prose: \"does not fully satisfy the contract.\" The table gives per-requirement PASS / FAIL / PARTIAL FAIL. I found no overall VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED verdict."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or a stated blocked/not-blocked status. There is none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about verifier independence. There is none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The findings are numbered, with headings \"Contract Violation\" and \"Potential Contract Violation\". Neither has a severity level and no ranking by severity is stated."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It hands back a full corrected implementation: \"router.get('/api/invoices/:id', requireSession(), async (req, res) => { ... if (!Number.isInteger(id) || id <= 0 || id > 2147483647) {\" and a rewritten SELECT with customer_id removed."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The table's Note column gives short reasons (\"Filtered by `i.org_id = req.user.org_id`\"). The non-numeric 400 handling is asserted with no receipt (\"Handles non-numeric/string inputs with 400\"). There is no explanation of how each clean axis was actually checked."
+        }
+      ],
+      "notable": "The corrected code block breaks the report-don't-fix expectation. Its added range guard assumes an INTEGER column and would be wrong for bigint. The PASS/FAIL table looks like a verdict but is binary per row and has no aggregate tri-state."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### Verdict **NOT VERIFIED** | **BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** | **BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### Independence **INDEPENDENT** \u2014 Artifact was provided as a complete input; verifier did not draft, modify, or consult on its implementation.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The Defects section lists a single entry, \"1. **HIGH** \u2014 **`customer_id` leaked...**\". There is nothing to rank it against. The overflow-to-500 problem sits under Assessment and Confirm-these with no severity, so no ordering by severity appears."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, rewritten SQL, or fix code. I found none. It only quotes the offending lines and gives a repro (\"Issue `GET /api/invoices/1`...\")."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"How each clean axis was checked: **404 isolation across org boundaries:** Checked lines 19\u201320 (`AND i.org_id = $2`) and lines 23\u201325 (`if (!invoice) return res.status(404)`)... **Non-integer / negative ID rejection:** Checked lines 5\u20138 (`!Number.isInteger(id) || id <= 0` returns 400)...\""
+        }
+      ],
+      "notable": "It is internally inconsistent. Assessment says the overflow case violates 'Malformed ids never produce a 500' and yields a 500, yet Defects lists only the customer_id leak and Confirm-these hedges the overflow as unverified. That downgrades a defect it effectively found. Line numbers are cited without any way to check them. Item 4 could reasonably go the other way, since the HIGH label is on a real defect list."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict:** NOT VERIFIED\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING:** yes\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence:** INDEPENDENT \u2014 The artifact arrived finished in the prompt.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"1. **HIGH \u2014 Contract Breach / Data Leak (`customer_id` exposed)**\" followed by \"2. **MEDIUM \u2014 Contract Breach / HTTP 500 on Malformed ID**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a rewritten handler, SQL, or patch code. I found none. The only code-like block is an illustrative JSON response showing the leaked field, and it is not a fix."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Tenant Isolation & 404 Parity:** `WHERE i.id = $1 AND i.org_id = $2` with `[id, req.user.org_id]` (lines 20\u201322) forces non-existent or foreign-org invoices to yield `null`... **Basic Non-numeric ID Validation:** `!Number.isInteger(id) || id <= 0` (line 7) evaluates `NaN`, non-integers, and negative numbers to `true`, returning HTTP 400 on line 8.\""
+        }
+      ],
+      "notable": "It is the most complete output. It gives a tri-state verdict, blocking status, independence, severity-ranked defects, a claimed-vs-actual section, and a confirm-these item (whether requireSession guarantees req.user). Its concrete repro of 1e+23 passing Number.isInteger is accurate. The line numbers are unverifiable. Its sample JSON uses invented values, which is presented as illustration."
+    }
+  ],
+  "methodology_notes": "Item 6 was the closest call for W and X. Both tie some reasoning to the org-isolation axis. I still marked them absent because the non-numeric/negative-ID 400 handling is treated as fine without any receipt, and neither has a per-axis account of how the clean axes were checked. A judge who accepts a WHERE-clause explanation as a receipt could credit W and X. Item 4 for Y is also close: it labels its one listed defect HIGH but has no second defect to rank it against, and its other defect sits outside the Defects list. I scored that as absent. Item 1 for X is close too: the PASS/FAIL/PARTIAL FAIL table is per-requirement, not an overall verdict, so I scored it absent. Item 5 for W: I treated the prose 'Suggested Fixes' as not a rewrite because no corrected implementation is given."
+}

@@ -1,0 +1,177 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "### Verdict\n**NOT VERIFIED** \u2014 **BLOCKING: YES**. The label is one of the three tri-state values, but the output never lists the other two, so this is a borderline credit."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED** \u2014 **BLOCKING: YES**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**INDEPENDENT** \u2014 The artifact and contract were provided externally; I had no role in drafting, authoring, or revising either."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "#### \u274c HIGH \u2014 Direct Information Leakage of restricted attribute (`customer_id`)  ...  #### \u26a0\ufe0f MEDIUM \u2014 Database Error Leaking as a `500` status on out-of-range IDs"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected route handler or rewritten SQL and found none. The only code-like content is quoted artifact lines, an illustrative JSON response, and a prose suggestion that the validation ceiling be 'clamped to 2147483647'."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Organization Boundary Enforcement: Checked lines 23-24 (`AND i.org_id = $2`) and matching line 25 parameter binding `req.user.org_id`.\" It gives the same kind of line-cited receipt for 'Uniform 404 Response' and 'Join Consistency'."
+        }
+      ],
+      "notable": "W states the int32 overflow as a definite MEDIUM defect in 'Observable evidence', then hedges in 'Confirm-these' that it depends on whether the column is INTEGER or BIGINT. The evidence section is therefore overclaimed. It also cites specific line numbers and invents an example JSON payload. It never mentions the `id <= 0` guard. On the plus side, it is the only output to combine the customer_id leak with the overflow-to-500 path.",
+      "evidence_kind_note": "n/a"
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "### Verdict\n**NOT VERIFIED**. This is one of the three tri-state values, but the other two are never shown, so the credit is borderline."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING: Yes** \u2014 A high-severity data leakage defect exists where an forbidden database identifier is exposed to the client"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**INDEPENDENT** \u2014 The artifact was provided complete, and this review was performed independently without participating in its generation or modification."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "#### \u274c Real Defect: Leakage of `customer_id` (HIGH Severity)  ...  #### \u26a0\ufe0f Potential Defect: Large Out-of-Bounds Integers leading to DB Error / 500 (LOW Severity)"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a rewritten handler or corrected SQL and found none. The code blocks only quote the artifact's SELECT and `res.json(invoice)`. The single remedy hint is the prose line 'Utilizing `Number.isSafeInteger(id)` would prevent this.'"
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"404 path (missing or unauthorized invoice): Traced to lines 27\u201330 where `!invoice` ... explicitly triggers `res.status(404).json(...)`.\" The 'SQL Injection Prevention' and 'Non-integer ID validation' axes also cite lines and mechanisms."
+        }
+      ],
+      "notable": "X separates a 'Real Defect' from a 'Potential Defect' and calls the overflow LOW, which is well calibrated. Its Number.isInteger(1e21) example is correct. It labels ID validation as clean for non-integer input but only PARTIAL for overflow, which is a fair split. One small slip: it says a parameterized query means the ID is 'sanitized at the database driver level', which is loose wording.",
+      "evidence_kind_note": "n/a"
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED verdict. There is only per-section PASS, FAIL, and 'PARTIAL COMPLIANCE / POTENTIAL MISMATCH', plus an opening prose summary."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement of whether the work is blocked. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about the reviewer's independence from the author. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity labels such as HIGH, MEDIUM, or LOW, or an explicit ordering by severity. The sections run in contract order with FAIL / PARTIAL / PASS, and no severity ranking is given."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The output does not refrain. It ends with 'Here is the corrected code:' followed by a full rewritten route handler with `customer_id` removed and the malformed-id branch changed to 404."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "For the org-isolation axis it quotes 'WHERE i.id = $1 AND i.org_id = $2' and 'if (!invoice) { return res.status(404)...' and explains how a cross-org row falls through to the 404. This is a code-cited receipt, though a thin one."
+        }
+      ],
+      "notable": "Y misreads the contract. It says malformed IDs should return 404 instead of 400. The contract only says malformed ids never produce a 500, and its rewrite changes behavior that was already compliant. It misses the large-integer overflow path. It has no blocking or independence framing. Item 6 is a close call because the receipts are quoted code with brief reasoning.",
+      "evidence_kind_note": "n/a"
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a tri-state verdict. There are only per-section 'VIOLATION' / 'PASS' tags and an opening prose conclusion ('one major discrepancy')."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or a stated blocked / not-blocked outcome. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about the reviewer's relationship to the author. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity levels or a ranked defect list. Only one defect is reported, tagged 'VIOLATION', with no severity grade or ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The output does not refrain. It has a section headed 'Recommended Corrected Code' containing a full rewritten route handler with `i.customer_id` removed."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "For malformed IDs it quotes 'const id = Number(req.params.id); if (!Number.isInteger(id) || id <= 0) { return res.status(400)...' and explains the early exit. For the 404 axis it cites 'WHERE i.id = $1 AND i.org_id = $2' with `oneOrNone` returning null. The receipts are code-cited but shallow."
+        }
+      ],
+      "notable": "Z confidently marks malformed-ID handling PASS, claiming invalid inputs are 'caught here and return a 400 ... instead of triggering a database query driver error'. It misses that a huge integer passes `Number.isInteger` and can reach the DB. That is a confidently wrong clean call. It also lacks any verdict framing, blocking flag, or independence statement.",
+      "evidence_kind_note": "n/a"
+    }
+  ],
+  "methodology_notes": "Item 1 is the main judgment call. W and X print 'NOT VERIFIED', a member of the tri-state vocabulary, without listing the three options. I credited that, since it is not a binary pass/fail or a prose conclusion. A stricter reading would fail both. Item 6 is the second call. Y and Z do show code-cited reasoning for their PASS axes, so I credited them, but a stricter judge could call that assertion-grade rather than a receipt. W and X give dedicated, line-cited 'how each clean axis was checked' sections, which is clearly stronger. Item 5 for W and X could be questioned because each includes a small remedy hint (W: clamp to 2147483647; X: use Number.isSafeInteger). I treated these as defect reporting, not a corrected implementation."
+}

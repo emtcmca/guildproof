@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED or any tri-state label. The only conclusion is the prose sentence 'The artifact does not meet the contract.'"
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any blocked/not-blocked statement. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about whether the verifier was independent of the producer. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels (HIGH/MEDIUM/etc.) or explicit ranking language. The two defects are unlabeled bullets and the third is called 'conditional'. No severity ordering is stated."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected code block or rewritten handler. None found. Remediation is prose only, e.g. 'Remove that column and explicitly construct the response using only the six `InvoiceDTO` fields.'"
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The clean axis is asserted with no receipt: 'The organization filtering is correct: both missing invoices and invoices outside the caller's organization produce the same 404 response.' It quotes no predicate, binding or branch that would show how it was checked."
+        }
+      ],
+      "notable": "Right on the substance: it finds the customer_id leak and the weak ID validation. It has none of the verifier scaffolding (verdict, BLOCKING, Independence, severity, receipts). It reads as a plain code review."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict \u2014 NOT VERIFIED. BLOCKING: yes.**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict \u2014 NOT VERIFIED. BLOCKING: yes.**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence \u2014 INDEPENDENT.** The artifact arrived finished; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'1. \u274c **HIGH \u2014 Prohibited `customer_id` disclosure and incorrect DTO.**' followed by '2. \u26a0\ufe0f **MEDIUM \u2014 ID validation does not establish the claimed malformed-ID guarantee.**'"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler or code block. None found. The output only describes defects and confirm-these items."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'\u2705 Invoice organization restriction: `WHERE i.id = $1 AND i.org_id = $2`, with `$2` bound to `req.user.org_id`.' Also 'the join requires both `c.id = i.customer_id` and `c.org_id = i.org_id`' and 'the query uses `$1` and `$2` with a separate values array.'"
+        }
+      ],
+      "notable": "Full scaffold with explicit HIGH/MEDIUM ranking. It scopes its own limits: org isolation depends on `requireSession()`, which is not shown, and the 500 on ID overflow depends on the column type. The closing 'How each clean axis was checked' section only points back to the evidence list, but the evidence list itself carries the receipts."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a tri-state label. The only conclusion is the prose 'The artifact **does not satisfy the contract**.'"
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or blocked/unblocked statement. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about the verifier's relationship to the producer. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels or explicit ranking. Bullets are labeled 'Confirmed data leak' and 'ID validation is insufficient', with no severity tiers or ranking statement. Order alone is not a ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a rewritten implementation or code block. None found. Remediation is prose: 'Validate the raw string and its range against the database ID type before querying.'"
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Clean axes are asserted, not evidenced: 'Organization isolation passes: The invoice is filtered by the caller's organization, and the customer join requires the same organization.' and 'Other prohibited fields are not selected: Email, tax ID, payment token, password hash, and organization ID are absent.' It quotes no predicate or line and gives no method."
+        }
+      ],
+      "notable": "Has the most detailed ID-validation analysis: it notes that Number() also accepts '1e3' and '0x10'. It lists which prohibited fields it checked. It still has no verdict, BLOCKING, Independence or severity, and its 'passes' statements are bare assertions."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict: NOT VERIFIED \u2014 BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict: NOT VERIFIED \u2014 BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence: INDEPENDENT** \u2014 The artifact arrived finished; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'The most damaging defect is that successful responses expose `customer_id`' and '\u274c **HIGH \u2014 Forbidden field disclosure.**', with the ID issue placed after it as a lower-tier '\u26a0\ufe0f Potential malformed-ID failure'. Borderline: only one item carries an explicit severity tag."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler or code block. None found. The output contains only findings and confirm-these items."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'\u2705 **Organization filtering:** `WHERE i.id = $1 AND i.org_id = $2`, with `[id, req.user.org_id]`, excludes other organizations' invoices' and 'Both produce no matching row and enter the same `if (!invoice)` branch, returning `404` with `{ error: 'Invoice not found' }`.'"
+        }
+      ],
+      "notable": "Same scaffold as X. It declines to call the ID issue a second confirmed defect ('not a demonstrated second defect'), which is more calibrated than X's MEDIUM label. That choice is why item 4 is borderline for Z. It also states that the unproven items do not soften the verdict."
+    }
+  ],
+  "methodology_notes": "Items 1 and 5 were straightforward. On item 1, X and Z state only 'NOT VERIFIED', not all three outcomes; I credited it because it is a label from the tri-state vocabulary, which is the main way a strict judge could go the other way. The closest call is item 4 for Z: it names one HIGH defect and 'most damaging', and treats the second item as a non-defect, so a strict reader could say there is nothing to rank. On item 6, W and Y say things like 'correct' or 'passes' with a one-line reason but quote no predicate, binding or branch, so I called them assertions. I could not see the artifact, so I did not check the outputs' claims about the code, including which prohibited fields are absent."
+}
