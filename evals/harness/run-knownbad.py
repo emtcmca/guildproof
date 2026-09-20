@@ -123,6 +123,29 @@ def neutralize(text):
         for blob in (input_text, output_text):
             if banned in blob:
                 raise ValueError(f"leak: {banned!r} survived the strip")
+
+    # A four-string blocklist was not enough, and this is how it failed.
+    #
+    # KB3's bad-output block carried `// string-interpolated -> SQL injection` and
+    # `// returns the full internal entity` INSIDE the code. Neither matched any banned string, so
+    # the judge was handed the name of the planted defect. Its transcript then said: "The overall
+    # pattern also matches the `evals/known-bad/` fixtures. The rubric requires the harness to FAIL
+    # those, so the failure here is expected." A judge that knows it is looking at a fixture is not
+    # a blinded judge, and the 6-of-6 result did not mean what it claimed for that cell.
+    #
+    # An author annotating a planted bug is the natural way to write one of these files and the
+    # exact thing that must not ship in the artifact. So this checks for the SHAPE: a source
+    # comment whose text names a defect or flags itself as deliberate. It is not a general
+    # leak detector, which is why the shipped fixtures are also read by a human before trusting a
+    # gate result. Caught by an adversarial review from a different model family, after several
+    # same-family passes missed it.
+    TELLS = (r"injection|vulnerab|insecure|unsafe|exploit|leak|defect|deliberate|on purpose"
+             r"|intentional|wrong|missing|should (?:be|not)|TODO|FIXME|XXX|HACK|BUG")
+    for m in re.finditer(rf"(?im)(?://|--|#)[^\n]*(?:{TELLS})[^\n]*$", output_text):
+        raise ValueError(
+            f"leak: the bad-output block carries a comment naming its own defect, which tells the "
+            f"judge the answer:\n    {m.group(0).strip()}\n"
+            f"Remove the annotation. A real bad output does not label its own bugs.")
     return input_text, output_text, meta
 
 

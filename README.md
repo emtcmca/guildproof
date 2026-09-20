@@ -80,9 +80,10 @@ the artifact and clears it, a handler with interpolated SQL, a verifier launderi
 found into "gaps". The gate fails unless a blinded judge marks all six FAIL, and it ran at the
 commit behind this release: **6 of 6**, plus a known-good output through the same path to show the
 judge is not simply failing everything. What that means for you: the first nine runs in this repo's
-history were all-PASS, which is indistinguishable from a judge that cannot say no. These fixtures
-are what make every other number here falsifiable, and they are why the losses above are published
-at all. Gate: [`evals/runs/2026-09-20-b4-knownbad.md`](evals/runs/2026-09-20-b4-knownbad.md).
+history produced **not one FAIL between them**, which is indistinguishable from a judge that cannot
+say no. These fixtures are what make every other number here falsifiable, and they are why the
+losses above are published at all.
+Gate: [`evals/runs/2026-09-20-b4-knownbad.md`](evals/runs/2026-09-20-b4-knownbad.md).
 
 ### Three things this does not claim
 
@@ -288,7 +289,8 @@ applies-to: comma, separated, topics, that, auto-select, this, lens
   is one judge disagreeing rather than a lost run, and the run doc records that the
   `flags breaking changes` item admits two readings on this input and is queued to be
   re-specified, so that row is unsettled rather than a loss.
-- **k = 2 everywhere** except B3 and the case 41 four-arm run, which are k = 1.
+- **k = 2 for the cross-model study and the known-bad gate; k = 1 for the numbered suite, B3 and
+  the case 41 four-arm run.** k = 1 is thin for anything that reads as a recall miss.
 - **Every judge is a Claude model**, scoring Claude, GPT and Gemini outputs.
 - **Behavior compliance is not correctness.** Every item scores whether a behavior is present,
   with a quote. An output can hit every item and be wrong on the substance, and the judges
@@ -325,7 +327,7 @@ All four commands run one method, defined in
 There is no LLM call inside the plugin. The host agent reads the skill and performs the reasoning,
 which is what makes it model-agnostic and zero-cost. The two-layer split follows from that: Layer 1
 (`/sharpen`, `/forge-agent`, `/lens`) stays portable, while Layer 2 (`/orchestrate`) needs a host
-that can spawn subagents. Honesty guardrails run through both. It never fabricates a fact, a
+that can spawn subagents. Honesty guardrails run through both. It is written not to fabricate a fact, a
 citation, or an MCP server it can't verify, and it shows its work with evals in `evals/runs/`.
 
 ---

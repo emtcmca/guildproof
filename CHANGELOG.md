@@ -27,7 +27,7 @@ prompt rewriter for a coding agent on the same install channel.
   nothing. Targets your machine cannot run are reported as UNMEASURED, never as passing.
 - **The cross-model verifier result** (`evals/runs/2026-09-20-crossmodel-verifier.md`). 12
   models, 3 vendors, 48 cells, 288 judged cells, two blinded judges per target, Cohen's
-  κ 0.97. Unprompted, **0 of 48** runs stated whether the work was blocked and **0 of 48**
+  κ 0.97. Unprompted, **0 of 48 scorings** said whether the work was blocked and **0 of 48**
   stated whether the review was independent; with the verifier prompt, 48 of 48 did. The gap
   shows no trend with model capability in any of the three families. The run doc publishes the
   four results that cut against guildproof with the same prominence as the wins.

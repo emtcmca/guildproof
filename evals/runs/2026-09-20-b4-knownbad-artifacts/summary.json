@@ -1,6 +1,6 @@
 {
   "benchmark": "B4-knownbad",
-  "commit": "9a711147ae32a431f007fdc4dbab0d85c29d8737",
+  "commit": "d9d376328e95b6622e0702dbeacd2bcfff8fa1e2",
   "judge_model": "claude-sonnet-5",
   "k": 2,
   "correctly_failed": 6,
