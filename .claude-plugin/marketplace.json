@@ -4,13 +4,13 @@
     "name": "Eric Tetzlaff"
   },
   "metadata": {
-    "description": "Prompt & context engineering plugin for Claude Code — sharpen requests, author agent system prompts, and review through expert lenses."
+    "description": "An independent verifier that can halt the job, plus a guild of 20 specialist agents. Measured across 12 models and 3 vendors: unprompted, not one of 48 runs stated whether the work was blocked or whether its review was independent. With guildproof, 48 of 48 did."
   },
   "plugins": [
     {
       "name": "guildproof",
       "source": "./",
-      "description": "Sharpen rough requests into complete prompts, author reusable agent system prompts, and review drafts through built-in and custom expert lenses."
+      "description": "An independent verifier that can halt a build, and a 20-agent specialist gallery. /orchestrate splits a multi-domain request across specialists and runs the verifier, which returns a blocking verdict. /sharpen turns a rough request into a complete prompt that names its assumptions instead of guessing. /lens reviews through expert lenses, or grades a prompt PASS/WEAK/FAIL with --grade. Eval-backed, including six known-bad fixtures the suite must always fail. Zero dependencies, no API keys, model-agnostic."
     }
   ]
 }
