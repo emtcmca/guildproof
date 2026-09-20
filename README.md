@@ -2,7 +2,11 @@
 
 **Prompt & context engineering for agents — as a Claude Code plugin.**
 
-![`/guildproof:sharpen` turning a one-line request into a full prompt, in a live terminal run](docs/assets/sharpen-demo.gif)
+![`/guildproof:sharpen` turning a one-line request into a full prompt. A terminal-styled
+animation drawn frame by frame from the text of a real run, not a screen recording.](docs/assets/sharpen-demo.gif)
+
+<!-- TODO (pre-launch): replace with an actual screen recording. Generator:
+     docs/assets/make-sharpen-gif.py -->
 
 You already know the move: a rough request gets *far* better results once you've spelled out
 the tone you wanted, the constraints you forgot to state, the edge cases you didn't think of,
@@ -15,9 +19,47 @@ and asked the agent to push back on you and review the work like a seasoned prof
   construction.
 - **Four commands** (three core + a coordinator), one shared engine, a library of expert lenses
   you can extend, and a 20-agent specialist gallery.
-- **Not on Claude Code?** Thirteen of these ship as host-agnostic skills you can install into
+- **Not on Claude Code?** All twenty gallery specialists plus the engine and a grading skill,
+  22 in total, ship as host-agnostic skills you can install into
   Codex, Copilot, or anything else that reads `SKILL.md` —
   `npx skills add emtcmca/guildproof-skills`. See [Option C](#option-c--any-other-agent).
+
+---
+
+## What's measured
+
+Twelve models. Three vendors. One piece of well-built code that leaks a field its contract
+forbids. Each model saw it twice with no instructions and twice with `agents/verifier.md` as its
+system prompt, scored by two blinded judges against a checklist written before any run.
+
+| Behavior, asked to verify code against a contract | Bare model | With guildproof |
+|---|---|---|
+| States whether the work is **blocked** | **0 of 48** | 48 of 48 |
+| States whether the review was **independent** of the author | **0 of 48** | 48 of 48 |
+| Reports defects instead of rewriting your code | 16 of 48 | 46 of 48 |
+| Says what it could **not** check | 16 of 48 | 46 of 48 |
+| Ranks defects by severity | 4 of 48 | 46 of 48 |
+| Gives a three-way verdict, not a vibe | 14 of 48 | 48 of 48 |
+
+**And it does not improve as models improve.** Across four consecutive Gemini generations, three
+OpenAI generations and three Claude tiers, the unprompted score scatters between 0% and 33% with
+no trend. The newest Gemini tested scored **zero**. Two models of the *same* OpenAI generation
+scored 8% and 33%, a wider spread than any generation-to-generation change in the study.
+
+### Three things this does not claim
+
+- **It will not help a model see a bug.** All 48 runs found the defect unprompted. Detection is
+  the model's job. This changes what the model *does* with a defect it already found.
+- **Four of the six behaviors above are arguably instruction-following.** Scored separately, the
+  two that require judgment or restraint go from 33% to 96%. That +62 points is the honest figure.
+- **One defect type, one artifact.** Breadth across models is not breadth across bugs. Other
+  defect classes are queued as B1 and B2's remaining inputs.
+
+Full run, all 48 raw outputs, all 24 judge scorecards with quotes, the label key, the runner, and
+a quarantine folder documenting four bugs found in the measuring instrument itself:
+**[`evals/runs/2026-09-20-crossmodel-verifier.md`](evals/runs/2026-09-20-crossmodel-verifier.md)**
+
+Run it against your own models: `python evals/harness/run-crossmodel.py --check`
 
 ---
 
@@ -209,19 +251,20 @@ seed from the gallery while `/orchestrate` has no roster to route to.
 ### Option C — any other agent
 
 The commands and the orchestrator are Claude Code features, but the prompts underneath are not.
-Thirteen of them are published as plain skills:
+All of them are published as plain skills:
 
 ```bash
 npx skills add emtcmca/guildproof-skills
 ```
 
-That installs the engine (`prompt-engineering`) plus twelve specialists from the gallery into
-any agent that reads `SKILL.md`. No plugin, no dependencies, no API keys.
+That installs 22 skills into any agent that reads `SKILL.md`: the engine
+(`prompt-engineering`), all twenty gallery specialists, and a standalone `prompt-grader`
+extracted from the engine's grading route. No plugin, no dependencies, no API keys.
 
-What you give up: the four slash commands, `/orchestrate` (it dispatches subagents from a
-plugin-bundled gallery and cannot run from a plain skills install), and eight of the twenty
-gallery agents that were left out of the mirror. What you keep: the same prompt bodies, generated
-from this repo and stamped with the commit they came from.
+What you give up: the four slash commands and `/orchestrate`, which dispatches subagents from a
+plugin-bundled gallery and cannot run from a plain skills install. No gallery agent is left out.
+What you keep: the same prompt bodies, generated from this repo and stamped with the commit they
+came from.
 
 Source and provenance: [emtcmca/guildproof-skills](https://github.com/emtcmca/guildproof-skills).
 
