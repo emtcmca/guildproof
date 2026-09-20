@@ -1,12 +1,12 @@
 # guildproof
 
-**Prompt & context engineering for agents — as a Claude Code plugin.**
+**A guild of specialist agents, and an inspector that can stop the job.** A Claude Code plugin.
+
+[![fresh-machine](https://github.com/emtcmca/guildproof/actions/workflows/fresh-machine.yml/badge.svg)](https://github.com/emtcmca/guildproof/actions/workflows/fresh-machine.yml)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 ![`/guildproof:sharpen` turning a one-line request into a full prompt. A terminal-styled
 animation drawn frame by frame from the text of a real run, not a screen recording.](docs/assets/sharpen-demo.gif)
-
-<!-- TODO (pre-launch): replace with an actual screen recording. Generator:
-     docs/assets/make-sharpen-gif.py -->
 
 You already know the move: a rough request gets *far* better results once you've spelled out
 the tone you wanted, the constraints you forgot to state, the edge cases you didn't think of,
