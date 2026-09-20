@@ -1,38 +1,46 @@
 ## 1. Structural invariants (SHARPEN)
 
-- ❌ **No unfilled placeholders remain.** The pasteable prompt still contains `[path or route of the settings page?]`, `[stack?]` and `[tokens / component library / brand reference?]`. The output's own assumptions section admits it: "I left `[stack?]`, `[path…?]`, and `[design system?]` as placeholders." The rubric's literal wording is `<...>`, but square brackets are the same defect, and the output itself calls them placeholders. Hard-gate failure.
-- ✅ **All 9 blocks are present and filled.** ROLE, OBJECTIVE, CONTEXT, REQUIREMENTS, GUARDRAILS, PROHIBITIONS, SUCCESS CRITERIA, OUTPUT FORMAT and OUT OF SCOPE all appear.
-- ✅ **PROHIBITIONS and OUT OF SCOPE are distinct.** PROHIBITIONS is tied to this task ("Don't touch: auth and session handling… any setting's stored key or value format"). OUT OF SCOPE lists work not being done ("Changing what settings exist… other pages… global theme"). There is some overlap (features, other pages), but PROHIBITIONS is not boilerplate.
-- ⚠️ **One copy-pasteable block, with assumptions after it.** The order is correct: the prompt comes first, then Assumptions, Push-back and Open questions. The harness wrapper hides whether the prompt sits in its own fence, so I can't confirm this. I'm not marking it ❌.
-- ✅ **Each assumption has "Override with:".** All six do. The stack one is weak ("Filling them in makes the prompt tighter"), but it is present.
+- ✅ **All 9 blocks present and filled.** ROLE, OBJECTIVE, CONTEXT, REQUIREMENTS, GUARDRAILS, PROHIBITIONS, SUCCESS CRITERIA, OUTPUT FORMAT and OUT OF SCOPE all appear. The extra "STEP 0" block is additive and does not displace any of them.
+- ✅ **PROHIBITIONS and OUT OF SCOPE are distinct.**
+  - PROHIBITIONS names actions tied to this task: "Don't touch: auth and session handling… the settings' stored values, defaults, and persistence logic" and "Don't remove or hide any existing setting".
+  - OUT OF SCOPE names work not being done this pass: "New settings or features… dark mode… a settings search feature, internationalization, and any backend change."
+  - Some overlap in flavor, but neither is collapsed or generic boilerplate.
+- ✅ **No unfilled `<...>` slots.** `[stack?]` and `[path?]` are square-bracket gap flags, which the rubric scores as correct behavior. No angle-bracket slots remain.
+- ✅ **One copy-pasteable block, with assumptions, push-back and open questions after it.** The prompt sits in one block, followed by "Assumptions I made", "Push-back worth hearing" and "Open questions".
+- ✅ **Each assumption has "Override with:".** Assumptions 1–5 each carry one. Assumption 6 ("I left the stack and file path as `[stack?]` and `[path?]`") has none. It is a gap flag rather than an assumption, and open question 2 serves as its override, so I am not scoring it ❌. It is still an item sitting under the "Assumptions" heading without the required marker.
 
 ## 2. Quality dimensions
 
-- ✅ **Push-back is real.** "'Nicer' can't be tested, so the agent will guess" names the actual weakness. The regression-risk point ("quietly moves a delete button next to Save") is specific to settings pages.
-- ✅ **Named concreteness.** "Tone and feel: calm, clear, unfussy. Restraint over decoration," plus the modern-minimal family (muted palette, generous whitespace, soft radius, minimal motion).
-- ✅ **Faithfulness (hard gate).** Product facts are conditional rather than asserted: "use the product's existing… components. If they don't exist…", "If one exists, it is the source of truth", "if the page already has an explicit save model". Only preferences were assumed. The `[missing: …]` instruction in PROHIBITIONS tells the agent to flag gaps rather than invent them. Minor presumptions: that a type check, lint and a build exist, and that "the rest of the product" exists.
-- ✅ **Lens fit.** UX, visual design and accessibility are named in ROLE. Their checklists appear in REQUIREMENTS: the type and spacing scale, and a bulleted accessibility block covering 4.5:1 and 3:1 contrast, focus ring, ~44px targets and reduced motion.
-- ⚠️ **Would steer.** Mostly, but there are real internal contradictions.
-  - REQUIREMENTS asks for "a plain-language label" for every setting, while GUARDRAILS says renaming a setting "is not [allowed], without a flag".
-  - "keeps or gains a confirm step" and "cover loading, saving, save-success, save-error… for every section" both add behavior. PROHIBITIONS says "Don't change behavior" and "Don't add features".
-  - Requiring helper text on each setting sits badly against "no… copy claims" (don't invent).
-  - The CONTEXT bracket placeholders are questions the agent can't answer from the prompt alone.
-  - "GUARDRAILS (from red-team pass)" leaks pipeline meta into the pasteable prompt.
+- ✅ **Push-back is real.** "'Nicer' can't be checked, so an agent asked for it will produce a generic restyle: more padding, softer corners, and a new color or two." It also warns that a visual pass can make a destructive action "easier to hit by accident, or quietly change what a save does". It names a concrete fix: "one sentence on what bugs you about the page today."
+- ✅ **Named concreteness.**
+  - The tone is named: "'Nicer' here means calm, clear, and trustworthy".
+  - The prompt gives measurable targets: "4.5:1 (3:1 for large text…)", "roughly 45-75 characters", "about 44px", and 375px and 1280px widths.
+- ✅ **Faithfulness (hard gate).**
+  - Stack, path, design system and save model are all flagged or delegated: "Read the repo to find out. Do not assume one." and "If there is no design system, derive a small one".
+  - Destructive controls appear only as examples ("for example, no connected accounts"). Nothing is asserted as an existing product fact.
+- ✅ **Lens fit.**
+  - The ROLE names "UX designer, visual designer, and accessibility specialist".
+  - Their checklists show up in REQUIREMENTS:
+    - Visual: type hierarchy and a restrained palette.
+    - UX: the states list and error placement.
+    - Accessibility: focus ring, contrast, real labels, headings, targets and reduced-motion.
+- ⚠️ **Would steer.** Mostly strong, but there are weaknesses that could send a competent agent the wrong way:
+  - **Contradiction on confirm-on-destruct.** The OBJECTIVE says "behavior, data, and settings stay exactly as they are". REQUIREMENTS says "keep or add confirm-on-destruct". PROHIBITIONS says "Don't invent… features". Adding a confirmation is a behavior change, and the prompt never says which rule wins.
+  - **Unknowable ordering rule.** "Put the most-used settings first" assumes usage data the agent cannot get from the code.
+  - **Bulk.** The prompt is very heavy for a three-word request. It is defensible, but it adds surface for such conflicts.
 
 ## 3. Case must list
 
-- ✅ **Gap-fill with labeled, reversible assumptions.** Six assumptions, each with an override. "Nicer" is defined as visual polish plus layout and usability, and it doesn't stall. Audience is only implicit ("a first-time user"), and the stack is deferred rather than assumed.
-- ✅ **Auto-pick UI lenses.** "three review lenses… UX… visual design… and accessibility", reflected in REQUIREMENTS.
-- ✅ **Push-back names that "nicer" is unmeasurable and forces concreteness.** It says so directly and adds an audit-first step and open question 1.
-- ✅ **Name target adjectives.** "calm, clear, unfussy."
+- ✅ **Gap-fill with labeled, reversible assumptions.** Five labeled assumptions each carry an "Override with:", and the prompt proceeds rather than stalling.
+- ✅ **Auto-pick UI lenses and reflect their checklists in REQUIREMENTS.** See lens fit above.
+- ✅ **Push-back names that "nicer" is unmeasurable and forces concreteness.** It does so without flattery and points at Step 0 and the checkable success criteria.
+- ✅ **Name target adjectives explicitly.** "calm, clear, and trustworthy".
 
 ## 4. Case must-not list
 
-- ✅ **Invent product facts as if known.** Not violated. Everything is conditional on what the existing code shows.
-- ❌ **Leave any placeholder unfilled.** Violated. `[path or route…?]`, `[stack?]` and `[tokens / component library / brand reference?]` remain in CONTEXT, and the output acknowledges leaving them. Hard-gate failure.
+- ✅ **Invent product facts as if known.** Not violated. Everything about the existing app is conditional or delegated to Step 0.
+- ✅ **Leave any `<placeholder>` unfilled.** Not violated. Only square-bracket gap flags are present, and they are correct behavior.
 
-## Verdict
+No ❌ anywhere, so no hard gate fails. One ⚠️ on "Would steer" (the confirm-on-destruct contradiction) keeps this from PASS.
 
-The output is strong on push-back, lens fit, adjectives and assumptions. It fails on the explicit must-not and the structural invariant against unfilled placeholders, and it contains the internal contradictions noted above.
-
-VERDICT: FAIL
+VERDICT: WEAK

@@ -1,45 +1,36 @@
 ## 1. Structural invariants (LENS)
 
-- ✅ **Per-lens block, findings prefixed ✅/⚠️/❌.** There are `## skeptic` and `## editorial` blocks, and every bullet carries a mark.
-- ✅ **Worst-first ordering.** Each block runs ❌ → ⚠️ → ✅. One nit: in editorial, the ❌ "Opens with filler" precedes the ❌ "Nothing concrete", which is arguably the worse defect.
-- ✅ **Ends with top-3 fixes and the sharpen offer.** The last line is "Run `/guildproof:sharpen` with these findings to get a corrected version."
-- ✅ **Names which lenses ran.** The output opens with "Lenses run: `skeptic`, `editorial` (both built-in)." Nothing was requested-but-missing.
+- ✅ **Per-lens block, findings prefixed ✅/⚠️/❌.** There are two blocks, `## skeptic` and `## editorial`, and every finding carries a mark. One editorial line is prefixed `n/a` ("n/a **Preserve voice:** there is no distinctive authorial voice…"). It is reasoned and harmless, but the LENS invariant lists only three marks.
+- ✅ **Worst-first.** Skeptic runs ❌❌❌ → ⚠️×6 → ✅. Editorial runs ❌❌ → ⚠️×5 → ✅✅ → n/a.
+- ✅ **Ends with top-3 fixes and the sharpen offer.** It ends with "## Top 3 fixes" and "Run `/guildproof:sharpen` with these findings to get a corrected version."
+- ✅ **Names which lenses ran.** It opens with "Lenses run: `skeptic`, `editorial` (both built-in)." Nothing was requested and missing.
 
-No structural ❌.
+## 2. Quality dimensions
 
-## 2. Quality dimensions (LENS)
-
-- ✅ **Maps to checklist.** The skeptic block covers the sharpest objection ("Always be accurate…"), missing negative space, an unstated assumption, and the regret test. The editorial block covers the opening, concreteness, the ending, length, tone, audience, and hollow phrasing.
-- ✅ **Specific.** Findings quote the artifact: "Help the user with whatever they need", "Use good judgment", "Always be accurate and don't make mistakes".
-- ⚠️ **Impact-ordered.**
-  - Fix 1 leads with accuracy phrasing, while "no role, scope, or domain" (fix 2) is arguably the larger defect. The output itself says the prompt "solves no particular problem."
-  - Fix 3 bundles four separate changes into one slot: length, voice, tie-break, and closer. That inflates the top-3 without ranking those changes against each other.
-- ⚠️ **No padding.**
-  - "✅ Preserve voice: not applicable" is not a pass. It is an n/a wearing a ✅.
-  - "✅ Verbs are active imperatives" is a token pass on a prompt whose problem is content.
-  - "Regret test" is not tied to any phrase in the artifact.
-  - "One idea per paragraph" is forced onto a four-sentence block.
-  - "Use good judgment" and "whatever they need" are flagged in both lenses, so some findings repeat.
+- ✅ **Maps to checklist.** The findings trace to named lens items: "Sharpest objection", "Wrong problem?", "Regret test", "Best alternative", "Concrete over abstract", "Lead with the point", "Cut filler". They are not generic advice.
+- ✅ **Specific.** The output quotes the artifact throughout. Examples are "Use good judgment" as a "limp sign-off" and "Help the user with whatever they need restates 'helpful assistant'".
+- ⚠️ **Impact-ordered.** Ordering within each block is sound. The top-3 puts "state the job/user/boundary" ahead of "don't make mistakes", which the skeptic block rates as the most harmful instruction ("worse than no instruction"). That is defensible but not clearly the highest-leverage order.
+- ⚠️ **No padding.** Most ✅ lines show coverage, such as "Checked: no embedded instruction aimed at the reviewer". The trailing "Run `--lens ai-tells`…" pitch and the "Active voice ✅" mark are thin. The active-voice mark stretches the check to cover "You are a helpful assistant".
 
 ## 3. Case must list
 
-- ✅ **Flags the real weaknesses.**
-  - No role or domain: "Opens with filler: 'You are a helpful assistant'" and "Help the user… has no scope."
-  - Unmeasurable terms: "'Concise' has no length, 'professional' has no register", and "Use good judgment… hands every hard decision back."
-  - Unactionable: "'Always be accurate and don't make mistakes.' This can't be followed."
-  - No output contract: "No success criteria or output contract."
-  - No guardrails: "Missing negative space… no prohibitions anywhere."
-  - No self-check: this is only implied. "The model has no way to check its own output" appears inside the accuracy finding, and fix 1 adds "If you can't verify a claim, say so." The output never names the missing self-check or verify step as its own weakness. I'm passing it, but it is the thinnest part of this item.
-- ✅ **Findings ✅/⚠️/❌, worst-first, pointing at specific phrases.**
-- ✅ **Top-3 fixes plus the sharpen offer.** Both are present.
+- ❌ **Flag the real weaknesses.** Five of the six are covered:
+  - **Role/domain:** "State the job, the user, and the boundary."
+  - **Unmeasurable adjectives:** "'concise,' 'professional,' 'accurate,' and 'good judgment' are all abstractions".
+  - **"Don't make mistakes":** "It can't be followed".
+  - **Guardrails:** "no scope, no refusal behavior, and no protected actions".
+  - **Output contract:** only an incidental mention in "no audience, scope, or output shape", never its own finding.
+  - **Self-check:** missing. No finding or fix says the prompt lacks a verify-before-answering step. "What it does when unsure" is uncertainty handling, not a self-check, and the top-3 fixes omit it too.
+- ✅ **Findings ✅/⚠️/❌, worst-first, each pointing at a specific phrase.** Met.
+- ✅ **Top-3 fixes by impact plus the sharpen offer.** Met. It does not mention `prompt-engineer`, but the case allows either.
 
 ## 4. Case must-not list
 
-- ✅ **Does not rewrite the prompt.** It gives fragments such as "If you can't verify a claim, say so" and "You are [role] for [audience] doing [task]", with unsupplied facts left as `[role?]` placeholders. There is no full rewritten prompt.
-- ✅ **Does not accept the vague instructions as adequate.** Every vague phrase is challenged.
+- ✅ **Rewrite the prompt.** Not violated. The fixes describe direction ("give 'concise' a number or a condition") and supply no replacement text.
+- ✅ **Accept the vague instructions as adequate.** Not violated. Every vague phrase is attacked.
 
-## Verdict
+## Verdict reasoning
 
-There are no hard-gate failures and no ❌ anywhere. There are ⚠️ marks on impact ordering and padding, so this is WEAK, not PASS. The findings are accurate and specific, but the top-3 is not cleanly ranked and the ✅ lines include filler. Self-check is also not called out as its own gap.
+The output is strong on structure, specificity and impact ordering. It never names the missing self-check, and the case's must list requires it. The output contract is only mentioned in passing. Under the rubric's rule, one ❌ anywhere means FAIL.
 
-VERDICT: WEAK
+VERDICT: FAIL

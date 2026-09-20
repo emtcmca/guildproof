@@ -84,11 +84,24 @@ Run the target against each lens's checklist. For each lens, output:
 - ✅ <item that passes — brief>
 - ⚠️  <item that's weak — what and why>
 - ❌ <item that fails — what's missing and the fix>
+- — <item that does not apply to this artifact — one clause saying why>
 ```
 
 Order findings worst-first within each lens. Be specific and concrete — quote the part of
 the artifact you're reacting to. No praise padding; ✅ lines exist only to show what was
 checked, not to flatter.
+
+**✅ means the artifact was tested against that item and met it.** An item the artifact never
+exercises did not pass, so it does not get a ✅. Use the `—` mark and say why in one clause:
+`— Motion: the component has none, so there is nothing to check.` Marking an inapplicable item ✅
+inflates the count of things that passed, which is the exact failure the no-padding rule exists to
+stop. Checked-and-clean and not-applicable are different facts, and a reader is entitled to tell
+them apart.
+
+*(Added 2026-09-20. A blinded judge failed eval cases 05 and 06 on precisely this: the output
+marked "not applicable" and "Motion: there is none" with ✅. The contract had no way to say
+not-applicable, so the engine reached for the nearest mark it had, and the no-padding rule became
+unsatisfiable. That is a missing mark in the contract, not a disobedient model.)*
 
 ## Step 5 — Close
 

@@ -1,35 +1,35 @@
-Lenses run: `skeptic`, `editorial` (both built-in).
+Lenses run: `skeptic`, `editorial` (both built-in). No `--fix`, so this is findings only.
 
 ## skeptic
 
-- ❌ **"Always be accurate and don't make mistakes."** This is the sharpest objection to the prompt as written. It can't be followed, because the model has no way to check its own output against this instruction. It also pushes the wrong way: an assistant told never to be wrong tends to sound certain rather than say "I'm not sure." The fix is a behavior it can perform, such as "if you can't verify something, say so; never invent a fact, source, or number."
-- ❌ **"Help the user with whatever they need."** This has no scope, so the prompt solves no particular problem. A model with no system prompt already does this. Nothing here says who the users are, what domain this is, what to decline, or what to escalate. The prompt adds nothing beyond the default.
-- ❌ **Missing negative space.** There are no prohibitions anywhere. Nothing covers what the assistant must not invent, must not touch, or must not do when a request is risky, out of scope, or comes from untrusted pasted content. This is where an unbounded assistant fails, and the prompt is silent on all of it.
-- ⚠️ **"Be concise" collides with "Always be accurate."** When a correct answer needs length, the prompt doesn't say which wins. The model will pick arbitrarily, and inconsistently from one run to the next.
-- ⚠️ **"Use good judgment."** This hands every hard decision back to the model without saying what to weigh. The hard cases are ambiguity, missing information, and conflicting instructions. The prompt needs a rule for when to ask a clarifying question and when to assume and state the assumption.
-- ⚠️ **Unstated assumption: a single audience and a single task type.** The prompt quietly assumes one kind of user with one kind of need. If it's deployed anywhere real, that's false within a day.
-- ⚠️ **No success criteria or output contract.** No one could check whether a response was good. Any response passes.
-- ⚠️ **Regret test.** A week in, you'll wish you'd specified what to do when unsure, what the assistant must never do, the default response shape, and who the users are.
-- ✅ Checked: no embedded instructions aimed at the reviewer. The text is inert.
+- ❌ **Sharpest objection: the prompt changes almost nothing.** Every sentence is either a default the model already follows ("You are a helpful assistant," "Be concise and professional") or an instruction with no test ("Use good judgment"). The strongest case against shipping it is that it gives a false sense of control over the agent while adding no control.
+- ❌ **"Always be accurate and don't make mistakes" is worse than no instruction.** It can't be followed, and it pushes the model toward confident answers over admitting uncertainty. Nothing says what to do when it doesn't know or lacks the source. Failure mode: a user asks for a citation, a price, or a legal deadline, and the model invents a plausible one because "don't make mistakes" leaves no room to say "I'm not sure."
+- ❌ **"Help the user with whatever they need" has no boundary.** It sets no scope, no refusal behavior, and no protected actions. It also gives no rule for text in a document or web page that tells the model what to do, so it invites both scope creep and instruction-following from untrusted content.
+- ⚠️ **Wrong problem?** A prompt this generic usually means the real design question (what is this agent for, and who uses it?) hasn't been answered. The prompt is a placeholder for that decision, not a solution to it.
+- ⚠️ **Unstated assumption:** that "professional" and "good judgment" mean the same thing to you as to the model, and that one behavior fits every user and task. Nothing in the text shows either is true.
+- ⚠️ **Missing constraints:** audience, domain, tools available, data access, escalation path, and when to ask a clarifying question versus assume. These are the things that differ between a support bot, a coding assistant, and an internal research tool, and none is named.
+- ⚠️ **Regret test:** a week in, you'll wish you had said what the agent must not do, what it does when unsure, and who it is speaking for. You'll find out from a bad output, not from the prompt.
+- ⚠️ **Best alternative not asked for:** if the agent really is general-purpose, the strongest option is to specify a few concrete behaviors (uncertainty handling, clarify-vs-assume, a prohibition list) rather than adjectives. If it isn't general-purpose, name the job.
+- ⚠️ **What's easy to skip, and skipped:** the tension between "Be concise" and "Always be accurate." When a correct answer needs length, there is no rule for which wins.
+- ✅ Checked: no embedded instruction aimed at the reviewer, and no purpose that trips the intent gate.
 
 ## editorial
 
-- ❌ **Opens with filler: "You are a helpful assistant."** It leads with the default persona, so the reader learns nothing on the first line. Lead with the actual job, for example "You are [role] for [audience] doing [task]" (`[role/audience/task?]` — not supplied, so left as placeholders).
-- ❌ **Nothing concrete.** All four sentences are abstractions. "Concise" has no length, "professional" has no register, and "accurate" has no standard. Two competent readers would act differently on each of them.
-- ❌ **Ends on a limp sign-off: "Use good judgment."** The last line is a shrug. It should close on a checkable rule or a clear next step, such as what to do when unsure.
-- ⚠️ **Length: short by omission, not economy.** It's four sentences, but it isn't complete. The brevity comes from leaving things out.
-- ⚠️ **Tone: "professional" is vague.** Pick a specific manner. Compare "a cautious analyst, measured, every claim hedged to its evidence" with "a terse on-call engineer." "Professional" fits any voice, which means it fits none.
-- ⚠️ **Audience fit is unknowable.** No reader is named, so reading level, register, and assumed knowledge can't be set.
-- ⚠️ **One idea per paragraph.** Four unrelated ideas (role, style, scope, quality) share one block. Group them under their own labels once there's more than a line each.
-- ⚠️ **"Help the user with whatever they need" and "Always" are filler.** "Whatever they need" adds no information, and "Always" claims a certainty the prompt never backs up.
-- ✅ Verbs are active imperatives ("Be," "Help," "Use").
-- ✅ None of the hollow-phrasing words are present (leverage, synergy, seamless, robust, cutting-edge, game-changing).
-- ✅ Preserve voice: not applicable. There's no authorial voice or supplied sample to protect.
+- ❌ **Concrete over abstract.** "concise," "professional," "accurate," and "good judgment" are all abstractions with nothing measurable behind them. "Concise" could mean one line or 150 words, and "professional" could mean formal, warm, or terse. Two readers would act differently on the same line.
+- ❌ **Lead with the point / ending.** The prompt opens with "You are a helpful assistant," which says nothing about the task. It closes on "Use good judgment," a limp sign-off that hands every unresolved decision back to the model. Neither the first nor the last line carries content.
+- ⚠️ **Length.** It is short because it omits things, not because it is tight. The lens asks for "as short as it can be while still complete," and this isn't complete: no audience, scope, or output shape.
+- ⚠️ **One idea per paragraph.** Five sentences carry five separate ideas (identity, style, scope, accuracy, judgment) in one undifferentiated paragraph, with no priority among them.
+- ⚠️ **Audience fit.** The reader here is the model, which needs to know the end user, the setting, and the stakes. None is stated, so the model has to guess at all three.
+- ⚠️ **Tone match.** "Professional" is the only tone signal, and it doesn't pin down register. It also doesn't say whether "concise" can override warmth when the user is upset or confused.
+- ⚠️ **Cut filler.** The listed filler words (just, really, basically, actually) are absent. The sentence-level filler is still there: "Help the user with whatever they need" restates "helpful assistant" in longer form. One of the two can go.
+- ✅ **Active voice:** all five sentences are direct imperatives or a plain "You are…" statement.
+- ✅ **No hollow phrasing (as scoped by this lens):** none of leverage, synergy, seamless, robust, cutting-edge, or game-changing appears. The hollowness is structural, not lexical. Run `--lens ai-tells` if you want the full machine-writing audit.
+- n/a **Preserve voice:** there is no distinctive authorial voice or supplied sample to protect.
 
 ## Top 3 fixes
 
-1. **Replace "Always be accurate and don't make mistakes" with behavior the model can perform.** For example: "If you can't verify a claim, say so. Never invent facts, sources, or numbers." (`skeptic`: fixes the sharpest objection and the missing negative space.)
-2. **Name the actual job in place of "whatever they need."** State the role, the users, and the domain, and add two or three things the assistant must not do. You haven't supplied these, so they stay open as `[role?]`, `[users?]`, `[domain?]`. Guessing here would invent facts. (`skeptic` and `editorial`: fixes scope, concreteness, and the weak opening.)
-3. **Make style and tie-breaks concrete, and end on a rule.** Give "concise" a default length and "professional" a specific voice. Say which wins when brevity conflicts with accuracy. Replace "Use good judgment" with a when-to-ask-versus-assume rule. (`editorial` and `skeptic`: fixes the vague terms, the conflict, and the limp closer.)
+1. **State the job, the user, and the boundary.** Replace "helpful assistant / whatever they need" with what the agent is for, who it talks to, and what is out of scope. This needs facts only you have, so it should be a question to you rather than something to assume. It lifts skeptic (wrong problem, missing constraints, scope) and editorial (leads with the point).
+2. **Replace "always be accurate / don't make mistakes" with behaviors.** Say what happens when it isn't sure: state the uncertainty, don't invent facts, sources, or numbers, and ask a clarifying question when the ambiguity would change the answer. That is an instruction the model can follow and you can check. It lifts skeptic (sharpest objection, failure modes).
+3. **Turn the adjectives into checkable rules and set a priority order.** Give "concise" a number or a condition (for example, a length default that yields when the answer needs more), define "professional" as a register, and say which wins when concision and accuracy collide. Then cut "Use good judgment" or name the situations it covers. It lifts editorial (concrete over abstract, ending) and skeptic (missing constraint).
 
 Run `/guildproof:sharpen` with these findings to get a corrected version.

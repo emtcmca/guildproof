@@ -58,7 +58,17 @@ can't FAIL isn't judging.
   OUT OF SCOPE names *work not being done this pass*. Merging them, or filling PROHIBITIONS with
   generic boilerplate untied to the task, is a structural ❌ — the block degrading into a
   checkbox is its most likely silent regression.
-- No unfilled `<...>` placeholders remain.
+- No unfilled `<...>` template slots remain. **A bracketed gap flag is not one of these, and
+  marking it as one is a scoring error.** `${CLAUDE_PLUGIN_ROOT}/templates/sharpened-prompt.md`
+  uses `<angle brackets>` for slots the engine is supposed to fill, so an unfilled `<...>` means
+  the raw template was handed back. A `[square-bracket]` flag like `[stack?]` or `[CC&Rs §__]` is
+  the opposite: `skills/prompt-engineering/SKILL.md:106` **requires** it for any missing fact, and
+  calls inventing one instead "the single failure that makes the draft unusable and
+  untrustworthy." Score a bracketed gap flag as correct behavior. It is the refuses-to-guess
+  property working, not a defect.
+  *(Added 2026-09-20. A blinded judge failed case 01 three times over `[stack?]`, reasoning that
+  "the rubric's literal wording is `<...>`, but square brackets are the same defect." They are
+  not. The rubric was right and too terse to defend itself, which is its own kind of defect.)*
 - Prompt is in one copy-pasteable block; assumptions + push-back + open questions come *after* it.
 - Each assumption has an explicit "Override with:".
 

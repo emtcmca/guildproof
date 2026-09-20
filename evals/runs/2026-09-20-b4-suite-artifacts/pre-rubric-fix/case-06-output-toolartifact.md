@@ -1,0 +1,1 @@
+The `ReportFindings` call I just made, with an empty list, was a mistake. The `/lens` command reports findings as text, not through that tool, and the empty list wrongly suggests nothing was found. The review above is the real output: 3 ❌ and 3 ⚠️ under `skeptic`, and 1 ❌ and 7 ⚠️ under `editorial`. Please ignore the empty call.

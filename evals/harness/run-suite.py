@@ -85,11 +85,36 @@ ROUTE_COMMANDS = {
 # just text, and an agentic CLI left to itself goes hunting the filesystem for context instead
 # of reading its prompt. That happened, cost two cells, and is why this is fixed and uniform.
 PRODUCER_PREAMBLE = """Everything you need is in this message. Do not search the filesystem, do
-not look for project files, and do not ask for anything. The command line below names the route
-you are running; your system prompt is that route's engine. Produce the real output the route is
-contracted to produce, in full.
+not look for project files, and do not ask for anything. Do not call any tool: your entire reply
+must be the deliverable itself, as text. The command line below names the route you are running;
+your system prompt is that route's engine. Produce the real output the route is contracted to
+produce, in full.
 
 """
+
+# A capture that is really an apology for a tool call is not a result.
+#
+# Case 06's producer called ReportFindings, put its actual review inside that call, and left
+# stdout holding "The review above is the real output. Please ignore the empty call." A judge then
+# scored the apology and failed the case on four items, every one of them "there is no review
+# here". It read exactly like the /lens route ignoring its contract.
+#
+# Restricting tools by flag does not work here: `--allowed-tools ""` leaves Bash, Write, Edit and
+# ReportFindings available, and a `--disallowed-tools` deny list blows the context limit because
+# this machine's MCP tool definitions are enormous. So the check is on the output instead, which
+# does not depend on any flag's semantics. A cell that trips it is re-run once and then left
+# UNSCORED rather than scored, because an unscored cell is unmeasured and not passing.
+TOOL_ARTIFACT = re.compile(
+    r"(?i)(ignore the (?:empty|previous) call"
+    r"|the (?:review|output|answer) above is the real"
+    r"|that tool call was a mistake"
+    r"|apolog\w+ for the (?:empty|stray) (?:tool )?call)"
+)
+
+
+def looks_like_tool_artifact(text):
+    """True when the captured text is a note about a tool call rather than the deliverable."""
+    return bool(TOOL_ARTIFACT.search(text)) or len(text.strip()) < 200
 
 HOOK_NOISE = re.compile(r"(?is)^.*?(?:=== VAULT RECALL.*?===.*?|Q lane:.*?$)\s*", re.MULTILINE)
 
@@ -418,6 +443,13 @@ def main():
                 try:
                     bundle = build_system_bundle(c, out_dir / "_bundles")
                     out = run_claude(PRODUCER_MODEL, bundle, PRODUCER_PREAMBLE + c["input"])
+                    if looks_like_tool_artifact(HOOK_NOISE.sub("", out)):
+                        print(f"{cid}: capture looks like a tool-call artifact, retrying once",
+                              flush=True)
+                        out = run_claude(PRODUCER_MODEL, bundle, PRODUCER_PREAMBLE + c["input"])
+                        if looks_like_tool_artifact(HOOK_NOISE.sub("", out)):
+                            raise RuntimeError(
+                                "producer output is a tool-call artifact twice, not a deliverable")
                 except Exception as e:
                     print(f"{cid}: PRODUCER ERROR {e}")
                     results.append({"id": cid, "route": c["route"], "verdict": None,
