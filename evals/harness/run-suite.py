@@ -151,6 +151,20 @@ def parse_case(path):
         return (rest[:em.start()] if em else rest).strip()
 
     inp = section("Input", "Must|Must not|Notes")
+    # A case Input may POINT at a fixture instead of inlining it ("send the block in
+    # evals/benchmarks/fixtures/x.md, verbatim"). Sending that sentence hands the model a path it
+    # cannot read. Case 41 did exactly this and its verifier replied "NO VERDICT ISSUED. The
+    # artifact was not in the message" -- the correct refusal, scored as four contract failures.
+    # So resolve the reference and inline the file, which is what "send the block in" means.
+    if inp:
+        for ref in dict.fromkeys(re.findall(r"(evals/benchmarks/fixtures/[\w.-]+\.md)", inp)):
+            fp = REPO / ref
+            if fp.exists():
+                inp += (f"\n\n===== CONTENTS OF {ref}, SENT VERBATIM =====\n"
+                        f"{fp.read_text(encoding='utf-8').strip()}\n"
+                        f"===== END {ref} =====")
+            else:
+                raise ValueError(f"{path.name}: references {ref}, which does not exist")
     must = section("Must", "Must not|Notes")
     mustnot = section("Must not", "Notes")
     if not inp:

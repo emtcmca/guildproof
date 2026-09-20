@@ -1,12 +1,12 @@
 {
   "benchmark": "B4-suite",
-  "commit": "d4fde7f6219e28f5d006e0711eab9ebf38027da3",
+  "commit": "ab52ade52742365213e14628e4924371ee3fcb08",
   "producer_model": "claude-sonnet-5",
   "judge_model": "claude-sonnet-5",
   "counts": {
-    "WEAK": 13,
-    "FAIL": 3,
-    "PASS": 1,
+    "WEAK": 24,
+    "FAIL": 8,
+    "PASS": 2,
     "UNMEASURED-BY-TRANSPORT": 4
   },
   "cases": [
@@ -114,10 +114,95 @@
       "verdict": "FAIL"
     },
     {
+      "id": "21",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
       "id": "22",
       "route": "orchestration",
       "verdict": "UNMEASURED-BY-TRANSPORT",
       "why": "needs a host that can dispatch registered subagents"
+    },
+    {
+      "id": "23",
+      "route": "lens",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "24",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "25",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "26",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "27",
+      "route": "agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "28",
+      "route": "sharpen",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "29",
+      "route": "lens",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "30",
+      "route": "lens",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "31",
+      "route": "lens",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "32",
+      "route": "lens",
+      "verdict": "PASS"
+    },
+    {
+      "id": "33",
+      "route": "lens",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "34",
+      "route": "gallery-agent",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "35",
+      "route": "grade",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "36",
+      "route": "grade",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "37",
+      "route": "grade",
+      "verdict": "WEAK"
+    },
+    {
+      "id": "41",
+      "route": "agent",
+      "verdict": "FAIL"
     }
   ]
 }

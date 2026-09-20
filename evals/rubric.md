@@ -82,8 +82,26 @@ can't FAIL isn't judging.
 ### LENS
 - Per-lens block, findings prefixed ✅/⚠️/❌.
 - Findings ordered worst-first.
-- Ends with a top-3-fixes list and the `/guildproof:sharpen` offer.
+- Ends with a top-3-fixes list. **Then, mode-dependent, and the modes differ:**
+  - **Without `--fix`:** the `/guildproof:sharpen` offer closes the output.
+    `commands/lens.md` Step 5 requires it on this path and only this path.
+  - **With `--fix`:** there is **no** offer, and requiring one is a scoring error. The offer
+    exists to hand the user a route to a corrected artifact; `--fix` already produced the
+    corrected artifact, so the offer would point at work already done. Step 5 sends `--fix`
+    straight on to Step 6 instead. On this path the contract is, in order: the corrected
+    artifact in a copy-pasteable block, then **a summary in which every change names the
+    finding it answers** (a per-change table is the correct form, not one line: that summary
+    IS the minimality check made visible), then **close with any unfixed observations**. So the
+    last section is the unfixed list, not the summary. Requiring a one-line summary, or
+    requiring the summary to come last, is a scoring error.
 - Names which lenses ran (and flags any requested-but-missing).
+
+*(The `--fix` split was added 2026-09-20. Stated without it, this invariant failed cases 31, 32
+and 33 for omitting an offer the command file tells them not to emit. One judge named the cause
+exactly: "The rubric gives no `--fix` exemption for this invariant." It was right about the rubric
+and the rubric was wrong. This is the third place the suite found the rubric had drifted from the
+shipped contract, after the bracketed-gap-flag and not-applicable-mark cases, which is a finding
+about this repo's measurement hygiene rather than about its prompts.)*
 
 ### GRADE
 - Verdict (PASS / WEAK / FAIL) leads the output, before any commentary.
