@@ -82,9 +82,13 @@ runner: [`evals/harness/run-suite.py`](../harness/run-suite.py).
 **Read that distribution as a gate, never as a rate.** It is a single-arm absolute score with no
 bare arm to cancel judge harshness against, and PASS demands zero ⚠️ across ~15-20 marks from a
 judge instructed to default to ⚠️. The same property makes the repo's 2026-07-21 result of
-36 PASS / 1 WEAK implausible in the opposite direction; that run was judged inside the producing
-session. **Getting a trustworthy result took fixing five transport bugs and four defects in this
-rubric**, which is the run's most transferable finding and is written up in full.
+36 PASS / 1 WEAK implausible in the opposite direction. That run's own doc names the reason without
+needing help: **"wave 1 is not blind"** — producers were told to read only the `## Input` section,
+`Read` returned the whole file including the Must and Must-not lists, and two of nine producers
+disclosed it unprompted. Its producers and judges were also subagents inside one host session
+rather than separate OS processes. **Getting a trustworthy result here took fixing five transport
+bugs and four defects in this rubric**, which is the run's most transferable finding and is written
+up in full.
 
 ---
 
