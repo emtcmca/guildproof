@@ -37,19 +37,21 @@ system prompt, scored by two blinded judges against a checklist written before a
 | States whether the work is **blocked** | **0 of 48** | 48 of 48 |
 | States whether the review was **independent** of the author | **0 of 48** | 48 of 48 |
 | Reports defects instead of rewriting your code | 16 of 48 | 46 of 48 |
-| Says what it could **not** check | 16 of 48 | 46 of 48 |
+| Shows how it checked each axis it called clean | 16 of 48 | 46 of 48 |
 | Ranks defects by severity | 4 of 48 | 46 of 48 |
 | Gives a three-way verdict, not a vibe | 14 of 48 | 48 of 48 |
 
 **And it does not improve as models improve.** Across four consecutive Gemini generations, three
 OpenAI generations and three Claude tiers, the unprompted score scatters between 0% and 33% with
-no trend. The newest Gemini tested scored **zero**. Two models of the *same* OpenAI generation
+no trend. One Gemini generation scored **zero of 24**, and it was the third of four, not the
+newest. Two models of the *same* OpenAI generation
 scored 8% and 33%, a wider spread than any generation-to-generation change in the study.
 
 ### Three things this does not claim
 
-- **It will not help a model see a bug.** All 48 runs found the defect unprompted. Detection is
-  the model's job. This changes what the model *does* with a defect it already found.
+- **It will not help a model see a bug.** Every run found the defect, in both arms, on all twelve
+  models. Detection is the model's job. This changes what the model *does* with a defect it
+  already found.
 - **Four of the six behaviors above are arguably instruction-following.** Scored separately, the
   two that require judgment or restraint go from 33% to 96%. That +62 points is the honest figure.
 - **One defect type, one artifact.** Breadth across models is not breadth across bugs. Other
@@ -87,7 +89,9 @@ moved the invoice fetch into a server component. I don't have a reproduction.
 
 ### What you should see
 
-Check for these five, because they are what the prompt is actually buying you:
+Check for these five. They are what the prompt asks for, and this exact input is what benchmark
+B2 measures it with, so the measured rates are printed below the list rather than left to your
+impression:
 
 - **Your claims come back labelled as yours.** The "last Thursday," the refactor, and the 3%
   should be flagged as unverified input rather than absorbed as fact — all three are doing most
@@ -100,6 +104,32 @@ Check for these five, because they are what the prompt is actually buying you:
 - **No one-line patch handed over.** It should note that `?? []` stops the crash while telling you
   nothing about whether those 3% of invoices are *supposed* to have line items — and that if they
   are, the guard turns a loud crash into silent under-billing.
+
+### How often those five actually happen
+
+B2 sent this exact input to both arms twice and had two judges score each output, so every
+behavior is scored four times per arm. On the debugger checklist the prompt scored **11 of 20
+against 2 of 20 bare** at the small tier (`claude-haiku-4-5-20251001`), and **19 of 20 against
+15 of 20 bare** at the frontier tier.
+
+Two results in that set you should know before you paste anything:
+
+- **The first bullet did not happen at the small tier, in either arm.** `separates the user's
+  claims from verified facts` scored **0 of 4 with the prompt and 0 of 4 without it**. Both judges
+  found the outputs restating "3%" and "last Thursday" as established fact and reasoning from
+  them. At the frontier tier it scored 3 of 4 with the prompt against 2 of 4 bare. On a small
+  model, expect to have to ask for that labelling yourself.
+- **The fourth and fifth bullets are partial at the small tier**, 1 of 4 and 2 of 4 with the
+  prompt against 0 of 4 bare for both. The single mark on the fourth is one judge disagreeing with
+  the other on one run, so read it as thin. At the frontier tier both are 4 of 4.
+
+The two that hold at both tiers are the reproduction refusal and the ranked hypotheses with a
+probe each. That second one is the largest single gain in the set: 0 of 4 bare to 4 of 4 with the
+prompt at the small tier.
+
+Runs, with every judge quote: [small tier](evals/runs/2026-09-19-b2-specialist-behaviors.md) ·
+[frontier tier](evals/runs/2026-09-19-b2-frontier-tier.md). The frontier run does not pin a model
+id, so read it as a tier rather than as a named model.
 
 That is one of twenty gallery agents, run the hard way. The plugin is the same prompts with the
 dispatch, the lens library, and the orchestration around them — but you should not have to take
@@ -433,6 +463,21 @@ Each carries a named **voice** so it speaks in character at injection. `/guildpr
 checks this gallery first and **adapts** a close match instead of starting cold. Forge your
 own, then drop it in `agents/` to grow the roster. Full list + format in
 [`docs/agent-gallery.md`](docs/agent-gallery.md).
+
+**Four of the twenty have a bare-versus-prompted benchmark on file**, on one input each, at two
+model tiers: `verifier`, `debugger`, `security-review` and `api-reviewer`. The other sixteen are
+not benchmarked. They ship because they are complete prompts, not because a number says they help.
+
+`api-reviewer` is the one that came back mixed, and per this repo's own rule it publishes here with
+the rest. At the small tier the bare model reviewed the contract in 4 of 4 scorings against the
+prompt's 3 of 4, and flagged breaking changes in 2 of 4 against the prompt's 0 of 4. The prompt won
+only on naming the abuse path, 0 of 4 to 4 of 4. At the frontier tier that reverses: it ties the
+first two at 4 of 4 and wins the third. The 3 of 4 is one judge disagreeing rather than a lost run,
+and the run doc records that the breaking-changes item admits two readings on this input and is
+queued to be re-specified, so that row is unsettled rather than a loss.
+
+`verifier` is the one that does not close with model strength: 8% bare at the small tier and 13%
+bare at the frontier tier, against 92% and 100% prompted.
 
 > The gallery is also the dispatch roster for the **orchestration layer** (`/orchestrate`,
 > shipped — see the live run above): guildproof as a coordinator that sharpens a prompt,

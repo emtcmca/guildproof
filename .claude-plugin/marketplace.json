@@ -4,7 +4,7 @@
     "name": "Eric Tetzlaff"
   },
   "metadata": {
-    "description": "An independent verifier that can halt the job, plus a guild of 20 specialist agents. Measured across 12 models and 3 vendors: unprompted, not one of 48 runs stated whether the work was blocked or whether its review was independent. With guildproof, 48 of 48 did."
+    "description": "An independent verifier that can halt the job, plus a guild of 20 specialist agents. Measured across 12 models and 3 vendors: unprompted, not one run stated whether the work was blocked or whether its review was independent. With guildproof, every run did."
   },
   "plugins": [
     {
