@@ -1,0 +1,172 @@
+# Fresh-machine test: does a new user's first command work on a computer that has nothing?
+#
+# Every setup instruction in this repo was written on the author's Windows laptop, where the
+# CLIs were already installed, the logins were already done and the keys were already in the
+# environment. That machine cannot tell you whether the instructions work. This one can: a
+# GitHub runner is a genuinely fresh computer with no vendor CLI, no login and no API key.
+#
+# So the job asserts the ABSENCE of credentials first. Without that assertion a green run
+# would only mean "it worked on a machine that happened to be set up", which is the thing
+# this is supposed to rule out.
+#
+# Nothing here spends a token or a cent. The only commands run are the two the harness
+# documents as free (`--check` and `--dry-run`) plus the blinding audit (`--show`).
+
+name: fresh-machine
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------------------
+  # Can someone who just cloned this repo run the first commands the docs tell them to run?
+  # ---------------------------------------------------------------------------------------
+  first-commands:
+    name: first commands (${{ matrix.os }}, py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false          # one platform failing must not hide the others
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.11']
+        include:
+          # The harness claims zero dependencies, which means it has to survive a Python
+          # version bump with nothing pinning it. One newer interpreter tests that.
+          - os: ubuntu-latest
+            python: '3.13'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      # No pip install step, deliberately. The harness is zero-dependency and this job is
+      # the thing that would notice if that stopped being true.
+
+      - name: Prove this machine is actually fresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "--- vendor CLIs (all three must be absent) ---"
+          fail=0
+          for cli in claude codex gemini; do
+            if command -v "$cli" >/dev/null 2>&1; then
+              echo "UNEXPECTED: $cli is on PATH. This runner is not a fresh machine, so a"
+              echo "green result here would not mean what this job claims it means."
+              fail=1
+            else
+              echo "absent: $cli"
+            fi
+          done
+          echo "--- credentials (all must be unset) ---"
+          for key in ANTHROPIC_API_KEY OPENAI_API_KEY GEMINI_API_KEY GOOGLE_API_KEY; do
+            if [ -n "${!key:-}" ]; then
+              echo "UNEXPECTED: $key is set in the environment."
+              fail=1
+            else
+              echo "unset: $key"
+            fi
+          done
+          exit $fail
+
+      - name: '--check reads the machine and names a fix for every target'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python evals/harness/run-crossmodel.py --check | tee check.txt
+          # --check must succeed on a machine that can run nothing. It is the setup
+          # documentation, and documentation that only works once you are already set up is
+          # useless. It must also tell the reader HOW to fix each unrunnable target, not
+          # merely that it is unrunnable.
+          grep -q 'npm i -g @anthropic-ai/claude-code' check.txt \
+            || { echo "FAIL: --check did not print how to install the claude CLI"; exit 1; }
+          grep -q 'npm i -g @openai/codex' check.txt \
+            || { echo "FAIL: --check did not print how to install the codex CLI"; exit 1; }
+          grep -qi 'aistudio.google.com/apikey' check.txt \
+            || { echo "FAIL: --check did not print where to get a Gemini key"; exit 1; }
+          # A target this machine cannot run must be reported as unmeasured, never as passing.
+          grep -qi 'unmeasured\|Fix the reasons above' check.txt \
+            || { echo "FAIL: --check did not say unrunnable targets are not measured"; exit 1; }
+
+      - name: '--dry-run works before anything is set up'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # This is deliberately the first command a new user reaches for, so it sits ABOVE
+          # the credentials gate in the runner. It regressed once by being gated behind
+          # "you must already be set up", which broke exactly that first experience. This
+          # step is the regression test for that.
+          python evals/harness/run-crossmodel.py --dry-run \
+            --input evals/benchmarks/fixtures/v2-invoice-subtle.md | tee dry.txt
+          grep -q 'DRY RUN' dry.txt \
+            || { echo "FAIL: --dry-run produced no plan"; exit 1; }
+          grep -qE '[0-9]+ calls would be made' dry.txt \
+            || { echo "FAIL: --dry-run did not state how many calls it would make"; exit 1; }
+
+      - name: 'known-bad fixtures still have the shape the runner depends on'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # run-knownbad.py --check strips all six fixtures without calling a model. If a
+          # fixture's headings drift, the strip silently stops removing the answer, which
+          # would turn the release gate into a reading-comprehension test. This catches it
+          # for free, on every push.
+          #
+          # It exits non-zero here because the claude CLI is absent, and that is correct:
+          # a --check that passed on a machine it cannot run on would be lying. So the
+          # assertion is on the fixture lines, not on the exit code.
+          python evals/harness/run-knownbad.py --check > kb.txt 2>&1 || true
+          cat kb.txt
+          for kb in KB1 KB2 KB3 KB4 KB5 KB6; do
+            grep -q "^  ${kb}.*strips cleanly" kb.txt \
+              || { echo "FAIL: ${kb} no longer strips cleanly - its headings changed"; exit 1; }
+          done
+          grep -q 'NOT ON PATH' kb.txt \
+            || { echo "FAIL: --check did not notice the claude CLI is missing"; exit 1; }
+
+      - name: 'the blinding holds: no fixture leaks its own answer to a judge'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The whole known-bad gate rests on the judge not being told the answer. Each
+          # fixture file states it outright, so the runner strips it. This asserts the strip
+          # from outside the runner, on the exact bytes a judge would receive, for all six.
+          for kb in KB1 KB2 KB3 KB4 KB5 KB6; do
+            python evals/harness/run-knownbad.py --show "$kb" > "prompt-$kb.txt"
+            for leak in 'must FAIL' 'Why it must FAIL' 'expect:' 'plants:'; do
+              if grep -qF "$leak" "prompt-$kb.txt"; then
+                echo "FAIL: ${kb} judge prompt leaks '${leak}' - the gate would be measuring"
+                echo "reading comprehension rather than judgment."
+                exit 1
+              fi
+            done
+            echo "$kb: blinded"
+          done
+
+      - name: 'the Gemini caller fails loudly without a key, and never prints one'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # An empty arm is unmeasured, not clean. With no key this must fail with a clear
+          # message rather than returning an empty result that later reads as a model
+          # declining to answer.
+          set +e
+          python evals/harness/gemini-call.py --selftest > gem.txt 2>&1
+          code=$?
+          set -e
+          cat gem.txt
+          [ "$code" -ne 0 ] || { echo "FAIL: gemini selftest passed with no key configured"; exit 1; }
+          grep -qi 'key' gem.txt || { echo "FAIL: no key-related reason given"; exit 1; }
+
+  # The structure job — counts on disk against counts claimed in prose, run by
+  # scripts/validate.mjs — is added in the commit that introduces that script. It is kept out
+  # of here until then so this workflow's first run reports on the harness rather than on a
+  # missing file.
