@@ -1,0 +1,151 @@
+{
+  "specialist": "debugging-diagnosis-judge (5-item rubric, judge 2 of 2)",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"on a reported ~3% of loads, rendering throws...\" and \"**Attribution note:** \\\"started last Thursday\\\" and \\\"around when we moved the invoice fetch into a server component\\\" are your reports, not verified facts.\" \u2014 all three (3%, last Thursday, the refactor) are explicitly marked as the user's reports rather than established fact."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"None supplied, so the first job is to manufacture one. A 3% intermittent failure is almost always deterministic on some hidden input. The reproduction is: *find the input*.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Each hypothesis (A-F) carries a labeled 'Cheapest probe' with a concrete action and implicit/explicit cost, e.g. \"**Cheapest probe:** grep for every construction site of the prop `InvoiceTable` receives and compare their selection sets against each other... visible in source without running anything,\" and E: \"Costs one deploy of two log lines.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Separate the trigger from the root cause.** The trigger is whichever invoice or request condition Probe 1 identifies. The root cause is that a typed boundary is not validated at runtime: the prop's declared type stopped matching reality the moment the guaranteeing layer left the path, and nothing failed loudly at the boundary.\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Do not add `lines?.map` or `(lines ?? []).map` yet.** It will make the error stop, and it will be indistinguishable from a fix. If the cause is D, that change converts a visible upstream outage into an invoice page that silently renders zero line items on a real invoice, which is materially worse than a crash.\""
+        }
+      ],
+      "notable": "States 'The frames are client-component frames' as a settled fact drawn from a two-frame stack trace, with no hedge. Output Y, given the identical two-frame trace, explicitly treats this as ambiguous (server-side RSC render vs. post-hydration client throw) and flags the trace as possibly truncated. W's claim is more confident than the evidence in front of it supports."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Fits \\\"3%\\\" and \\\"started last Thursday\\\" well\" (3D) \u2014 both figures are handled as quoted, externally-supplied data points a hypothesis must explain, not facts baked into the mechanism \u2014 combined with section 8: \"\\\"Started last Thursday, around when we moved the fetch\\\" is a strong lead and not proof.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"You do not need to guess your way to a repro. Add one narrow, temporary probe **where the data enters**, not where it crashes\" \u2014 declines to fabricate a plausible repro and instead proposes production instrumentation."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Test, two minutes, no production access needed:\" (3A), followed by a specific 3-step check; other hypotheses (3B-3E) each carry a single targeted grep/log check rather than an open-ended list."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched the full text for the word 'trigger' and for any explicit trigger-vs-root-cause framing; found neither. The closest analog is section 6 ('The durable fix'), which argues for parsing over asserting, but it never separates a named proximate trigger from an underlying defect the way W and Y do \u2014 it moves straight from diagnosis to fix without that explicit split."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"An invoice showing zero lines is wrong for most of these cases, so pair the guard with the probe from section 4 or you have converted a visible crash into a silent wrong number, which is worse. A crash on an invoice page is bad; a silently incorrect invoice total is bad *and* invisible.\""
+        }
+      ],
+      "notable": "No factual errors found. The one completeness gap: unlike W and Y, X has no opening section that states up front which of the user's claims are unverified \u2014 the flagging of '3%' and 'last Thursday' happens once, in passing, inside hypothesis 3D, rather than as a declared methodological stance."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Y explicitly says \"Two of your statements are unverified\" and lists only 'started last Thursday' and 'around when we moved the fetch into a server component.' Searched for any comparable hedge on the 3% figure (quotation marks, 'reported', 'you say', etc.) and found none; elsewhere Y states it flatly as fact: \"Actual: in roughly 3% of loads, renderInvoiceLines reads .map off undefined...\". The self-limiting count of 'two' statements deliberately excludes the 3% figure from the unverified label."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"You do not have one, and the fastest way to get one is also the single most valuable probe in this whole document, so do it first.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Cheapest probe.** Read the deleted code, not the new code... Ten minutes, no deploy, and it either produces the defect or clears the hypothesis outright.\" Every hypothesis (1-5) pairs a probe with explicit 'Confirms if' / 'Killed if' conditions."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Section header \"## Trigger versus root cause\" followed by: \"Whichever of the five is the proximate trigger, there is a separate defect underneath... `renderInvoiceLines` calls `.map` on a value it never verified, and TypeScript did not object.\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Adding `?? []` at line 88 would make this stack trace stop appearing in roughly 3% of loads. It would also render an invoice with silently zero line items, which for a billing surface is a worse outcome than a crash, and it would leave the type lie in place to break somewhere else later.\""
+        }
+      ],
+      "notable": "No confidently wrong technical claims found. The clearest weakness is the one above: an explicit, self-declared count of unverified statements ('two') that leaves the 3% rate untouched and stated as fact throughout, which is inconsistent with the otherwise careful evidentiary discipline the rest of the document shows."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for any hedge treating 'last Thursday', the refactor, or '3%' explicitly as the user's unverified report (e.g. 'reported', quotation marks, 'your claim'). Found only \"Verify the Thursday correlation\" and \"Group the 3% by invoice ID\" as action items under \"before you trust the rest of your framing\" \u2014 this signals general caution about the framing but never states any of the three as specifically unverified input as opposed to established fact; the 3% in particular is used throughout as a settled rate (e.g. \"Note that 3% being *stable* rather than spiking argues against...\")."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Section header \"## How to get the reproduction you do not have\" followed by: \"You will not find this by reading code, because the code looks correct on the path you can run. Instrument the throw site and let production tell you which hypothesis is true. The goal is one deploy that returns a verdict, not a guess.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"This costs two minutes and it is the cheapest way to avoid spending a day down the wrong hole.\" The six-row hypothesis table pairs each with a 'Distinguishing evidence' cell naming a specific observation, and the closing line names an explicit cost trade-off: \"that check costs one git diff rather than a deploy cycle.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for 'trigger' and for any explicit trigger/root-cause split; found neither. Z's \"Layer one... / Layer two, after the telemetry lands: fix the cause and make the type honest\" distinguishes an immediate mitigation from a durable type fix, but this is a fix-sequencing distinction, not a diagnostic separation of what triggered the specific failure from the underlying defect."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"But do not write `invoice.lines ?? []` and call it done. On an invoice, silently rendering zero lines is worse than crashing: the customer sees a $0 invoice, believes it, and you have turned a loud frontend error into a quiet billing error that nobody reports.\""
+        }
+      ],
+      "notable": "States as settled fact that RSC serialization drops non-plain values silently: \"Nothing throws at the boundary; the field just is not there on the other side.\" Both W and Y explicitly note the opposite is the more common behavior \u2014 a loud 'Only plain objects can be passed to Client Components' error \u2014 and use that exact caveat to rank the serialization hypothesis low. Z's flat claim looks like an overstated or likely-wrong generalization stated with more confidence than it has earned."
+    }
+  ],
+  "methodology_notes": "Item 1 was the hardest to apply consistently. The checklist names three specific things (last Thursday, the refactor, the 3% figure) that must each be treated as unverified input. W is the only output that explicitly hedges all three with clear language ('your reports, not verified facts', 'reported ~3%'). X hedges two explicitly and treats the third (3%) via quotation marks used in a hypothesis-fit context ('Fits \"3%\" and \"started last Thursday\" well') \u2014 I judged that as sufficient because it visibly flags the figure as an externally-supplied datum being tested rather than assumed, but this is a softer signal than W's and a different judge could reasonably score it absent. Y and Z each hedge only two of the three (Thursday and the refactor) and use the 3% figure as settled fact throughout, including Y explicitly and deliberately scoping its own hedge to 'two' statements \u2014 I scored both absent on strict no-partial-credit grounds, but note this produces a fairly severe read for two otherwise very careful outputs.\n\nItem 4 was the second hardest call. W and Y both use explicit trigger/root-cause vocabulary in a dedicated passage. X and Z instead structure their fix sections as 'quick mitigation vs. durable fix', which does the same causal-reasoning work in spirit (don't stop at the surface event, fix the type-level defect underneath) but never names a 'trigger' as distinct from the defect in diagnostic terms. I scored X and Z absent because the checklist item is specifically about separating trigger from root cause in the diagnosis, not about sequencing a fix, but I flag this as a place where a more generous reading of 'satisfies the item in its own way' could flip both to present.\n\nFor the notable-error findings, the RSC-serialization claim in Z ('nothing throws at the boundary') is presented with more certainty than the topic supports, and is directly contradicted by hedges in W and Y on the same point; I treated this as a genuine substantive error worth flagging rather than a stylistic difference, since it is a concrete, checkable technical claim.",
+  "_specialist_inferred_from_rubric_length": "debugger"
+}

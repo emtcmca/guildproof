@@ -1,0 +1,103 @@
+{
+  "specialist": "api-reviewer",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Publishing to partners freezes this surface, so the order of operations matters more than usual.\" Status codes as contract: \"`400` for malformed requests, `422` for well-formed but semantically invalid, `401` unauthenticated, `403` authenticated but not permitted, `404` unknown order, `409` state conflict, `429` rate limited, `5xx` for your faults.\" Error shape as contract: \"One error body shape across every endpoint\" and \"Treat the `code` values as part of the contract and document the closed set.\" Idempotency: \"Require an `Idempotency-Key` header (client-generated UUID) on every refund request. Store key \u2192 request fingerprint \u2192 response for at least 24 hours.\" Pagination: \"Offset pagination on a descending feed is unstable by construction... Cursor pagination with an opaque cursor: `GET /v1/orders?limit=50&starting_after=cur_...`\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"four of the five items are blockers, and three of them are the kind that cannot be fixed later without breaking every partner already integrated\"; \"Worse, full replacement guarantees a future outage. When v1.1 adds a field, an older client that reads an order and writes it back does not know about that field, so it wipes it.\"; \"if you do not publish codes they will parse `message` strings instead, which makes your copy edits into breaking changes\"; \"`/v1` buys nothing unless you define what counts as breaking (adding a field, adding an enum value, tightening validation, changing an error code)\"; \"Doing this before onboarding costs one doc change; doing it after costs a coordinated migration with every partner\""
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched W for a named actor misusing the surface: an IDOR / cross-tenant scenario (\"partner A\" refunding or reading \"partner B\" order), a malicious or hostile partner, an attacker, credential theft-to-refund chain, deep-offset or retry-loop DoS, mass assignment of `status`/`total`/`account_id`, or enumeration exploited. None is present. W never discusses authorization or tenant scoping at all. The closest text is \"Do not expose sequential integers \u2014 they leak volume and invite clients to iterate them\" and \"A partner's read-only reporting job should not hold a credential that can move money\" \u2014 both gesture at risk without naming how anyone concretely misuses the endpoints, so by the no-partial-credit rule this is absent."
+        }
+      ],
+      "notable": "W is the only one of the four that never raises authorization / tenant scoping (IDOR) or mass assignment on the full-object PATCH. It treats PATCH purely as a data-loss and schema-evolution bug (\"a data-loss bug with no error message\"), missing that \"the full order object\" lets a client write `status`, `total`, or the owning account. It also never mentions the asynchronous nature of a processor refund. No factual errors spotted: RFC 5789 for PATCH is correct, and the composite `(created_at, id)` sort advice is right. Minor: it recommends `409` for over-refund but `422` for an idempotency-key/body mismatch, which is a defensible convention split rather than an error."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Opens with an explicit contract restatement: \"## Contract (as I read it)\" table, including \"Returns **200** on both success and validation failure\" and \"**Explicitly non-idempotent** \u2014 two calls, two refunds.\" Status codes: \"`400` for malformed syntax, `422` for semantically invalid fields, `401` unauthenticated, `403` unauthorized, `404` not found, `409` for state conflicts, `429` rate-limited.\" Error shape: \"One machine-readable error envelope on every failing route \u2014 RFC 9457 `application/problem+json` is the standing default: stable `type` slug, human `title`, and a `errors[]` array of field-level `{field, code, message}`.\" Idempotency: \"Accept and require `Idempotency-Key` on every non-GET route. Same key plus same body replays the stored response; same key plus different body is a 422.\" Pagination: \"Keyset/cursor pagination \u2014 order by `(created_at, id)` and return an opaque `next_cursor` plus `has_more`; no `page`, no `offset`, no total count in the hot path.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"once that's in production at ten partners, you can never move to real status codes without a breaking change and a version bump\"; \"There's a fourth, specific to publishing this to partners: full-replace makes your schema permanently frozen from the client side. Add a field next quarter, and every partner still sending last quarter's object wipes it on every write.\"; \"Keep it, and bump it \u2014 several fixes above are breaking changes, and it is far cheaper to make them now than to run `/v2` for two years.\"; \"a supported-but-deprecated `?key=` is a leak with a longer tail\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Partner A changes the id in the path and refunds Partner B's order. Or PATCHes it. If ids are sequential integers, that is a script, not an attack. `GET /v1/orders` has the same problem in the other direction: if the list isn't scoped, one partner enumerates everyone's order history, which is customer PII and competitor revenue data in one response.\" Also: \"deep offsets (`page=50000`) make the database count and discard millions of rows per request, which is a cheap DoS with one authenticated key\"; and on PATCH: \"Can a partner PATCH `status` to `paid`, `refunded`, or `shipped`? Set `total` to 0.01? Move `customer_id` or `account_id` to another partner's?\""
+        }
+      ],
+      "notable": "One real technical error: on PATCH it says \"return an ETag or `version`, require `If-Match`, return 409 on mismatch.\" A failed `If-Match` precondition is `412 Precondition Failed` (RFC 9110); W, Y and Z all get this right with 412. X also asserts the IDOR as \"\u274c CRITICAL \u2014 No authorization on `{id}`\" from absence of evidence, though it discloses the inference honestly (\"I flag the middleware question in Confirm-these rather than asserting it's absent, but I am treating absence as the default\"), so this is a stated assumption rather than a fabrication. The invented incident detail (\"a merchant refunded $40k because your gateway timed out at 14 seconds\") is illustrative, not presented as fact about this system. Its \"Confirm these\" list (11 items) is the strongest epistemic hygiene in the bundle."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Contract as I read it\" table plus an explicit assumption ledger: \"Assumed, because it was not given: no `Idempotency-Key` handling, no `ETag`/`If-Match`, no rate limiting, no tenant scoping on `{id}`, error body is the literal shape shown (`error` string, no code, no field path).\" Status codes: \"`400` for malformed syntax, `422` for semantically invalid fields, `401`/`403` for auth, `404` for missing, `409` for state conflict, `429` for rate limit, `5xx` only for your own faults.\" Error shape: \"Make the error body machine-readable \u2014 a stable `code`, a human `message`, and a per-field list (`[{\\\"field\\\":\\\"line_items[0].quantity\\\",\\\"code\\\":\\\"must_be_positive\\\"}]`). A bare `error` string forces partners to regex your prose, which then becomes a contract you can never reword.\" Idempotency: \"Require `Idempotency-Key` on the request. Store `(key, endpoint, request_hash)` with a **unique DB constraint** \u2014 not an application-level 'check then insert', which races.\" Pagination: \"Cursor (keyset) pagination: sort on a total order, `(created_at, id)`, and return an opaque `next_cursor` the client passes back.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"If you ship full-refund-only and add partial refunds later, the 'omitted amount means full' default becomes a breaking ambiguity you cannot fix without a new version.\"; heading \"\u26a0\ufe0f LOW \u2014 undocumented surface details that become breaking changes later\"; \"Return `{\\\"data\\\": [...], \\\"next_cursor\\\": \\\"...\\\"}` from day one; a bare top-level array leaves you no place to add pagination metadata without a breaking change.\"; \"**Versioning and deprecation policy.** `/v1` implies a `/v2`. Say now what counts as a breaking change, what notice partners get, and how long old versions live.\"; \"Full replacement means any client on an older schema wipes fields it has never heard of. Add a field next quarter and every partner that has not redeployed starts erasing it on every update.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"If the handler loads by primary key alone, partner A refunds partner B's order by incrementing a number \u2014 and refund is the worst possible verb to leave unscoped, because it moves money and is trivially enumerable if ids are sequential.\" Also: \"A hostile partner needs no exploit at all, just a `for` loop.\"; \"Setting `status: \\\"paid\\\"` or rewriting `total` from the client side is a direct financial exploit, and `account_id` is a tenant escape.\"; \"a partner's typo'd filter that silently returns everything is a data-exposure bug wearing a `200`.\""
+        }
+      ],
+      "notable": "Correctly cites RFC 7396 for JSON Merge Patch (Z gets this number wrong). Returns `409` for an idempotency-key-with-different-body collision where X returns `422` \u2014 a convention split, not an error (Stripe uses 400; either is defensible). One arguable overreach: \"constant-time compared against a hash, not looked up as plaintext\" conflates the hash lookup with the comparison \u2014 a hashed-key lookup by index is standard and does not itself require constant-time comparison, though the advice is harmless. Its \"Confirm these\" item 6 (refund atomicity: \"If the processor succeeds and your insert fails, your ledger is wrong and your idempotency record never got written\") is the sharpest single operational catch in the bundle."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Frames the whole review as contract: \"Five of the five items listed have defects that get expensive after partners integrate, because each one becomes a compatibility contract you have to break to fix.\" Status codes: \"`400` for malformed syntax... `422` for syntactically valid but semantically invalid... `409` for state conflicts... `500` / `503` for your faults, and only for your faults.\" Error shape: \"Adopt RFC 9457 (`application/problem+json`) or something shaped like it, and include **field-level** detail\" with \"a **stable machine-readable `code`** partners can branch on without string-matching prose.\" Idempotency: \"Make the header **required** on `POST /v1/orders` and on refunds. Optional idempotency is idempotency that nobody uses until after their first incident.\" Pagination: \"**Offset pagination over a newest-first list is unstable by construction**... Fix: cursor (keyset) pagination\" with \"Keep the cursor **opaque** (base64 of an internal tuple). If partners can parse it, they will construct it, and you can never change the encoding.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"Items 1 through 6 are all breaking changes. Shipping them before partners integrate costs some engineering time. Shipping them after costs a v2, a migration window, and dual-running both behaviors for as long as your slowest partner takes to move.\"; \"**Versioning policy.** `/v1` in the path is a version number, not a policy. Write down what counts as a breaking change (removing a field, narrowing a type, adding a required parameter, changing an error code), what does not (adding an optional field, adding an enum value)\"; \"If you model it as synchronous now, you cannot make it async later without breaking every partner.\"; \"Otherwise adding `partially_refunded` later crashes a partner's switch statement.\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Authorization scoping and the 404-vs-403 decision.** Nothing here says what happens when partner A requests partner B's order ID. Return `404`, not `403`: a `403` confirms the ID exists and turns your ID space into an enumerable inventory. Make sure every single-resource route filters by the authenticated partner in the query itself, not in a check after the fetch.\" Also: \"Do not expose sequential integers: they leak order volume to every partner and invite enumeration.\"; \"Ignoring them silently trains partners to believe they can set status.\""
+        }
+      ],
+      "notable": "One citation error: \"`application/merge-patch+json` (RFC 7386)\" \u2014 JSON Merge Patch is RFC 7396. Y cites it correctly. Z's abuse coverage is real but thinner and later-placed than X's or Y's: cross-tenant access appears in the \"Missing entirely\" list rather than as a finding, and Z never raises mass assignment as a security issue \u2014 it frames server-owned fields as a documentation/`422` question (\"Ignoring them silently trains partners to believe they can set status\") rather than as a partner writing `total` or `account_id`. Strongest unique content: the zero- and three-decimal currency point (\"`amount / 100` is wrong for both\"), the key-prefix/secret-scanning argument, test-vs-live keys, the OpenAPI-as-source-of-truth item, and explicit partner-side retry guidance (\"a timeout means *unknown*, not *failed*\"). Its claim that key prefixes \"prevented real breaches for other API vendors\" is plausible but unsourced."
+    }
+  ],
+  "methodology_notes": "Items 1 and 2 were easy and unanimous: all four outputs restate the surface as a partner contract, cover all four named concerns (status codes, idempotency, pagination, error shape) explicitly, and all four name breaking changes in so many words. If those items were meant to discriminate, they did not \u2014 the discriminating item was 3.\n\nItem 3 is where my calls could reasonably go the other way, in two places.\n\n(a) OUTPUT W scored absent. W is otherwise the tightest-written of the four, and it does touch risk-adjacent material: query-string credential leakage, scoped keys so a reporting job cannot move money, and \\\"Do not expose sequential integers \u2014 they leak volume and invite clients to iterate them.\\\" A judge reading item 3 generously could call that last clause an abuse path. I did not, because it names no actor performing no concrete action against a named route, and the checklist explicitly says a vague gesture is absent. W contains no discussion of authorization or tenant scoping anywhere, which is the single clearest difference between it and the other three. If the other judge marks W present on item 3, the sequential-id clause is almost certainly why.\n\n(b) OUTPUT Z scored present, but it is the weakest present of the three. Its concrete cross-partner scenario (\\\"what happens when partner A requests partner B's order ID\\\", \\\"turns your ID space into an enumerable inventory\\\") sits in a \\\"Missing entirely\\\" bullet list rather than in a severity-ranked finding, and Z never frames the full-object PATCH as mass assignment. I credited it because the checklist scores behavior, not placement or house style, and the actor-action-consequence chain is stated. A judge weighting prominence would plausibly mark Z absent, and I would not call that unreasonable \u2014 the gap between Z and X/Y on this item is larger than the gap between Z and W is small.\n\nA structural bias worth recording: X and Y are near-identical in shape (contract table, assumption ledger, severity-ranked findings, \\\"Checked and OK\\\", \\\"Highest-severity issue\\\", \\\"Confirm these\\\"), and both hit all three items. I scored them from separate reads and their evidence quotes differ, but on a three-item checklist this coarse they are indistinguishable, and the checklist cannot see that Y's idempotency fix (unique DB constraint, `SELECT ... FOR UPDATE`, sum-of-refunds in the same transaction) is materially more implementable than X's. Conversely W and Z, the two that present as documents rather than findings lists, differ substantially from each other and the checklist does not capture that either.\n\nFinally: I scored only the text. Three outputs assert an IDOR that the excerpt cannot confirm exists, and all three flag it as an assumption; I did not penalize that under any item, since no item covers epistemic hygiene, but it is the behavior most worth measuring here and this checklist does not measure it.",
+  "_specialist_inferred_from_rubric_length": "api-reviewer"
+}

@@ -8,7 +8,7 @@ tests: coverage-gap detection — slices with no agent are logged, not faked
 ## Input
 
 ```
-/promptsmith:orchestrate localize the app UI into Spanish and draft the Terms of Service for it
+/guildproof:orchestrate localize the app UI into Spanish and draft the Terms of Service for it
 ```
 
 ## Must

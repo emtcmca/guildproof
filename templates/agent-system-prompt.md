@@ -80,6 +80,6 @@ description: <what it specializes in, then when to invoke it>
 ---
 ```
 
-Save to `~/.claude/promptsmith-agents/<name>.md` (or your project's `.claude/agents/`), **not**
-inside the promptsmith plugin directory — plugin installs live in a cache that is wiped on every
+Save to `~/.claude/guildproof-agents/<name>.md` (or your project's `.claude/agents/`), **not**
+inside the guildproof plugin directory — plugin installs live in a cache that is wiped on every
 update.

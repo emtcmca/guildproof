@@ -1,5 +1,9 @@
 # promptsmith — planned features (candidate list)
 
+> **Renamed.** This project was `promptsmith` until 2026-09-18 and is now `guildproof`.
+> This document is a record written under the old name, so it keeps the old name and the
+> old `/promptsmith:*` commands. The current commands are `/guildproof:*`.
+
 Status: **candidates, not committed.** Reviewing other projects before locking scope or
 implementing. Nothing here ships until the review pass is done and each item is approved.
 

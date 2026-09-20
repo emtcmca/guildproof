@@ -1,5 +1,9 @@
 # Coverage gaps — slices no gallery agent covers
 
+> **Renamed.** This project was `promptsmith` until 2026-09-18 and is now `guildproof`.
+> This document is a record written under the old name, so it keeps the old name and the
+> old `/promptsmith:*` commands. The current commands are `/guildproof:*`.
+
 Append-only. The Layer 2 coordinator (`/promptsmith:orchestrate`) writes here whenever a request
 slice falls outside every existing agent's purview. A **recurring** gap is the spec for the next
 gallery agent — forge it with `/promptsmith:forge-agent` and drop it in `agents/`.

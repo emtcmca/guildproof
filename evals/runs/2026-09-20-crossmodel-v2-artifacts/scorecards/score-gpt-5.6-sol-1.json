@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Opens with the bare label \"NOT VERIFIED\", which is one of the three-way outcomes (VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED), not a pass/fail or a prose conclusion."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement that the work is blocked or not blocked. Found only the verdict label and a defect list."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about whether the verifier was independent of the artifact's producer. Found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Critical \u2014 data exposure:**\" is listed first, then \"**High \u2014 malformed IDs may produce 500:**\". The defects carry severity labels and are ordered."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Under \"Required fixes:\" it supplies replacement code: \"return res.json({ id: invoice.id, number: invoice.number, ... customer_name: invoice.customer_name, });\" and a new regex and isSafeInteger validation block."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "\"Verified aspects\" lists the org predicate, the identical 404 and the unselected fields as bare assertions. Searched for how each was checked (a trace, a demonstration, a quoted line) and found none."
+        }
+      ],
+      "notable": "Terse, and no ceremony fields at all. It hands back corrected code, which the report-only contract forbids. It presents the 500 risk as a real defect ('High') without knowing the DB column type, though it does soften it with 'may' and 'potentially'."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict \u2014 NOT VERIFIED**\". It uses the three-way label vocabulary, not a binary or a prose conclusion."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence \u2014 INDEPENDENT.** The artifact arrived finished and was not produced or revised by this verifier.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for two or more defects ordered or labeled by severity. Only one defect is labeled (\"\u274c **HIGH \u2014 prohibited customer identifier is exposed**\"). The Number() parsing quirk is explicitly not called a defect (\"not independently a demonstrated breach\") and has no severity. One severity-tagged item plus a 'Most damaging defect' callout is not a ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler, replacement SELECT, replacement validation or explicit DTO construction. Found none. The code blocks only quote the existing `i.customer_id` and `res.json(invoice)` and show the actual response shape."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Tenant filtering:** traced `req.user.org_id` \u2192 query parameter `$2` \u2192 `WHERE i.org_id = $2`.\" and \"**SQL injection resistance:** traced validated `id` \u2192 bound `$1` parameter.\" Every clean axis has a trace."
+        }
+      ],
+      "notable": "Most complete on the ceremony fields. It also lists Confirm-these items (requireSession trust, logger redaction) and a Claimed vs. Actual section. It downgrades the ID-grammar issue honestly instead of overclaiming a 500. Its 'Independence: INDEPENDENT' rests on the fact that the artifact 'arrived finished', which is asserted rather than shown."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes**\". It uses the three-way label vocabulary."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence: INDEPENDENT** \u2014 the artifact arrived finished and was not produced or revised by this verifier.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Numbered \"Defects\" list: \"1. \u274c **HIGH \u2014 response leaks forbidden `customer_id`...**\" then \"2. \u26a0\ufe0f **MEDIUM \u2014 oversized numeric IDs can reach the database...**\"."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code, a replacement SELECT, a new validation regex or a DTO builder. Found none. The code blocks only quote the artifact's own lines (`i.customer_id`, `return res.json(invoice);`, `Number.isInteger(id) && id > 0`, `AND i.org_id = $2`)."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Tenant isolation:** `i.org_id = $2` \u2192 `$2` is `req.user.org_id`.\" and \"**Other listed sensitive fields:** `email`, `tax_id`, `payment_token`, `portal_password_hash`, and `org_id` are absent from the selected columns.\" Each clean axis says how it was checked."
+        }
+      ],
+      "notable": "The severity and receipts are well calibrated. It says outright that the 500 risk 'cannot be conclusively demonstrated' without the DB type, and it gives a reproduction step for each defect. It also has Claimed vs. Actual and Confirm-these sections."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Opens with the bare label \"NOT VERIFIED\", one of the three-way outcomes."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or a statement that the work is blocked. Found none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or a statement about the verifier's independence. Found none."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"- **High \u2014 Response leaks `customer_id`.**\" is followed by \"- **Medium \u2014 Some malformed/out-of-range IDs can produce 500.**\". The defects are labeled and ordered by severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "\"Required fixes:\" is followed by a regex and isSafeInteger block and a replacement `return res.json({ id: invoice.id, number: invoice.number, ... })` DTO block."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "\"The organization boundary and indistinguishable 404 behavior appear correctly implemented.\" This is a bare assertion with no account of how either was checked."
+        }
+      ],
+      "notable": "It is nearly the same shape as W. It hands back a corrected implementation, and its clean claims carry no receipts. It says the 500 'may' occur, which is appropriately hedged, and it correctly notes that exponential forms like 1e100 pass Number.isInteger."
+    }
+  ],
+  "methodology_notes": "Item 1: all four output only the label 'NOT VERIFIED' and never show the other two states. I credited the label as tri-state vocabulary for every output. A stricter reading, requiring the scheme to be visible, would fail all four equally. Item 4 for X is the closest call. It has one severity-tagged defect (HIGH) and a 'Most damaging defect' line. It explicitly declines to call the ID-parsing issue a defect, so I found no ranking among defects. Counting a single tagged defect as ranking would flip X to present. Item 5: X and Y quote the artifact's own lines, which I did not treat as rewriting; W and Z supply replacement code. Item 6: W's and Z's clean claims are bare assertions, and X's and Y's carry explicit traces. Item 3: X and Y assert independence but only from the fact that the artifact 'arrived finished'. I scored the presence of the line, not whether the claim is well grounded."
+}

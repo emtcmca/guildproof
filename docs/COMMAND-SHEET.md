@@ -1,25 +1,25 @@
-# promptsmith — command sheet
+# guildproof — command sheet
 
-A one-page reference. For the narrative walkthrough see [USING-PROMPTSMITH.md](USING-PROMPTSMITH.md).
+A one-page reference. For the narrative walkthrough see [USING-GUILDPROOF.md](USING-GUILDPROOF.md).
 
 ## Install
 
 ```
-/plugin marketplace add emtcmca/promptsmith
-/plugin install promptsmith
+/plugin marketplace add emtcmca/guildproof
+/plugin install guildproof
 ```
-Verify: type `/promptsmith` → the four commands autocomplete. Plugin commands are **namespaced**
-(`/promptsmith:sharpen`); bare names only exist with the manual/standalone install (see README).
+Verify: type `/guildproof` → the four commands autocomplete. Plugin commands are **namespaced**
+(`/guildproof:sharpen`); bare names only exist with the manual/standalone install (see README).
 
 ## Commands
 
 | Command | Use it for | Returns |
 |---|---|---|
-| `/promptsmith:sharpen <request>` | a rough one-off task | a complete, reviewed **prompt** |
-| `/promptsmith:forge-agent <description>` | a reusable assistant | a durable **system prompt** |
-| `/promptsmith:lens <artifact>` | critiquing something | **findings** (✅/⚠️/❌), worst-first |
-| `/promptsmith:lens <prompt> --grade` | scoring a prompt | a **scored verdict** + top fixes |
-| `/promptsmith:orchestrate <request>` | a multi-domain build | **one synthesized deliverable** |
+| `/guildproof:sharpen <request>` | a rough one-off task | a complete, reviewed **prompt** |
+| `/guildproof:forge-agent <description>` | a reusable assistant | a durable **system prompt** |
+| `/guildproof:lens <artifact>` | critiquing something | **findings** (✅/⚠️/❌), worst-first |
+| `/guildproof:lens <prompt> --grade` | scoring a prompt | a **scored verdict** + top fixes |
+| `/guildproof:orchestrate <request>` | a multi-domain build | **one synthesized deliverable** |
 
 **Pick fast:** one domain → `sharpen` (or one gallery agent). Reusable → `forge-agent`.
 Critique an artifact → `lens`. Score a prompt, or compare two versions → `lens --grade`. Several
@@ -47,7 +47,7 @@ domains, one coherent result → `orchestrate`.
 `skeptic` (default) — 12 built-in
 
 **Add your own:** a markdown file with `name:` + `applies-to:` frontmatter in
-`~/.claude/promptsmith-lenses/` (global) or `./.promptsmith-lenses/` (project). Auto-loaded.
+`~/.claude/guildproof-lenses/` (global) or `./.guildproof-lenses/` (project). Auto-loaded.
 
 ## Gallery (20 specialists — paste directly, or let `/orchestrate` dispatch them)
 
@@ -62,28 +62,28 @@ Files live in `agents/`. Forge a new one with `/forge-agent` and drop it in to g
 
 ```
 # Sharpen, forcing lenses and going deep
-/promptsmith:sharpen redesign the signup form --lens ux-designer,accessibility --deep
+/guildproof:sharpen redesign the signup form --lens ux-designer,accessibility --deep
 
 # Forge a specialist (seeds from the gallery if a match exists)
-/promptsmith:forge-agent a reviewer that critiques API endpoints for security holes
+/guildproof:forge-agent a reviewer that critiques API endpoints for security holes
 
 # Review a component, then get the fix — one step
-/promptsmith:lens (paste code) --lens accessibility,visual-design --fix
+/guildproof:lens (paste code) --lens accessibility,visual-design --fix
 
 # Score a prompt, revise it, then prove the revision actually improved it
-/promptsmith:lens (paste a system prompt) --grade
-/promptsmith:lens (paste the revision) --grade --against (paste the original)
+/guildproof:lens (paste a system prompt) --grade
+/guildproof:lens (paste the revision) --grade --against (paste the original)
 
 # Inspect an orchestration plan without spending fan-out
-/promptsmith:orchestrate build a password reset flow --dry
+/guildproof:orchestrate build a password reset flow --dry
 
 # Run the full coordinated build
-/promptsmith:orchestrate add public read-only shareable links to dashboards
+/guildproof:orchestrate add public read-only shareable links to dashboards
 ```
 
 ## Eval harness (test & refine)
 
-- Run: say **"run the promptsmith evals"** (all 37 cases) or **"run eval case 17"** (one).
+- Run: say **"run the guildproof evals"** (all 37 cases) or **"run eval case 17"** (one).
 - Output: a dated scorecard in `evals/runs/`.
 - Refine: change a lens/engine/agent → re-run the same cases → diff scorecards → keep only
   non-regressing improvements.

@@ -1,7 +1,7 @@
 ---
 id: "28"
 route: sharpen
-command: /promptsmith:sharpen
+command: /guildproof:sharpen
 expected-lenses: [security-reviewer, ux-designer]
 tests: prohibitions / negative-space coverage — the PROHIBITIONS block must be task-specific and distinct from OUT OF SCOPE
 ---
@@ -9,7 +9,7 @@ tests: prohibitions / negative-space coverage — the PROHIBITIONS block must be
 ## Input
 
 ```
-/promptsmith:sharpen add a "remember me" checkbox to the login form
+/guildproof:sharpen add a "remember me" checkbox to the login form
 ```
 
 ## Must

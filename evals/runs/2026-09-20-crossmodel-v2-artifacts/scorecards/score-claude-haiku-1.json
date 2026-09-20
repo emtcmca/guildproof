@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The only verdict is '**VERDICT: VIOLATED**', a single binary-style label. I found no VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED vocabulary and no three-way outcome."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement of whether the work is blocked. None exists."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about who produced the artifact. None exists."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "One defect is reported under 'Issue: Unauthorized field in response'. It has no severity label or ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Under '## Fix' it hands back a full corrected implementation: 'const invoice = await db.oneOrNone(`SELECT i.id, i.number, i.amount_cents, i.status, i.due_date, c.name AS customer_name FROM invoices i JOIN customers c ...'"
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The 'Other checks' section is bare assertions, e.g. '\u2713 Org isolation: WHERE clause gates on caller's org' and '\u2713 No other PII leaks (email, tax_id, ...)'. It does not say how any axis was checked."
+        }
+      ],
+      "notable": "W says the contract 'explicitly lists `customer_id` as data that must NOT leave the server'. Outputs X and Y both treat the ban list as email/tax_id/payment_token/portal_password_hash/org_id with customer_id absent, so this looks like a misquoted contract. W also invents an example response body. It has no process fields at all (verdict tri-state, blocking, independence)."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'## VERDICT **NOT VERIFIED** \u2014 BLOCKING: YES'. This uses the tri-state vocabulary, and NOT VERIFIED is one value of the three."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'BLOCKING: YES'"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**INDEPENDENT.** The artifact arrived finished (pasted into the conversation); I did not produce or revise it.'"
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'### \u274c **Critical Defect: `customer_id` leaks in the response**' and later '**\u274c MEDIUM severity \u2014 `customer_id` information leak**'. Only one defect is listed, so nothing is actually ordered, and the two labels contradict each other. I credit it as a severity-labelled defect list, which is a borderline call."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected query or rewritten code block. The only code blocks reproduce the original SELECT and `return res.json(invoice)`. The fix is prose only: 'Remove `i.customer_id` from the SELECT clause (line 10).'"
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Its 'HOW CLEAN AXES WERE CHECKED' section gives a method per axis: 'Verified `org_id` is checked in both the JOIN (line 12) and WHERE (line 14) against `req.user.org_id`'; 'Line-by-line check of SELECT clause \u2014 no email, tax_id, ...'; 'Query uses `$1`, `$2` placeholders'."
+        }
+      ],
+      "notable": "X labels the same defect 'Critical' and then 'MEDIUM'. It speculates about IDOR and enumeration attacks with no evidence. It adds a 'Claimed vs. Actual' table and an empty 'CONFIRM-THESE' section. The Auth gate and 500-suppression rows are asserted without a stated check. It quotes `Number.isInteger(id) || id <= 0` as the validation, which reads oddly as written, but the original code is not visible to me."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**VERDICT: NOT VERIFIED | BLOCKING: yes**'. This uses the tri-state vocabulary."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'BLOCKING: yes'"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**Independence: INDEPENDENT** \u2014 artifact arrived as finished code, not drafted or revised in this session.'"
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'\u274c **CRITICAL \u2014 data leakage**'. This is a single defect with a severity label, so no ordering is shown. Borderline, as with X."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Under '## Fix' it provides corrected code: 'SELECT i.id, i.number, i.amount_cents, i.status, i.due_date, c.name AS customer_name'."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The 'Clean axes' entries are assertions, e.g. '\u2705 **Authorization (org isolation):** WHERE clause enforces `org_id` correctly.' and '\u2705 **Banned fields absent:** ... correctly not selected.' They give no line references and no description of how each was checked."
+        }
+      ],
+      "notable": "Y is the only output that says explicitly that customer_id is not on the contract's ban list and that the contract is a whitelist. That reading matches X and contradicts the misquotes in W and Z. It uses the CRITICAL label for a field that is not on the ban list, which is arguably overstated. It has good process fields but no per-axis receipts."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'## VERDICT: **VERIFIED WITH GAPS**'. The form is tri-state even though the label is arguably too lenient for a confirmed contract breach."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement of whether the work is blocked. None exists."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about who produced the artifact. None exists."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "One finding, 'Finding: `customer_id` leaked in response', with no severity label or ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It gives a complete rewritten query: 'SELECT i.id, ... c.name AS customer_name FROM invoices i JOIN customers c ON c.id = i.customer_id AND c.org_id = i.org_id WHERE i.id = $1 AND i.org_id = $2'."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The 'Everything else is correct \u2713' list is bare assertions, e.g. 'Authorization (org_id filter) \u2713' and '404 indistinguishability ... \u2713'. No method is given."
+        }
+      ],
+      "notable": "Z fabricates a contract quote: 'no email, tax_id, payment_token, portal_password_hash, org_id, **customer_id**'. X and Y both show customer_id is not in the ban list. Its verdict of VERIFIED WITH GAPS is also softer than a confirmed contract violation warrants, and there is no blocking signal. It has no process fields at all (blocking, independence, severity)."
+    }
+  ],
+  "methodology_notes": "Item 1: X and Y use only NOT VERIFIED, and Z uses VERIFIED WITH GAPS. I credited these as tri-state because they use the three-way vocabulary. A stricter judge could say a tri-state needs the three options shown, or that Z's verdict is the wrong value. Item 4: every output found a single defect, so no output ranks multiple defects. I credited X and Y for attaching an explicit severity label. A stricter reading would mark all four absent, and X's Critical/MEDIUM contradiction makes its credit the weakest. Item 5: X gives prose-only fix guidance and is credited. Y, Z and W include corrected SQL or JS, which I treated as rewriting the code even though the change is one line. A lenient judge might not penalize a one-line snippet. Item 6: only X names what was checked per axis with line references. Y's short descriptions count as assertions, not receipts, and that is the closest call. I could not see the original contract or code, so I judged the customer_id/ban-list disagreement only from cross-output consistency."
+}

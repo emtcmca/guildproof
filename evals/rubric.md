@@ -1,4 +1,4 @@
-# promptsmith eval rubric
+# guildproof eval rubric
 
 Two passes per case: **structural** (deterministic) then **quality** (host-judged). A case
 also carries its own case-specific must / must-not (in its `cases/` file) — check those too.
@@ -72,7 +72,7 @@ can't FAIL isn't judging.
 ### LENS
 - Per-lens block, findings prefixed ✅/⚠️/❌.
 - Findings ordered worst-first.
-- Ends with a top-3-fixes list and the `/promptsmith:sharpen` offer.
+- Ends with a top-3-fixes list and the `/guildproof:sharpen` offer.
 - Names which lenses ran (and flags any requested-but-missing).
 
 ### GRADE
@@ -122,7 +122,7 @@ can't FAIL isn't judging.
 
 ### GRADE
 - **Coverage not conformance** *(hard gate)* — a prompt that resolves a concern in prose scores
-  ✅; it is never docked for lacking promptsmith's headings or format.
+  ✅; it is never docked for lacking guildproof's headings or format.
 - **Marks are earned** — ✅ traces to a quote, not to the prompt merely reading polished.
   Uncertainty defaults to ⚠️.
 - **Leverage** — the top fixes are the highest-impact ones, not the easiest to spot, and the

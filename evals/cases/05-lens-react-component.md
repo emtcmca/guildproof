@@ -1,7 +1,7 @@
 ---
 id: "05"
 route: lens
-command: /promptsmith:lens
+command: /guildproof:lens
 expected-lenses: [accessibility, visual-design, ux-designer]
 tests: findings map to lens checklist, specificity (quotes the artifact), worst-first
 ---
@@ -9,7 +9,7 @@ tests: findings map to lens checklist, specificity (quotes the artifact), worst-
 ## Input
 
 ```
-/promptsmith:lens --lens accessibility,visual-design
+/guildproof:lens --lens accessibility,visual-design
 ```
 
 Artifact under review (pasted with the command):
@@ -34,7 +34,7 @@ function SaveBar({ saving }) {
   no disabled/feedback state while `saving`.
 - Findings prefixed ✅/⚠️/❌, worst-first, and **quote the actual values/lines**.
 - Map each finding to the named lens's checklist (accessibility, visual-design).
-- End with top-3 fixes by impact + the `/promptsmith:sharpen` offer.
+- End with top-3 fixes by impact + the `/guildproof:sharpen` offer.
 
 ## Must not
 

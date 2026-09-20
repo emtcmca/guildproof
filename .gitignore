@@ -12,3 +12,11 @@ Thumbs.db
 # Logs / temp
 *.log
 node_modules/
+docs/assets/__pycache__/
+
+# Local session-state block (vault-maintained, not for the public repo)
+CLAUDE.md
+
+# Python bytecode from running the eval harness
+__pycache__/
+*.pyc

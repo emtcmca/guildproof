@@ -1,0 +1,177 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED**  \\n**BLOCKING: yes**\" (uses a label from the three-way scale, not pass/fail or prose)"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 the artifact was supplied finished in the request; I did not produce or revise it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 `customer_id` leaks in the InvoiceDTO\" followed by \"\u26a0\ufe0f **MEDIUM \u2014 malformed numeric forms are accepted\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a code block or corrected handler/SELECT. None found. Fixes are one-line prose (\"remove it from the selected columns or construct an explicit response DTO\")."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Organization authorization:** SQL predicate `AND i.org_id = $2` with parameter `req.user.org_id`.\" and \"**Same 404 behavior:** `oneOrNone` returns no row, followed by `res.status(404)`.\""
+        }
+      ],
+      "notable": "Strongest of the set on structure. Weak spot: the malformed-ID \u2705 in Observable evidence has no entry in the receipts section, and that axis is also downgraded to a MEDIUM defect. The evidence-section \u2705 for invalid values is somewhat inconsistent with the MEDIUM finding, but it is scoped to \"basic\" values. The '1e2' and ' 42 ' claims are correct.",
+      "label_note": ""
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED or any tri-state label. Found only the prose line \"Does not fully satisfy the contract.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any blocked/not-blocked statement. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about who produced the artifact. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels or a ranked defect list. The customer_id leak and the optional stricter-ID note are listed without severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected code block or rewritten handler. None found. Only prose: \"Fix by removing `i.customer_id` from the `SELECT` list.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for how the clean axes were checked. Only bare assertions such as \"Organization isolation and indistinguishable 404s are implemented correctly.\" with no evidence of how each was checked."
+        }
+      ],
+      "notable": "Very short prose review. Correctly notes Number() accepts 0x10 and scientific notation, but states \"should not produce a 500\" without testing or flagging uncertainty.",
+      "label_note": ""
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a three-way outcome. Found only the binary \"Contract verification: **Fail**\"."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity ranking. Only one violation is listed, with no severity label."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Supplies a corrected implementation: \"return res.json({\\n  id: invoice.id,\\n  number: invoice.number,\\n  amount_cents: invoice.amount_cents, ...\" and then \"After that change, the artifact conforms to the stated contract.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a per-axis how-checked receipt. Only the org-scoping bullet names a predicate (`i.org_id = $2`). The 404, join and malformed-ID axes are bare assertions (\"Malformed IDs are rejected before the database, so they should not produce a 500\")."
+        }
+      ],
+      "notable": "Hands back corrected code, which is the behavior item 5 rules out. Also asserts \"the artifact conforms\" after a hypothetical fix, and \"should not produce a 500\" without checking oversized or odd numeric inputs.",
+      "label_note": ""
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes**\" (uses a label from the three-way scale)"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 the artifact was supplied finished; I did not produce or revise it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 DTO/privacy breach\" followed by \"\u26a0\ufe0f **MEDIUM \u2014 malformed-ID handling is not fully established\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a code block or corrected handler. None found. Defects are described and a demonstration is given, with no replacement code."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Excluded sensitive fields:** the explicit `SELECT` list contains none of email, tax ID, payment token, portal password hash, or `org_id`.\" and \"**Uniform not-found behavior:** `!invoice` returns status 404 regardless of why no row matched.\""
+        }
+      ],
+      "notable": "Same structure as W, with a more careful MEDIUM finding: an oversized integer such as 999999999999999999999999 may hit a DB range error and return 500, and it is labelled as needing runtime confirmation. Names the single most damaging defect at the end. Its receipt for the sensitive-field axis is more specific than W's.",
+      "label_note": ""
+    }
+  ],
+  "methodology_notes": "Item 1 is the main judgement call. W and Z use \"NOT VERIFIED\" only as their verdict and never show the full three-value set. I credited them because the label comes from the tri-state scheme and is not binary or prose. A stricter reading could mark both absent. Item 6 for W: the malformed-ID \u2705 has no receipt entry, but the other clean axes do, so I called it present. Item 5 for X: it names the fix in a single prose sentence with no code, which I counted as reporting and not rewriting. Item 6 for Y: the one predicate cite on org scoping did not seem enough to cover \"each axis\"."
+}

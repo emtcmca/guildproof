@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED or any three-way label. The only conclusion is prose: 'the implementation **does not fully satisfy the contract**'."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement of whether the work is blocked. None appears."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about the verifier's independence from the artifact's producer. None appears."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Findings are numbered '1. Data Exposure Violation' and '2. Potential 500 Error' with no severity labels or stated ordering rationale."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler or rewritten SQL. Only the artifact's own SQL is quoted. The fixes are two bullets: 'Remove `i.customer_id`' and 'Cap integer bounds ... (e.g., `id > 2147483647`)'."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'The `WHERE` clause enforces both `i.id = $1` and `i.org_id = $2`. Invoices belonging to other organizations return `null` from `db.oneOrNone()` and consistently yield a `404` status'. This names the code checked and the mechanism, but only for one axis and without a dedicated receipts section."
+        }
+      ],
+      "notable": "Shortest and least structured output. Its two findings are correct, the customer_id leak and the large-integer 500. It has no verdict, blocking or independence framing, and no severity. It hedges the overflow finding on the column type ('If the database ... uses a standard 32-bit signed integer'), which is honest but leaves it unresolved."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The overall conclusion is prose ('does not fully satisfy the contract'). The table gives per-requirement PASS / FAIL / PARTIAL FAIL, but there is no overall three-way verdict of the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED kind."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or blocked/not-blocked statement. None appears."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about the verifier's relationship to the artifact's author. None appears."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Findings 1 and 2 are titled 'Contract Violation' and 'Potential Contract Violation'. There are no severity labels such as HIGH or MEDIUM and no ranking statement."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Under 'Recommended Remediation' it prints a full corrected handler: 'router.get('/api/invoices/:id', requireSession(), async (req, res) => { ... id > 2147483647 ... SELECT i.id, ... c.name AS customer_name ...'. That is a complete rewrite of the implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Table rows: 'Returns invoice belonging to caller's org | **PASS** | Filtered by `i.org_id = req.user.org_id`.' and 'Returns uniform 404 via `oneOrNone` logic.' These name the code mechanism, but tersely and without a dedicated receipts section."
+        }
+      ],
+      "notable": "The only output that hands back a full corrected implementation, which is the behavior checklist item 5 forbids. It also asserts the overflow with '999999999999999999999999999999' and 'exceeding 64-bit limits' as if certain, while the table softens it to 'PARTIAL FAIL'. It has no verdict framing, no BLOCKING and no Independence line."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'### Verdict\\n**NOT VERIFIED** | **BLOCKING: yes**'. NOT VERIFIED is one value of the three-way scale, but the text never shows the other two values."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**NOT VERIFIED** | **BLOCKING: yes**'"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**INDEPENDENT** \u2014 Artifact was provided as a complete input; verifier did not draft, modify, or consult on its implementation.'"
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'1. **HIGH** \u2014 **`customer_id` leaked in response payload (Breach of Contract Rule #2 & DTO Specification)**'. This is a severity-tagged defect list, but only one defect is listed, so nothing is actually ordered against another. Borderline call."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler or rewritten SQL and for fix or remediation sections. Only artifact lines are quoted (`i.customer_id,` and `return res.json(invoice);`) and no fix is offered."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'### How each clean axis was checked\\n- **404 isolation across org boundaries:** Checked lines 19\u201320 (`AND i.org_id = $2`) and lines 23\u201325 (`if (!invoice) return res.status(404)`)...' and '**Non-integer / negative ID rejection:** Checked lines 5\u20138 (`!Number.isInteger(id) || id <= 0` returns 400)...'"
+        }
+      ],
+      "notable": "Internally inconsistent. The Assessment calls the large-integer 500 a violation ('violating the requirement: \"Malformed ids never produce a 500.\"') but leaves it out of Defects and puts it in 'Confirm-these', so the second defect is unranked. The line numbers (12, 27, 28) cannot be checked against the artifact here and differ from Z's (17, 31, 32). The Independence line is asserted rather than demonstrated."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**Verdict:** NOT VERIFIED'. NOT VERIFIED is one value of the three-way scale, but the other two values are not shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**BLOCKING:** yes'"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'**Independence:** INDEPENDENT \u2014 The artifact arrived finished in the prompt.'"
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'1. **HIGH \u2014 Contract Breach / Data Leak (`customer_id` exposed)**' followed by '2. **MEDIUM \u2014 Contract Breach / HTTP 500 on Malformed ID**'. Two defects, severity-labeled and ordered."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler, rewritten SQL or a remediation section. The only code block is an illustrative response JSON that demonstrates the leak. No fix is provided."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'### How each clean axis was checked\\n- **Tenant Isolation & 404 Parity:** `WHERE i.id = $1 AND i.org_id = $2` with `[id, req.user.org_id]` (lines 20\u201322) forces non-existent or foreign-org invoices to yield `null`, triggering line 27 HTTP 404 response.' plus a second receipt for non-numeric ID validation (line 7)."
+        }
+      ],
+      "notable": "Most complete against the checklist. Both defects are demonstrated with a concrete request, and 'Confirm-these' flags the requireSession() and req.user assumption. The MEDIUM rating on the 500 is arguably low given that it directly breaches a stated contract clause. Its line numbers are unverifiable and conflict with Y's. The illustrative JSON response invents field values (INV-001, Acme Corp), but it is labeled as a demonstration."
+    }
+  ],
+  "methodology_notes": "Y's item 4 could reasonably go the other way. It labels its single defect HIGH but lists only one, so nothing is actually ranked. I credited the severity label. W and X on item 6: neither has a dedicated receipts section, but each cites the specific WHERE clause and mechanism for the org-isolation axis, so I gave both credit. A stricter judge could mark them absent on the grounds that a receipt needs a check method rather than a code description. Items 1 and 3 turn on whether 'NOT VERIFIED' alone counts as tri-state. The scale is not shown, but the label belongs to the named three-way set, so I credited it. For X item 5, the full rewritten handler is clear-cut. I could not see the original artifact, so I could not verify any line numbers."
+}

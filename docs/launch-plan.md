@@ -1,5 +1,9 @@
 # promptsmith — launch plan
 
+> **Renamed.** This project was `promptsmith` until 2026-09-18 and is now `guildproof`.
+> This document is a record written under the old name, so it keeps the old name and the
+> old `/promptsmith:*` commands. The current commands are `/guildproof:*`.
+
 Status: **Phase 0 complete 2026-07-22. Phases 1-4 not started as of 2026-09-02.** Sequenced.
 Nothing in Phase 1+ ships until Phase 0 is done — promoting a repo that looks mid-build burns
 the one first impression each channel gives you.

@@ -1,0 +1,177 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### Verdict **NOT VERIFIED** | **BLOCKING: yes**\" \u2014 it uses a label from the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED vocabulary, not a prose conclusion or a pass/fail."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** | **BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### Independence **INDEPENDENT** \u2014 The artifact and contract arrived finished in the prompt; no prior drafting or collaboration in this conversation.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"#### \u274c HIGH \u2014 Prohibited field `customer_id` returned in response payload\" followed by \"#### \u26a0\ufe0f MEDIUM \u2014 Large numeric ID causes 500 Internal Server Error\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected query, a patched handler, a DTO-mapping snippet, and a 'Recommended Fix' section. None found. The only code-like block is a JSON example of the leaked response body, used as a demonstration."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### How each clean axis was checked\" \u2014 e.g. \"Line 24 enforces `AND i.org_id = $2` parameterized with `req.user.org_id`. Line 28 checks `if (!invoice)` ... returns status `404`\"; \"Lines 10\u201325 use parameterized positional placeholders (`$1`, `$2`) passed via array `[id, req.user.org_id]`.\""
+        }
+      ],
+      "notable": "Complete on the structural items. It also has a Claimed-vs-actual table that marks the org-isolation 404 as a match. Its line numbers (customer_id on line 17) differ from Y's (line 16) and can't be checked from here. It names Postgres error 22003 for a 1e30 input, but the driver would probably send '1e+30' as text and get an invalid-syntax error, so the detail is likely wrong. The 500 conclusion still holds.",
+      "label_note": ""
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED label. Found only the prose sentence \"The artifact **fails** verification against the contract.\", which is a binary prose conclusion."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any statement that the work is blocked. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about whether verification was independent of the author. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity labels (HIGH / MEDIUM / critical / major). None found. The two sections, \"Violations\" and \"Potential Edge Case / Risk\", are categories only, with no severity scale."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Under \"### Recommended Fix\" it hands back a rewritten query: \"const invoice = await db.oneOrNone(`SELECT i.id, i.number, i.amount_cents, i.status, i.due_date, c.name AS customer_name FROM invoices i JOIN customers c ...\" with i.customer_id removed."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for any axis called clean (org isolation, SQL injection, 404 handling) and for how it was checked. None found. It reports only the defects."
+        }
+      ],
+      "notable": "A plain contract-violation review with a rewritten implementation, which is the opposite of the report-only posture. It lists 'Clause 1 & 3' without giving the clause text.",
+      "label_note": ""
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict**: NOT VERIFIED\" \u2014 a label from the tri-state vocabulary."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING**: yes\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence**: INDEPENDENT \u2014 Artifact arrived finished in the prompt; verifier had no role in drafting it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 Leak of forbidden field `customer_id` in response payload**\" then \"\u26a0\ufe0f **MEDIUM \u2014 Large integer values in `:id` can trigger HTTP 500**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected query, a patched handler, and a 'Recommended Fix' section. None found. The only code block is the artifact's own SELECT, quoted with a '// <-- selected here' marker."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### How each clean axis was checked\" \u2014 e.g. \"**Org tenant isolation & IDOR prevention (\u2705)**: Line 22 checks `AND i.org_id = $2` with parameter `req.user.org_id`.\"; \"Lines 27\u201329 check `if (!invoice) return res.status(404)...`\"; \"Lines 5\u20137 check `if (!Number.isInteger(id) || id <= 0)` ...\""
+        }
+      ],
+      "notable": "Structurally as complete as W. The 500 finding appears twice, once in 'Assessment' and once in 'Defects'. It claims no 'timing disparity' between cross-tenant and missing rows, which it never measured. It also mentions a 'logger' and `req.user.id` that don't appear in the quoted artifact, which may be invented.",
+      "label_note": ""
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a tri-state label. Found only the prose \"The artifact **violates the contract** in the following ways:\"."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a severity scale (HIGH / MEDIUM / LOW). Found only the ad hoc tags \"(Major Violation)\" and \"(Edge Case Violation)\" on the headings. That is a gesture at severity, not a ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected code block or rewritten handler. None found. The 'Recommended Fix' is two prose steps: 'Remove `i.customer_id` from the `SELECT` list' and 'Ensure the ID does not exceed the maximum integer size'."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for any axis called clean and for how it was checked. None found. It reports only defects."
+        }
+      ],
+      "notable": "A short prose violation list with no verifier scaffolding. The no-rewrite item is only credited because it gives prose recommendations, not code. It states the 500 as a definite 'Edge Case Violation' without flagging that the column type is unconfirmed.",
+      "label_note": ""
+    }
+  ],
+  "methodology_notes": "Item 1: W and Y each show only NOT VERIFIED, one value of the tri-state set. I credited that as the tri-state label. A stricter reader could say one label never shows a three-way outcome and mark them absent. Item 4: Z's '(Major Violation)' vs '(Edge Case Violation)' could be read as a two-level severity split, but there is no scale, so I called it absent. Item 5 for Z: 'Recommended Fix' is a fix suggestion, but it contains no corrected implementation, so I credited it. A strict reader could go the other way. I could not see the original artifact, so I could not check line numbers or the Postgres error-code claims."
+}

@@ -8,7 +8,7 @@ plants: an ai-tells --fix output that rewrote governing-document language it sho
 ## Input
 
 ```
-/promptsmith:lens --lens ai-tells --fix
+/guildproof:lens --lens ai-tells --fix
 ```
 
 Artifact under review (a violation notice quoting the recorded declaration):
@@ -66,5 +66,5 @@ inside the quotation, leave the statutory language verbatim, **say why it was sk
 `vital` — statutory term inside a quoted provision"), and confine any suggestion to the
 surrounding unquoted prose.
 
-A judge that returns PASS here proves the lens's carve-outs are unenforced and that promptsmith
+A judge that returns PASS here proves the lens's carve-outs are unenforced and that guildproof
 will damage exactly the high-liability documents where accuracy matters most.

@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### Verdict\\n**NOT VERIFIED** | **BLOCKING: yes**\" \u2014 NOT VERIFIED is a label from the three-way scheme (VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED), not a binary pass/fail or a prose conclusion."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 The artifact arrived finished in the prompt; it was not authored or revised in this conversation.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 Forbidden field `customer_id` leaked in response**\" \u2014 the defect carries an explicit severity tag. There is only one defect, so nothing is ordered against another."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected SQL, a diff, or a rewritten handler and found none. The only code shown is the offending SELECT and `res.json(invoice)`, quoted as demonstration of the defect."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### How each clean axis was checked\\n- **Org scoping:** Line 24 binds `req.user.org_id` to `$2` in `WHERE i.id = $1 AND i.org_id = $2`.\" Also cites lines 28 and 5\u20138 for the 404 and malformed-ID axes."
+        }
+      ],
+      "notable": "Full verifier-style output. It carries the tri-state label, BLOCKING, Independence, a claimed-vs-actual table, Confirm-these, and per-axis receipts. It reports the defect without rewriting code. Its severity ranking is trivial because it has only one defect."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The verdict is \"Contract Verification Result: **FAIL**\". That is binary pass/fail. I searched for VERIFIED, VERIFIED WITH GAPS, and NOT VERIFIED and found none."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement of whether the work is blocked. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about whether the verifier was independent of the author. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "There is one finding, headed \"Information Leakage\", with no severity label and no ordering."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "\"### Recommended Fix ... ```diff ... -              i.customer_id,\" with the full corrected query context. It hands back a patched implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The \"Other Requirements (Passed)\" section gives \u2705 marks with a one-line mechanism (\"Scoped by `i.org_id = $2`\"). The malformed-ID axis has only an assertion. No per-axis account of how each was checked, and no line references."
+        }
+      ],
+      "notable": "Correct diagnosis of the customer_id leak. It uses a plain FAIL and offers a diff fix, and it has none of the verifier structure (BLOCKING, Independence)."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### Verdict\\n**NOT VERIFIED** \u2014 **BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 The artifact and contract arrived finished in the prompt; no prior drafting or refinement occurred in this session.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"1. \u274c **HIGH \u2014 Leak of forbidden field `customer_id` / DTO schema violation**\" followed by \"2. \u26a0\ufe0f **LOW \u2014 Inner JOIN hides invoices...**\" \u2014 two defects, ordered high to low with labels."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected query, diff, or rewritten code and found none. It only describes the defect and gives an example response payload."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"### How each clean axis was checked\\n- \u2705 **IDOR / Multi-tenancy isolation:** Line 23 enforces `AND i.org_id = $2` with parameterized `$2 = req.user.org_id`; cross-tenant lookups evaluate to null.\" Also gives line-cited receipts for the 404, malformed-ID, and other-forbidden-fields axes."
+        }
+      ],
+      "notable": "Same verifier structure as W, plus a second, LOW defect. That defect (INNER JOIN hiding orphaned-customer invoices) is speculative and hedged as \"minor depending on DB foreign key constraints\"; it is not a contract breach. The demonstration payload (id 123, Acme Corp, and so on) is invented, presented as an illustration. Line numbers (31, 27) differ from W's (32, 28), and the source is not visible here to confirm either."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The verdict is \"Contract Verification Result: **FAILED**\". That is binary. No VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED scheme appears."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "There is a single finding, \"Contract Violation: Leaking `customer_id`\", with no severity label and no ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "\"### Recommended Fix ... Remove `i.customer_id` from the `SELECT` list:\" followed by a complete corrected SQL query. It hands back a rewritten implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The \"Passed Checks\" section gives short assertions (\"Queries filter by `i.org_id = req.user.org_id`\", \"Non-integer or non-positive IDs are intercepted\"). No per-axis account of how each was checked, and no line references."
+        }
+      ],
+      "notable": "Nearly identical to X in structure and content. It is correct on the leak, uses a binary FAILED, gives a full corrected query, and has no verifier metadata."
+    }
+  ],
+  "methodology_notes": "Item 1 for W and Y: both write NOT VERIFIED next to BLOCKING, and no output prints all three states. I credited it because NOT VERIFIED is a label from the tri-state scheme rather than a binary word, and X and Z use FAIL/FAILED. A stricter reading would want the scheme itself visible. Item 4 for W: it has one defect tagged HIGH, so I credited an explicit severity tag. A strict reading would want at least two defects ordered against each other, and W could reasonably be marked absent. Item 6 for X and Z: their 'passed' sections name the mechanism (`i.org_id = $2`) but give no per-axis check with line references, so I marked them absent. A lenient judge could credit the org-scoping line as a receipt. Item 5 for X and Z: I treated a diff or corrected SQL as rewriting the code, even though the change is a one-line deletion."
+}

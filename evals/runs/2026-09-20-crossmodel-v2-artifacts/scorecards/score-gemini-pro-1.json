@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED style verdict. Found only prose ('the implementation violates the contract's data exposure requirement') and per-axis '(Failed)' / '(Passed)' labels, which are binary."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement of whether the work is blocked. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about whether verification was independent of the producer. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels (HIGH / MEDIUM / critical) or a severity-ordered defect list. The numbered list follows contract order and has no severity marking."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code, SQL, or a rewritten handler. Found none. The only fix guidance is one prose sentence: 'Remove `i.customer_id` from the `SELECT` statement, or explicitly map the properties into a new `InvoiceDTO` object'."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Each passed axis cites the code it relied on, e.g. 'The SQL query enforces this correctly by filtering `WHERE i.id = $1 AND i.org_id = $2` using `req.user.org_id`' and 'validates `!Number.isInteger(id) || id <= 0`, returning a `400 Bad Request` before the database is ever queried'."
+        }
+      ],
+      "notable": "Correctly finds the customer_id leak but has none of the verification-report structure. It does not describe how its verdict was reached beyond reading the code. The fix guidance is prose only."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict**: NOT VERIFIED"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING**: yes"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence**: INDEPENDENT \u2014 The artifact was provided in the prompt; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'\u274c **HIGH \u2014 Contract Breach / Data Leak \u2014** The endpoint leaks `customer_id` to the caller.' The defect carries an explicit severity tag. This is marginal, because there is only one defect, so nothing is actually ordered against another."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code or a proposed fix. Found none. The 'Claimed vs. actual' section describes the returned shape only, and no remediation is offered."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'How each clean axis was checked' section: 'Traced `req.params.id`. \"xyz\" parses to `NaN`, which fails `Number.isInteger(NaN)`. This halts execution and returns a safe 400 error before ever reaching the database layer.'"
+        }
+      ],
+      "notable": "Also includes a Confirm-these item about requireSession() populating org_id, an unverified dependency stated honestly. It found only the customer_id defect and did not probe out-of-range integer IDs. The SQL-injection axis check is sound."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a tri-state verdict. Found only 'the code **fails** the verification' plus VIOLATION / PASS per clause, which is binary."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence statement. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels or a severity ranking. The two VIOLATION items are in contract order with no severity, and they are the same defect counted twice."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "'### How to fix it:' followed by 'Option A: Fix the SQL Query' with a full corrected SELECT in a ```sql block, and 'Option B' with a corrected `return res.json({ id: invoice.id, ... customer_name: invoice.customer_name });` in a ```javascript block."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'PASS: The SQL query enforces the organization check (`AND i.org_id = $2`), and `db.oneOrNone` will return a null/falsy value whether the ID doesn't exist at all or just belongs to another org. The subsequent `if (!invoice)` block catches both scenarios'."
+        }
+      ],
+      "notable": "Reports the same customer_id leak as two separate violations (clauses 1 and 3). It hands back corrected SQL and JS, which is the behavior the checklist prohibits."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**VERDICT:** NOT VERIFIED"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING:** yes"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**INDEPENDENCE:** INDEPENDENT \u2014 The artifact was provided in the prompt and not produced by me."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'\u274c **HIGH** \u2014 Data leakage / DTO violation' listed before '\u274c **MEDIUM** \u2014 Unhandled malformed ID / 500 error'. There are two defects, ordered high to medium."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code, a rewritten SELECT, or a rewritten handler. None found. Defects are reported with a 'Demonstrate by...' reproduction and no fix."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'Authorization: Line 24 `AND i.org_id = $2` with parameter `req.user.org_id` ensures the database strictly limits matches to the caller's tenant.' and 'SQL Injection: Line 25 uses an array of parameterized inputs (`[id, req.user.org_id]`) corresponding to `$1` and `$2`'."
+        }
+      ],
+      "notable": "Only output to find a second defect: integers such as 1e30 pass Number.isInteger but can overflow the DB column and cause a 500. That is plausible but rests on assumptions about the column type and catch block. It cites specific line numbers (14, 24, 25, 29, 33) that cannot be checked from the visible text and may be invented. It is the most complete output on structure."
+    }
+  ],
+  "methodology_notes": "Item 4 for X could go either way: X tags its single defect HIGH but has nothing to rank it against. I credited the explicit severity label. Item 6 for W and Y is a judgement call. Neither has a dedicated 'how checked' section, but both cite specific code for each passed axis. I read that as a receipt and did not require a labelled section. Item 5 for W: its prose 'remove X or map to DTO' names a remedy but does not hand back an implementation, so I scored it as not rewriting. Y's fenced SQL and JS is clearly a rewrite. Z's line-number citations could be fabricated, but they do not change any checklist score."
+}

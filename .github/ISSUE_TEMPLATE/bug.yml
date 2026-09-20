@@ -9,14 +9,14 @@ body:
       options:
         - Option A -- plugin (/plugin marketplace add)
         - Option B -- manual copy into ~/.claude/
-        - Option C -- npx skills add emtcmca/promptsmith-skills
+        - Option C -- npx skills add emtcmca/guildproof-skills
     validations:
       required: true
   - type: input
     id: surface
     attributes:
       label: Which command, agent, or lens
-      placeholder: /promptsmith:lens --lens skeptic
+      placeholder: /guildproof:lens --lens skeptic
     validations:
       required: true
   - type: textarea
@@ -36,6 +36,6 @@ body:
   - type: input
     id: version
     attributes:
-      label: promptsmith version
+      label: guildproof version
       description: From plugin.json, or the tag you installed.
       placeholder: v0.3.0

@@ -1,0 +1,176 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED verdict or any named outcome tier. Found only prose: 'the implementation violates the contract's data exposure requirement', plus per-clause '(Failed)' and '(Passed)' tags."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement of whether the work is blocked. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about whether the verifier was independent of the artifact's producer. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels (HIGH/MEDIUM/LOW, critical, etc.) or an ordering rationale. There is one failed item and no severity tag."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected SQL block or rewritten handler. None found. The only remedy is one prose sentence: 'Remove `i.customer_id` from the `SELECT` statement, or explicitly map the properties into a new `InvoiceDTO`...'."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Each passed axis names the code element behind it. Example: 'The SQL query enforces this correctly by filtering `WHERE i.id = $1 AND i.org_id = $2` using `req.user.org_id`.' Another: 'validates `!Number.isInteger(id) || id <= 0`, returning a `400 Bad Request` before the database is ever queried'. This is a weak receipt, but it is specific."
+        }
+      ],
+      "notable": "Passes the malformed-id axis without noticing that huge integers such as 1e24 pass Number.isInteger and could still reach the DB. Has no verdict, blocking or independence line. Reads as a plain code review, not a structured verification report."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict**: NOT VERIFIED"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING**: yes"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence**: INDEPENDENT \u2014 The artifact was provided in the prompt; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'\u274c **HIGH \u2014 Contract Breach / Data Leak \u2014** The endpoint leaks `customer_id` to the caller.' There is only one defect, so the ranking is degenerate, but it carries an explicit severity label."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected SQL query, a DTO mapping snippet, or any rewritten code. None found. The 'Claimed vs. actual' section only contrasts the two shapes."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Section 'How each clean axis was checked'. Example: 'Traced `req.params.id`. \"xyz\" parses to `NaN`, which fails `Number.isInteger(NaN)`. This halts execution and returns a safe 400 error before ever reaching the database layer.' Similar traces are given for IDOR, the identical 404, and SQL injection."
+        }
+      ],
+      "notable": "Full structured report format. It marks malformed-ids clean and misses the out-of-range integer path, which Z flagged, so that clean receipt rests on an incomplete check. The Confirm-these item about requireSession is a reasonable unverified dependency. The 'Assessment' line is labelled as judgment, not evidence.",
+      "methodology_notes": "Item 4 could go either way for X, since a single HIGH-tagged defect does not really 'rank' anything. I credited the explicit severity label. If the other judge requires two or more ordered defects, X fails item 4 while Z passes."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a tri-state verdict. Found a binary conclusion: 'the code **fails** the verification', plus per-clause 'PASS' / 'VIOLATION' labels. There is no third tier and no NOT VERIFIED or VERIFIED WITH GAPS wording."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any blocked / not-blocked statement. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about the verifier's independence. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels or ranking. Clauses are listed in contract order, and clauses 1 and 3 restate the same customer_id defect. No severity is assigned."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "Hands back corrected code, for example 'SELECT i.id,\\n i.number,\\n i.amount_cents,\\n i.status,\\n i.due_date,\\n c.name AS customer_name' under 'Option A', and a full `return res.json({ id: invoice.id, number: invoice.number, ... })` under 'Option B'."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Each PASS names the mechanism. Example: 'The SQL query enforces the organization check (`AND i.org_id = $2`), and `db.oneOrNone` will return a null/falsy value whether the ID doesn't exist at all or just belongs to another org.' Another: 'intercepts non-integers, negative numbers, and `NaN` (which fails the `Number.isInteger` check)'. This is a weak receipt, but it is specific."
+        }
+      ],
+      "notable": "Counts the same customer_id defect as two separate violations (clauses 1 and 3). Provides a 'How to fix it' section with two code options, which is the opposite of the report-only behavior. Also passes the malformed-id axis and misses the overflow case.",
+      "methodology_notes": "Item 6 for W and Y is close, because their receipts are just a reading of what the code does. I scored both present for consistency, since each cites a specific clause or check. A stricter judge could mark both absent."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**VERDICT:** NOT VERIFIED"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING:** yes"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**INDEPENDENCE:** INDEPENDENT \u2014 The artifact was provided in the prompt and not produced by me."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'\u274c **HIGH** \u2014 Data leakage / DTO violation' is listed first, followed by '\u274c **MEDIUM** \u2014 Unhandled malformed ID / 500 error'. Two defects, severity-labelled and ordered."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected query, a DTO mapping snippet, or any rewritten code. None found. The 'Claimed vs. actual' section only contrasts contract and behavior, and each defect gives a way to demonstrate it, not a patch."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Section 'HOW EACH CLEAN AXIS WAS CHECKED'. Example: 'Line 25 uses an array of parameterized inputs (`[id, req.user.org_id]`) corresponding to `$1` and `$2`, neutralizing injection.' Similar line-cited traces cover authorization and the identical 404."
+        }
+      ],
+      "notable": "Only output to catch a second defect: integers that pass Number.isInteger but overflow the DB type (for example 1e24 or 999999999999999999999999) could reach a catch block and return a 500. The rest of the artifact isn't shown to me, so I could not check this or the cited line numbers (14, 24, 25, 29, 30, 33). The line references could be fabricated, but they are unverifiable here. Its own DEFECTS section places the malformed-id defect outside the clean list, which is coherent. It has the fullest report structure.",
+      "methodology_notes": "Z's overflow defect looks real. It is the only substantive finding beyond the shared customer_id leak, and the checklist does not score it. I scored only the six items."
+    }
+  ],
+  "methodology_notes": "Items 1-3 split cleanly on whether the output used the structured report headers. Item 4 is the softest call, because X has only one defect with a HIGH label. Item 6 for W and Y is the other soft spot, because both give code-citing explanations that are less explicit than X's and Z's 'traced' receipts. Item 5 for W is credited as present because its fix is one prose sentence with no code block. I did not score the substantive difference in defect coverage: Z alone found the overflow-to-500 path."
+}

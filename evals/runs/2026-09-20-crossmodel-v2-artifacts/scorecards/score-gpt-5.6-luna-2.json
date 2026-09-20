@@ -1,0 +1,177 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED**\" under the heading \"## Verdict\". This is the bottom label of the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED scheme, not a binary pass/fail or a prose conclusion."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 the artifact was supplied finished in the request; I did not produce or revise it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 `customer_id` leaks in the InvoiceDTO**\" is listed above \"\u26a0\ufe0f **MEDIUM \u2014 malformed numeric forms are accepted**\", and the Assessment calls the leak \"the single damaging defect\"."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, a code block, or a rewritten SELECT or res.json. There is none. The fix is described in prose only: \"remove it from the selected columns or construct an explicit response DTO.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Section \"How each clean axis was checked\": \"**Organization authorization:** SQL predicate `AND i.org_id = $2` with parameter `req.user.org_id`.\" and \"**Same 404 behavior:** `oneOrNone` returns no row, followed by `res.status(404)`.\""
+        }
+      ],
+      "notable": "W is the most calibrated of the four. It marks the leak as the single blocking defect and demotes the numeric-format concern to MEDIUM. It also states that Number('1e2') and Number(' 42 ') pass validation, and it separates what is proven from what needs a runtime test. Minor gap: the \u2705 on \"basic invalid values rejected\" has no matching entry in the receipts list. That axis is also partly contradicted by its own MEDIUM defect.",
+      "_": ""
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED label. The only conclusion is the prose \"Does not fully satisfy the contract.\""
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any blocked/not-blocked statement. None exists."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about who produced the artifact. None exists."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity labels or an ordering of defects. There is one defect, unlabeled, plus an optional extra about stricter ID validation."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected implementation or code block. There is none. It only says \"Fix by removing `i.customer_id` from the `SELECT` list.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for how each clean axis was checked. The bullets \"Organization isolation and indistinguishable 404s are implemented correctly\" and \"Malformed numeric IDs are rejected before the database call\" are bare assertions with no mechanism cited."
+        }
+      ],
+      "notable": "The ID-validation remark (Number() accepts 0x10 and scientific notation) is concrete and correct. But the same output says malformed IDs \"should not produce a 500,\" so it is internally inconsistent about that axis.",
+      "_": ""
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The verdict is \"Contract verification: **Fail**\". This is a binary pass/fail. I searched for a three-way outcome label and found none."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line. None exists."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence statement. None exists."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity ranking. There is a single \"Violation\" bullet and no severity labels or ordering."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It hands back a corrected implementation: \"return res.json({ id: invoice.id, number: invoice.number, amount_cents: invoice.amount_cents, status: invoice.status, due_date: invoice.due_date, customer_name: invoice.customer_name, });\""
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for how each clean axis was checked. Only org scoping names a predicate (`i.org_id = $2`). The same-404, join-consistency and malformed-ID axes are bare assertions."
+        }
+      ],
+      "notable": "Y ends with \"After that change, the artifact conforms to the stated contract.\" That is overconfident. It asserts malformed IDs are safe without considering out-of-range or odd numeric inputs, which Z flags as a possible 500.",
+      "_": ""
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes**\" under \"## Verdict\". This is a tri-state label, not binary pass/fail."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED \u2014 BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT** \u2014 the artifact was supplied finished; I did not produce or revise it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 DTO/privacy breach**\" is listed before \"\u26a0\ufe0f **MEDIUM \u2014 malformed-ID handling is not fully established**\", and it closes with \"**Single most damaging defect:**\"."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, a code block, or a rewritten SELECT. There is none. It only reports the defect and how to demonstrate it."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Section \"How each clean axis was checked\": \"**Excluded sensitive fields:** the explicit `SELECT` list contains none of email, tax ID, payment token, portal password hash, or `org_id`.\" and \"**Uniform not-found behavior:** `!invoice` returns status 404 regardless of why no row matched.\""
+        }
+      ],
+      "notable": "Z has the strongest per-axis receipts, including a separate axis for excluded sensitive fields. It hedges the MEDIUM oversized-integer 500 as needing runtime confirmation rather than asserting it. It also states plainly that the try/catch does not cure malformed values that reach the query.",
+      "_": ""
+    }
+  ],
+  "methodology_notes": "The closest calls were items 1 and 6. Item 1: I counted \"NOT VERIFIED\" in W and Z as a tri-state verdict because it is a label from the three-way scheme, even though the other two labels are never printed. A stricter judge could mark both absent. Item 6: W's \u2705 on basic ID validation has no matching entry in its receipts list. I still credited W because its dedicated receipts section gives specific code-level evidence for the other clean axes. Y's org-scoping bullet does cite a predicate, but the rest of its clean axes are bare, so I marked Y absent on item 6. For item 5, I treated Y's JS block as a rewrite. X and Y also suggest removing i.customer_id in prose, which I did not count as a rewrite."
+}

@@ -1,18 +1,18 @@
-# promptsmith — security & threat model
+# guildproof — security & threat model
 
-promptsmith was first built to be *helpful*. A red-team pass (three independent audits) found that
+guildproof was first built to be *helpful*. A red-team pass (three independent audits) found that
 helpfulness was its vulnerability: it had no instruction/data boundary, no concept of refusing a
 request, and no independent verifier. This document records the threat model and the guardrails
 that close it.
 
 ## Threat model
 
-promptsmith processes **untrusted input** from three sources, and dispatches **subagents**:
+guildproof processes **untrusted input** from three sources, and dispatches **subagents**:
 
 - **Requests** (`$ARGUMENTS`) — may carry injected directives or harmful intent.
 - **Artifacts** (pasted into `/lens`, or files it reads) — may contain instructions addressed to
   the reviewer, or be sensitive files (secrets).
-- **Lens files** (`./.promptsmith-lenses/`) — project-local, plantable by anyone who can commit.
+- **Lens files** (`./.guildproof-lenses/`) — project-local, plantable by anyone who can commit.
 - **Slice outputs** (from dispatched subagents) — may be wrong, insecure, or attacker-steered.
 
 The adversary is not just a careless user (neutral, under-specified input) but a **leading** one —

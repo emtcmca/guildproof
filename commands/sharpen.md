@@ -1,6 +1,6 @@
 ---
 description: "Turn a rough request into a sharpened, gap-filled, professionally-reviewed prompt ready to paste into any agent."
-usage: "/promptsmith:sharpen <rough request> [--lens name,name] [--deep] — e.g. /promptsmith:sharpen update the dashboard to feel calmer and more authoritative --lens ux-designer,visual-design"
+usage: "/guildproof:sharpen <rough request> [--lens name,name] [--deep] — e.g. /guildproof:sharpen update the dashboard to feel calmer and more authoritative --lens ux-designer,visual-design"
 category: "dev"
 ---
 
@@ -13,10 +13,10 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/prompt-engineering/SKILL.md` in full. It defi
 pipeline. This command runs that pipeline on the **SHARPEN** path.
 
 > **Paths.** `${CLAUDE_PLUGIN_ROOT}` is this plugin's install directory, substituted
-> automatically — never a literal folder in the user's project. If promptsmith was installed
+> automatically — never a literal folder in the user's project. If guildproof was installed
 > standalone (README Option B, no plugin root), read from `~/.claude/` instead:
-> `~/.claude/skills/…`, `~/.claude/promptsmith-templates/`, `~/.claude/promptsmith-lenses/`,
-> `~/.claude/promptsmith-agents/`. Never resolve these against the user's working directory.
+> `~/.claude/skills/…`, `~/.claude/guildproof-templates/`, `~/.claude/guildproof-lenses/`,
+> `~/.claude/guildproof-agents/`. Never resolve these against the user's working directory.
 
 ## Step 2 — Parse arguments
 

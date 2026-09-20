@@ -1,14 +1,14 @@
 ---
 id: "35"
 route: grade
-command: /promptsmith:lens --grade
+command: /guildproof:lens --grade
 tests: the GRADE route — scored verdict, coverage over the nine concerns, leverage-ranked fixes
 ---
 
 ## Input
 
 ```
-/promptsmith:lens --grade
+/guildproof:lens --grade
 ```
 
 Prompt under grade:
@@ -31,7 +31,7 @@ don't know something, use your best guess.
 - Score all five quality dimensions with a quote each — including **Testable** ❌ and the
   "concise but thorough" contradiction under **Unambiguous**.
 - End with 2–3 leverage-ranked fixes, each naming the dimension it lifts, plus a **Skip** line.
-- Offer `/promptsmith:sharpen` as the next step.
+- Offer `/guildproof:sharpen` as the next step.
 
 ## Must not
 
@@ -39,4 +39,4 @@ don't know something, use your best guess.
   ✅/⚠️/❌ counts.
 - Return lens-style findings instead of a scored verdict — that's `/lens`, a different route.
 - Rewrite the prompt (grading is not fixing).
-- Dock the prompt for not using promptsmith's block headings — coverage, not conformance.
+- Dock the prompt for not using guildproof's block headings — coverage, not conformance.

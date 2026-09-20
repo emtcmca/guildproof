@@ -21,7 +21,7 @@ Render targets:
 Both draw from the four panels below.
 -->
 
-# promptsmith — the answer delta
+# guildproof — the answer delta
 
 *Same model. Same task. The only thing that changed is the prompt.*
 
@@ -61,7 +61,7 @@ dead on arrival. The prompt never said the call was safe to retry, so the model 
 ## PANEL 3 — the same task, sharpened first
 
 ```
-/promptsmith:sharpen write a function to retry a failed API call
+/guildproof:sharpen write a function to retry a failed API call
 ```
 
 → returns a prompt with the decisions the one-liner left unstated (abridged):
@@ -132,7 +132,7 @@ instead of guessing.
 ## The caption (for the image / post)
 
 > **You already know how to write the good version. The tool is that you don't have to remember
-> to, every time.** promptsmith made the model surface the idempotency decision, the retryable-only
+> to, every time.** guildproof made the model surface the idempotency decision, the retryable-only
 > rule, and the jitter — the invisible scaffolding a senior engineer adds and a one-liner skips.
 > It never invented the answer to "is this call idempotent?" — it flagged it. That refusal to
 > guess is the whole point.

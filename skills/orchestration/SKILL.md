@@ -1,9 +1,9 @@
 ---
 name: orchestration
-description: The promptsmith Layer 2 coordinator. Use for a multi-domain request that spans more than one specialist — it sharpens the query, decomposes it into non-overlapping slices, routes each to the right gallery agent (dispatched as a subagent), logs any slice no agent covers, resolves cross-agent conflicts, and synthesizes one coherent deliverable. Invoked by /orchestrate. Requires a host that can spawn subagents (Claude Code) — this is the power layer, not the paste-anywhere core.
+description: The guildproof Layer 2 coordinator. Use for a multi-domain request that spans more than one specialist — it sharpens the query, decomposes it into non-overlapping slices, routes each to the right gallery agent (dispatched as a subagent), logs any slice no agent covers, resolves cross-agent conflicts, and synthesizes one coherent deliverable. Invoked by /orchestrate. Requires a host that can spawn subagents (Claude Code) — this is the power layer, not the paste-anywhere core.
 ---
 
-# Orchestration — the promptsmith coordinator (Layer 2)
+# Orchestration — the guildproof coordinator (Layer 2)
 
 This is the coordinator. It takes a multi-domain request, perfects it, splits it across the
 gallery specialists, and assembles their work into one deliverable — owning the seams the
@@ -106,12 +106,12 @@ A concern that spans slices is **not** duplicated into each — it becomes a sea
 ### Step 3 — Route each slice to an agent
 
 Read the roster in `${CLAUDE_PLUGIN_ROOT}/docs/agent-gallery.md` (standalone install:
-`~/.claude/promptsmith-agents/`; the agent files themselves live in
+`~/.claude/guildproof-agents/`; the agent files themselves live in
 `${CLAUDE_PLUGIN_ROOT}/agents/`). Match each slice to the best-fit gallery agent by its
 role and baked-in lenses. Record the mapping (slice → agent).
 
 A slice with **no good agent match is a coverage gap** — do not force a poor fit and do not
-fake-cover it. Log it (Step 8 / `~/.claude/promptsmith-coverage-gaps.md`), surface it, and continue with the
+fake-cover it. Log it (Step 8 / `~/.claude/guildproof-coverage-gaps.md`), surface it, and continue with the
 slices you can cover.
 
 ### Step 4 — Identify seams and conflicts
@@ -220,7 +220,7 @@ Lead with the **synthesized deliverable**. Then, separated below it:
 - **Decomposition** — the slices and which agent produced each.
 - **Seams** — each shared decision and its owner.
 - **Conflicts resolved** — the contradictions and how they were settled.
-- **Coverage gaps** — slices no agent covered, logged to `~/.claude/promptsmith-coverage-gaps.md`, each with a
+- **Coverage gaps** — slices no agent covered, logged to `~/.claude/guildproof-coverage-gaps.md`, each with a
   one-line spec for the agent that would fill it (a `/forge-agent` candidate).
 - **Contributions** — one line per agent on what it added.
 
@@ -254,9 +254,9 @@ Lead with the **synthesized deliverable**. Then, separated below it:
 
 ## Coverage-gap log format
 
-The log lives at `~/.claude/promptsmith-coverage-gaps.md` — **never** inside
+The log lives at `~/.claude/guildproof-coverage-gaps.md` — **never** inside
 `${CLAUDE_PLUGIN_ROOT}`, which is a cache directory wiped on every plugin update, and never in
-the user's project without asking. Ask before creating it the first time; promptsmith writes no
+the user's project without asking. Ask before creating it the first time; guildproof writes no
 state the user didn't agree to. If the user declines, report the gap in-session and move on —
 the gap surfacing matters, the file does not.
 

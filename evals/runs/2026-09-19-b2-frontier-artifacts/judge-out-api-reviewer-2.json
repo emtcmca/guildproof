@@ -1,0 +1,103 @@
+{
+  "specialist": "api-reviewer",
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Require an `Idempotency-Key` header (client-generated UUID) on every refund request. Store key \u2192 request fingerprint \u2192 response for at least 24 hours."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Doing this before onboarding costs one doc change; doing it after costs a coordinated migration with every partner and a window where leaked keys are still valid."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched W for a concrete abuse/misuse scenario (terms: 'attacker', 'hostile', 'IDOR', 'enumerat', 'exploit', 'abuse', 'Partner A'/'Partner B' cross-tenant access, mass-assignment dollar examples) \u2014 none appear. W never discusses authorization or tenant-scoping on `{id}` at all, so it has no cross-tenant misuse example; its closest material is generic credential-leak risk ('Once a credential lands in a log you cannot recall it') and retry-storm risk, neither of which names who does what to exploit the surface."
+        }
+      ],
+      "notable": "No factual errors detected. W is the only one of the four that never mentions authorization/tenant-scoping on `{id}` at all \u2014 no IDOR discussion, no mass-assignment risk on PATCH, no cross-tenant abuse scenario \u2014 which is why it is the only output to miss checklist item 3."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Offset pagination, fixed 50/page, ordered newest-first. No cursor, no total, no filters, no cap on N."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "once that's in production at ten partners, you can never move to real status codes without a breaking change and a version bump."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Partner A changes the id in the path and refunds Partner B's order. Or PATCHes it."
+        }
+      ],
+      "notable": "No factual errors detected. Its 'Highest-severity issue' section synthesizes three separate findings (IDOR + non-idempotent refund + query-string key) into one composite 'arbitrary withdrawal API' framing, the strongest combined abuse-path narration of the four."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "issues a refund; **repeatable, cumulative**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "the \"omitted amount means full\" default becomes a breaking ambiguity you cannot fix without a new version."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "partner A refunds partner B's order by incrementing a number \u2014 and refund is the worst possible verb to leave unscoped, because it moves money and is trivially enumerable if ids are sequential."
+        }
+      ],
+      "notable": "No factual errors detected. Its abuse-path language ('A hostile partner needs no exploit at all, just a `for` loop') and its explicit mass-assignment example ('Setting `status: \"paid\"` or rewriting `total` from the client side is a direct financial exploit') are the most adversarially concrete of the four."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Five of the five items listed have defects that get expensive after partners integrate, because each one becomes a compatibility contract you have to break to fix."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Items 1 through 6 are all breaking changes. Shipping them before partners integrate costs some engineering time. Shipping them after costs a v2, a migration window, and dual-running both behaviors for as long as your slowest partner takes to move."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Nothing here says what happens when partner A requests partner B's order ID. Return `404`, not `403`: a `403` confirms the ID exists and turns your ID space into an enumerable inventory."
+        }
+      ],
+      "notable": "One factual error: Z cites 'RFC 7386' for JSON Merge Patch ('`application/merge-patch+json` (RFC 7386) is the well-specified choice'); the actual RFC for JSON Merge Patch is 7396, not 7386 \u2014 a confidently wrong citation. Also, unlike X and Y, Z frames the `{id}` abuse path as a missing-spec question rather than a narrated exploit, and it omits the mass-assignment dollar-amount example ('set total to 0.01') that X and Y both use."
+    }
+  ],
+  "methodology_notes": "All four outputs review what is evidently the same underlying (unseen) API spec, and all four converge heavily on the same five defects (200-on-error, non-idempotent refund, query-string key, full-replace PATCH, offset pagination), so item 1 and item 2 were easy calls \u2014 every output treats status codes, idempotency, pagination, and error shape explicitly as contract/versioning concerns rather than mere code bugs, and every output states at least one explicit 'this becomes a breaking change once partners integrate' consequence.\n\nItem 3 (concrete abuse path) was the discriminating item and the one place judgment calls could go the other way. W never raises authorization/tenant-scoping on `{id}` at all, so I scored it absent rather than crediting its generic credential-leak and retry-storm language as an 'abuse path' \u2014 those describe accidental failure modes (a client that retries, a key that leaks into logs), not a named actor deliberately misusing the surface. X, Y, and Z all use nearly identical 'Partner A requests/refunds Partner B's order' framing for the IDOR finding; I scored all three present since each supplies a genuine actor-and-mechanism scenario, but their near-identical phrasing (a template convergence rather than independent invention) is worth flagging \u2014 a different judge could reasonably read Z's version as weaker since it frames the gap as an unanswered question ('Nothing here says what happens when...') rather than X's and Y's more active 'Partner A refunds Partner B's order' narration. I judged the distinction not to cross the presence/absence line for Z, but it is the closest call in this set.\n\nThe RFC 7386 vs. 7396 mix-up in Z is a fact check outside the checklist itself; I recorded it under `notable` per the instructions rather than let it affect the three scored items, since the checklist does not test factual accuracy of citations.",
+  "_specialist_inferred_from_rubric_length": "api-reviewer"
+}

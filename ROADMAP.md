@@ -1,5 +1,9 @@
 # promptsmith roadmap
 
+> **Renamed.** This project was `promptsmith` until 2026-09-18 and is now `guildproof`.
+> This document is a record written under the old name, so it keeps the old name and the
+> old `/promptsmith:*` commands. The current commands are `/guildproof:*`.
+
 ## Architecture: two layers
 
 Decided 2026-06-24. promptsmith is built in two deliberately separate layers so the founding

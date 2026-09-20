@@ -1,0 +1,173 @@
+{
+  "outputs": [
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED. BLOCKING: yes\" is a labeled verdict from the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED vocabulary. The output never lists the other two options."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED. BLOCKING: yes\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence:** INDEPENDENT. The artifact arrived finished and I didn't write it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Defects, worst first\" followed by \"**1. HIGH, observable:\", \"**2. HIGH, observable:\", \"**3. HIGH against the contract...\", \"**4. LOW, assessment:\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler, a code block, a replacement SELECT, or a validation snippet. There are none. It reports defects and ends \"This goes back to the builder.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Cross-org isolation:** `WHERE i.id = $1 AND i.org_id = $2` with `$2 = req.user.org_id`. An invoice in another org returns no row, so `oneOrNone` gives null and the handler returns 404.\" The SQL injection and error leakage axes are traced the same way, with a stated \"Execution: none\" caveat."
+        }
+      ],
+      "notable": "It discloses that nothing was executed and separates directly visible findings from the schema-conditional one. Its confirm-these list flags that `requireSession()` and the column type are unseen. It correctly says \"1e+21\" would fail as invalid input, and it ranks the schema-conditional 500 as HIGH while stating the condition."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict: NOT VERIFIED.** The artifact breaks the contract in two places.\" It is a labeled verdict from the tri-state vocabulary, but the other two states are never shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any explicit statement that the work is blocked. The closest is \"Fix items 1 to 3, then re-check.\", which is not a blocking declaration."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for any statement about independence from the artifact's author, or about who produced the artifact. There is none."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity labels (HIGH/MED/LOW, critical, blocking tiers) or an explicit worst-first statement. Defects are numbered 1-3 with no severity. The won't-parse defect, which it calls the one where \"Nothing else in the artifact can pass until this is fixed\", is listed last."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected implementation. Fixes are prose (\"remove `i.customer_id` from the `SELECT`\", \"map the row to the six DTO fields\") plus a one-line regex suggestion. The only code block reproduces the offending line, and no rewritten handler appears. Borderline, because each defect carries a Fix bullet."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Same 404 for cross-org and missing:** a single query filters on `i.id` and `i.org_id`, and the not-found branch is the only 404.\" It also says \"the `SELECT` names only `id`, `number`, `amount_cents`, `status`, `due_date`, `customer_id` and `customer_name`\", which is the reasoning behind that axis."
+        }
+      ],
+      "notable": "It overclaims on the 500 defect. It states Postgres \"raises an error for each one\" and \"Whichever integer type the `id` column uses, some input gets through\", with no caveat about the driver or column type. It never says it did not execute anything. It lists the syntax error last even though it blocks everything else."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict: NOT VERIFIED.** Two contract failures, both read from the code.\" It is a labeled verdict from the tri-state vocabulary, but the other two states are never shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a BLOCKING line or any explicit statement that the work is blocked. There is none."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for an Independence line or any statement about independence from the author. There is none. The only process disclosure is that the attempt to run the file \"was declined\"."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for severity labels or a stated ranking. Defects are numbered 1-3, and finding 3 is hedged as unconfirmed. Any ordering is implicit and no severity is stated."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It hands back corrected code: \"return res.json({ id: invoice.id, number: invoice.number, amount_cents: invoice.amount_cents, status: invoice.status, due_date: invoice.due_date, customer_name: invoice.customer_name, });\" It also supplies the replacement regex `/^[1-9]\\d{0,9}$/`."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "I searched for how each clean axis was checked. The \"What holds\" bullets are mostly bare assertions: \"The 500 body is generic.\", \"Both the not-found and other-org cases return the identical 404, with the same status and body.\" Only \"Org scoping is enforced in SQL from the session's `org_id`\" gives a mechanism, and that is too thin to count as a receipt."
+        }
+      ],
+      "notable": "It is the most careful of the four about the schema-dependent 500. It contrasts bound parameters against pg-promise client-side formatting and says it \"couldn't confirm this from the artifact\". It discloses that nothing was run. It also includes the fix code the checklist penalizes."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED. BLOCKING: yes\" is a labeled verdict from the tri-state vocabulary. The other two states are never shown."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED. BLOCKING: yes\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence:** INDEPENDENT. The artifact arrived finished and I didn't write it.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Defects (worst first)\" followed by \"**1. HIGH, \u274c:\", \"**2. HIGH, \u274c:\", \"**3. MEDIUM, \u26a0\ufe0f:\", \"**4. LOW, \u26a0\ufe0f:\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "I searched for a corrected handler or replacement code. The only code block reproduces the offending lines from the artifact. It ends \"Send both back to the builder. I won't rewrite anything.\""
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Checked clean, with the line traced\" and \"**No SQL injection.** `id` is a JS number and `org_id` comes from the session. Both are bound values, and there is no string concatenation.\" It also traces the same-404 axis: \"a null row hits the single `!invoice` branch, which returns one 404 body.\""
+        }
+      ],
+      "notable": "It discloses the failed execution attempt and tells the reader to confirm the parse error with `node --check`. It includes a claimed-vs-actual table. It flags `requireSession()` as security-critical and unverified. It correctly declines to state the 500 for oversized ids, saying it depends on the column type and driver. It is the most complete of the four, though it labels item 3 \"MEDIUM\", which understates the contract's \"never a 500\" clause. Its \u274c/\u26a0\ufe0f marks and severity labels are consistent."
+    }
+  ],
+  "methodology_notes": "Item 1: all four output only \"NOT VERIFIED\" and none shows the three-way scale. I credited a labeled verdict from the tri-state vocabulary over a prose conclusion or PASS/FAIL. A stricter judge could mark all four absent. It cancels across outputs but not against the absolute scores. Item 4: X and Y number their defects but give no severity labels or worst-first statement, so I marked them absent. Item 5: X gives prose fixes and a regex but no corrected implementation. I credited it, but a strict reading of \"Fix:\" bullets could go the other way. Y's DTO code block clearly fails. Item 6: X and Y both assert some axes clean. I credited X because it states the mechanism (single query filter, the SELECT enumerated). I did not credit Y because its bullets are mostly bare assertions. That line is thin."
+}

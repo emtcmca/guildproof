@@ -7,7 +7,7 @@ expected-agents: [feature-spec, data-modeler, security-review, backend-builder, 
 tests: multi-agent decomposition, seam ownership, conflict resolution, single-voice synthesis, executed Step 6.5 verify
 ---
 
-> **Runnable as of the Layer 2 coordinator v0** (`/promptsmith:orchestrate`). Latest live run
+> **Runnable as of the Layer 2 coordinator v0** (`/guildproof:orchestrate`). Latest live run
 > (2026-06-25): **7 specialist slices dispatched as real subagents + 1 independent verifier**;
 > caught a three-way expiry conflict, assigned the unowned `expires_at`-enforcement seam, and the
 > verifier caught a HIGH `widgets` over-serialization defect — synthesis **halted and escalated**
