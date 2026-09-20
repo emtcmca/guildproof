@@ -333,6 +333,8 @@ function checkCounts(ctx, inv) {
           if (claimed == null) continue;
           // A bare "N <noun>" needs the text before it to mark the shipped set.
           if (needsMarker && !hasInventoryMarker(line, m.index)) continue;
+          // "Three of the four specialists" counts a subset, not the inventory.
+          if (isSubsetDenominator(line, m.index)) continue;
           hits.push({ target, claimed, text: m[0].trim() });
         }
       }
@@ -387,6 +389,23 @@ const ROW_NOUNS = /\b(things?|rows?|items?|entries|steps?|options?|ways?|columns
 const TABLE_ROW = /^\s*\|/;
 const TABLE_SEP = /^\s*\|(?:\s*:?-{2,}:?\s*\|)+\s*$/;
 
+/**
+ * Is this number the denominator of a subset statement rather than an inventory claim?
+ *
+ * "Four of the six items", "Three of the four specialists", "two of 12 lenses" — in every one of
+ * those the second number describes a SUBSET being drawn from, not a claim about how many exist
+ * in the repo. Reading it as an inventory count produces a confident, wrong finding: the first
+ * real run of this checker reported "four specialists" as contradicting the 20 files in agents/,
+ * when the sentence was about the four that carry a benchmark.
+ *
+ * A checker that cries wolf gets ignored, and an ignored checker is worse than no checker,
+ * because it also carries the false assurance that something is being watched.
+ */
+function isSubsetDenominator(line, numberIndex) {
+  const before = line.slice(0, numberIndex);
+  return /\b(?:of|out of)\s+(?:the\s+)?$/i.test(before);
+}
+
 function checkTableRows(ctx) {
   const files = walk(ctx.root).filter((rel) => rel.endsWith('.md') && !isHistory(rel));
 
@@ -417,8 +436,13 @@ function checkTableRows(ctx) {
           const claimed = parseCount(m[1]);
           if (claimed == null) continue;
           const noun = m[2];
-          const qualifies = introducesTable || ROW_NOUNS.test(noun);
+          // A row-noun anywhere in the look-back window is not enough. The count has to be on
+          // the line IMMEDIATELY before the table to be introducing it. Without this, "Four of
+          // the six items are satisfiable by..." two lines above a 2-row table that GROUPS those
+          // six into two categories reported a contradiction that was not there.
+          const qualifies = cand.isImmediate && (introducesTable || ROW_NOUNS.test(noun));
           if (!qualifies) continue;
+          if (isSubsetDenominator(cand.line, m.index)) continue;
           if (claimed === dataRows) continue;
           add(ctx, 'error', 'table-rows', rel, cand.no,
             `claimed ${claimed} — actual ${dataRows}. The line says "${m[0].trim()}" and the table ` +
