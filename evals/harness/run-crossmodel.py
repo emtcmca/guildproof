@@ -26,9 +26,14 @@ to the user message behind an explicit delimiter. That is a weaker form of the s
 instruction and it is recorded here rather than smoothed over.
 
 Usage:
-    python run-crossmodel.py --input inputs/v2-invoice-subtle.md --outdir out-crossmodel
+    python run-crossmodel.py --input evals/benchmarks/fixtures/v2-invoice-subtle.md
     python run-crossmodel.py --input ... --outdir ... --only gemini-pro   (one target)
     python run-crossmodel.py --probe                                     (isolation check only)
+
+The default output directory and the fingerprint format both live in `crossmodel_cells.py`,
+which `judge-crossmodel.py` imports as well. They used to be two separate literals that
+disagreed, so the published reproduce sequence generated cells here and scored different ones
+elsewhere. That module's docstring has the detail.
 """
 
 import argparse
@@ -39,6 +44,8 @@ import shutil
 import subprocess
 import sys
 import time
+
+import crossmodel_cells as cc
 
 
 def exe(name):
@@ -242,7 +249,10 @@ def run_gemini(model, system_path, user_path, out_path, env):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", help="file holding the user message, sent verbatim to both arms")
-    ap.add_argument("--outdir", default="out-crossmodel")
+    ap.add_argument("--outdir", default=cc.DEFAULT_CELLS_DIR,
+                    help="where cells are written. The default is shared with "
+                         "judge-crossmodel.py's --cells, so the published sequence scores the "
+                         "cells it just generated instead of the committed historical ones.")
     ap.add_argument("--only", help="run a single target key")
     ap.add_argument("--transport", choices=["claude", "codex", "gemini"],
                     help="run only targets on one transport. Useful when memory is tight: a "
@@ -254,7 +264,9 @@ def main():
     ap.add_argument("--dry-run", action="store_true",
                     help="print every call that would be made, without making any of them")
     ap.add_argument("--force", action="store_true",
-                    help="regenerate cells that already have an output file on disk")
+                    help="regenerate every requested cell even when its fingerprint still "
+                         "matches. Rarely needed: a cell whose inputs changed regenerates on "
+                         "its own.")
     a = ap.parse_args()
 
     env = gemini_env()
@@ -351,25 +363,56 @@ def main():
 
     user_path = pathlib.Path(a.input)
     user_text = user_path.read_text(encoding="utf-8")
-    outdir = HERE / a.outdir
-    outdir.mkdir(exist_ok=True)
+    # Hash the bytes on disk, not the decoded string: the fingerprint has to notice a change
+    # that only shows up in the encoding, and the prompt files are read as bytes for the same
+    # reason on the other side.
+    input_bytes = user_path.read_bytes()
+    system_bytes = VERIFIER_PROMPT.read_bytes()
+
+    outdir = cc.resolve_cells_dir(HERE, a.outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+    # Print the resolved directory and the matching judge command. The whole defect this
+    # replaces was invisible precisely because neither half ever said which directory it used.
+    print(f"\ncells dir: {outdir}")
+    if a.outdir == cc.DEFAULT_CELLS_DIR:
+        print("score these with: python judge-crossmodel.py --blind    (same default dir)")
+    else:
+        print(f"score these with: python judge-crossmodel.py --blind --cells {a.outdir}")
 
     manifest = []
+    unfingerprinted = []
     for t in targets:
         for arm in ("A", "B"):
             for rep in REPS:
                 name = f"{t['key']}-{arm}{rep}.md"
                 out_path = outdir / name
+                fp = cc.cell_fingerprint(
+                    input_bytes=input_bytes,
+                    system_bytes=system_bytes if arm == "B" else None,
+                    model=t["model"], transport=t["transport"], arm=arm, rep=rep,
+                )
 
-                # A cell already on disk is not re-run. A partial run that crashes
-                # mid-sweep (the first attempt died on a cp1252 decode after 6 of 16
-                # cells) should not cost the whole sweep's quota again. --force overrides.
-                if out_path.exists() and out_path.stat().st_size > 0 and not a.force:
-                    print(f"  skip {name}  (exists; --force to regenerate)")
+                # A cell already on disk is not re-run, because a sweep that dies mid-way (the
+                # first attempt died on a cp1252 decode after 6 of 16 cells) must not re-spend
+                # the whole quota. But reuse is now conditional on the inputs still hashing the
+                # same, so a reworded verifier.md or a different fixture cannot be silently
+                # scored as if it were the measured one.
+                action, why = cc.reuse_verdict(out_path, fp)
+                if a.force and action != "generate":
+                    action, why = "generate", "--force"
+                if action in ("reuse", "reuse-unknown"):
+                    flag = "" if action == "reuse" else "  UNFINGERPRINTED"
+                    print(f"  skip {name}  ({why}){flag}")
+                    if action == "reuse-unknown":
+                        unfingerprinted.append(name)
                     manifest.append({**t, "arm": arm, "rep": rep, "file": name,
                                      "ok": True, "reused": True,
+                                     "fingerprint": fp if action == "reuse" else None,
+                                     "fingerprint_status": action,
                                      "chars": len(out_path.read_text(encoding="utf-8"))})
                     continue
+                if action == "stale":
+                    print(f"  STALE {name}: {why} -> regenerating")
 
                 sysp = VERIFIER_PROMPT if arm == "B" else None
                 t0 = time.time()
@@ -385,15 +428,32 @@ def main():
                     manifest.append({**t, "arm": arm, "rep": rep, "file": name,
                                      "ok": False, "error": err})
                     continue
-                if txt and not out_path.exists():
+                # Write unconditionally. This used to read `if txt and not out_path.exists()`,
+                # which made --force worse than a no-op: it spent the call, got the new answer,
+                # then kept the old file. The guard existed because the gemini transport writes
+                # out_path itself; rewriting the same text it just returned is harmless.
+                if txt:
                     out_path.write_text(txt + "\n", encoding="utf-8")
+                    cc.write_sidecar(
+                        out_path, fp,
+                        model=t["model"], transport=t["transport"], arm=arm, rep=rep,
+                        input_file=str(user_path),
+                        system_prompt=str(VERIFIER_PROMPT) if arm == "B" else None,
+                    )
                 print(f"  ok   {name}  ({len(txt)} chars, {time.time()-t0:.0f}s)")
                 manifest.append({**t, "arm": arm, "rep": rep, "file": name,
-                                 "ok": True, "chars": len(txt)})
+                                 "ok": True, "fingerprint": fp,
+                                 "fingerprint_status": "fresh", "chars": len(txt)})
 
     (outdir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     ok = sum(1 for m in manifest if m["ok"])
     print(f"\n{ok} of {len(manifest)} cells produced output. Failures are unmeasured, not clean.")
+    if unfingerprinted:
+        print(f"{len(unfingerprinted)} reused cell(s) carry NO fingerprint, so nothing here can "
+              f"confirm which inputs produced them:")
+        print("  " + ", ".join(unfingerprinted))
+        print("  Every cell predating fingerprinting (added 2026-09-20) is here. "
+              "--force regenerates.")
 
 
 if __name__ == "__main__":

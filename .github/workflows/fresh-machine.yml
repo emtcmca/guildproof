@@ -77,6 +77,20 @@ jobs:
           done
           exit $fail
 
+      # Runs before --check so a harness defect is reported as a harness defect, rather than
+      # surfacing later as a confusing failure inside a command a new user was told to trust.
+      # It is also the only step in this job that can fail for a reason unrelated to the
+      # machine being fresh, which is worth learning first.
+      - name: 'the cross-model harness can still fail'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Asserts that the runner and the judge share one cells directory, that reuse is
+          # gated on a fingerprint over the real inputs, and that the judge exits non-zero on
+          # a directory it cannot score instead of quietly finding the committed run. Proven
+          # to fail under a mutation that re-splits the two defaults. Makes no model call.
+          python evals/harness/selftest-crossmodel.py
+
       - name: '--check reads the machine and names a fix for every target'
         shell: bash
         run: |

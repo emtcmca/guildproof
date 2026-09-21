@@ -181,6 +181,7 @@ Those 16 cells are in
 ## Reproducing this
 
 ```bash
+python evals/harness/selftest-crossmodel.py           # proves the harness itself, spends nothing
 python evals/harness/run-crossmodel.py --check        # what your machine can run, and how to fix the rest
 python evals/harness/run-crossmodel.py --dry-run --input evals/benchmarks/fixtures/v2-invoice-subtle.md
 python evals/harness/run-crossmodel.py --input evals/benchmarks/fixtures/v2-invoice-subtle.md
@@ -189,6 +190,43 @@ python evals/harness/judge-crossmodel.py --judge      # add --target X to run in
 python evals/harness/judge-crossmodel.py --tabulate
 ```
 
-The first two commands spend nothing. Targets your machine cannot run are reported as
+The first three commands spend nothing. Targets your machine cannot run are reported as
 **UNMEASURED**, never as passing. Model versions move, so your numbers may differ from these;
 the model ids and this date are recorded precisely so that difference is interpretable.
+
+To re-derive the table above from the committed scorecards, with no model call at all:
+
+```bash
+python evals/harness/judge-crossmodel.py --tabulate --cells evals/runs/2026-09-20-crossmodel-v2-artifacts
+```
+
+### Correction, 2026-09-20: this sequence did not reproduce
+
+As published on the day of the run, it did not do what it says. `run-crossmodel.py` defaulted
+`--outdir` to `out-crossmodel` while `judge-crossmodel.py` hard-coded
+`runs/2026-09-20-crossmodel-v2-artifacts`, so the generate step wrote fresh answers into one
+directory and the judge step scored the committed historical ones in another. Anyone following
+these instructions would have spent real money on twelve models and received **this run's own
+published numbers back as apparent confirmation.**
+
+Nothing errored. Both halves did exactly what their code said, and the judge found cells, so
+nothing complained. That is why it survived several same-family review passes and was found by
+an adversarial review from a different model family.
+
+Fixed the same day: the default lives in
+[`crossmodel_cells.py`](../harness/crossmodel_cells.py) and both scripts import it, both print
+the resolved directory before acting, the judge exits non-zero on a directory with no cells
+rather than looking elsewhere, and
+[`selftest-crossmodel.py`](../harness/selftest-crossmodel.py) fails if the two defaults are
+ever split again. The numbers in this document are unaffected — they were produced by pointing
+both halves at this directory by hand — and re-running `--tabulate` against it reproduces them
+exactly. Two related defects were fixed alongside it:
+
+- **`--force` was worse than a no-op.** It spent the call, received the new answer, and then
+  kept the old file, because the write was gated on `not out_path.exists()`.
+- **No artifact recorded what produced it.** Cells and scorecards now carry a fingerprint
+  sidecar over the input bytes, the specialist prompt bytes, the model id and the transport,
+  and are reused only while those still match. The 48 cells and 24 scorecards in this
+  directory predate that, so every command that reuses them says UNFINGERPRINTED and names
+  them. They are not back-filled: nobody recorded their true inputs at the time, and inventing
+  a fingerprint would assert exactly the thing that cannot be checked.

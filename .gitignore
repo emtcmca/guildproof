@@ -20,3 +20,7 @@ CLAUDE.md
 # Python bytecode from running the eval harness
 __pycache__/
 *.pyc
+
+# Cross-model harness scratch output (the default --outdir). Real runs get promoted
+# into a dated evals/runs/ folder; this directory is working space.
+evals/harness/out-crossmodel/

@@ -685,6 +685,7 @@ Commands are from the run docs. The ones noted as spending nothing make no model
 ### The cross-model verifier study
 
 ```bash
+python evals/harness/selftest-crossmodel.py           # proves the harness itself, spends nothing
 python evals/harness/run-crossmodel.py --check        # what your machine can run, and how to fix the rest
 python evals/harness/run-crossmodel.py --dry-run --input evals/benchmarks/fixtures/v2-invoice-subtle.md
 python evals/harness/run-crossmodel.py --input evals/benchmarks/fixtures/v2-invoice-subtle.md
@@ -693,9 +694,30 @@ python evals/harness/judge-crossmodel.py --judge      # add --target X to run in
 python evals/harness/judge-crossmodel.py --tabulate
 ```
 
-`--check` and `--dry-run` spend nothing. Targets your machine cannot run are reported as UNMEASURED, never
-as passing. Model versions move, so your numbers may differ; the model ids and the run date are recorded
-precisely so that difference is interpretable.
+`--check`, `--dry-run` and the selftest spend nothing. Targets your machine cannot run are reported as
+UNMEASURED, never as passing. Model versions move, so your numbers may differ; the model ids and the run
+date are recorded precisely so that difference is interpretable.
+
+Both halves print the cells directory they are using before they do anything. **This sequence scores the
+cells you just generated**, which is worth stating because until 2026-09-20 it did not. The runner defaulted
+to `out-crossmodel` while the judge hard-coded the committed artifacts directory, so following these
+instructions generated fresh answers and then re-scored our published ones — you would have spent real
+money and received our numbers back as apparent confirmation. Nothing errored; both halves worked exactly
+as written, which is why it survived several same-family review passes and was found by an adversarial one
+from a different model family. The default now has [one
+owner](../evals/harness/crossmodel_cells.py) that both scripts import, and
+[`selftest-crossmodel.py`](../evals/harness/selftest-crossmodel.py) fails if it is ever split again.
+
+To re-score our committed run instead of your own, name it:
+
+```bash
+python evals/harness/judge-crossmodel.py --tabulate --cells evals/runs/2026-09-20-crossmodel-v2-artifacts
+```
+
+That reproduces the table in [Section 2](#2-the-verifier-study) from the committed scorecards
+without a single model call. It will also tell you that all 24 of those scorecards predate fingerprinting,
+so the harness cannot itself prove which bundles they scored — which is true, and better said than left
+for you to wonder about.
 
 ### The release gate
 
