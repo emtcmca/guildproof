@@ -160,19 +160,29 @@ Two stages, and the second reuses B1's machinery.
 ## Priority order
 
 **Ahead of all of it, and ahead of the tag, 2026-09-20: fix the harness before running more of it.**
-Two defects from the first Codex adversarial review outrank every benchmark below, because both
-corrupt what a reader can do with the numbers that already exist.
+Two defects from the first Codex adversarial review outranked every benchmark below, because both
+corrupt what a reader can do with the numbers that already exist. The first is closed and the second
+is closed for the cross-model harness only; both are left here with their findings intact, because a
+priority list that deletes what it finished stops being a record of why the order was what it was.
 
-0a. **The published reproduce sequence does not reproduce.** `run-crossmodel.py` defaults `--outdir`
-    to `out-crossmodel`; `judge-crossmodel.py` hard-codes `runs/2026-09-20-crossmodel-v2-artifacts`
-    and skips existing scorecards. Following the documented sequence generates fresh answers and
-    then re-judges the committed historical ones, so a skeptic spends money and gets our published
-    result back as apparent confirmation. Nothing else here matters as much: a benchmark nobody can
-    re-run is a claim, not a measurement.
-0b. **No cache carries a fingerprint.** `run-knownbad.py` reuses any cell that exists and stamps
-    the current commit onto the summary; `--force` in `run-crossmodel.py` writes only when the
-    output is absent. The same class of bug already made a fix look applied once today, in
-    `run-suite.py`'s bundle cache.
+0a. **FIXED 2026-09-20. The published reproduce sequence did not reproduce.** `run-crossmodel.py`
+    defaulted `--outdir` to `out-crossmodel` while `judge-crossmodel.py` hard-coded
+    `runs/2026-09-20-crossmodel-v2-artifacts` and skipped existing scorecards. Following the
+    documented sequence generated fresh answers and then re-judged the committed historical ones,
+    so a skeptic spent money and got our published result back as apparent confirmation. Nothing
+    else here mattered as much: a benchmark nobody can re-run is a claim, not a measurement.
+    The default now has one owner in [`../harness/crossmodel_cells.py`](../harness/crossmodel_cells.py),
+    both halves print the directory they resolved, the judge exits non-zero rather than looking
+    elsewhere, and [`../harness/selftest-crossmodel.py`](../harness/selftest-crossmodel.py) is
+    exit-coded and fails under a mutation that re-splits the two defaults.
+0b. **PARTLY FIXED 2026-09-20. No cache carried a fingerprint.** The cross-model cells and
+    scorecards now do, over the input bytes, the specialist-prompt bytes, the model id and the
+    transport, so a changed input regenerates instead of being reused; artifacts predating the
+    sidecars are reported UNFINGERPRINTED by name rather than assumed current. `--force` in
+    `run-crossmodel.py` also used to write only when the output was absent, which made it spend
+    the call and keep the old file. **Still open: `run-knownbad.py` reuses any cell that exists
+    and stamps the current commit onto the summary.** Same class of bug as the one that made a fix
+    look applied in `run-suite.py`'s bundle cache.
 
 Then, and only then:
 

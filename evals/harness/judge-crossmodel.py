@@ -14,6 +14,18 @@ Claude Code workflow harness relays the parent conversation's latest user messag
 subagent, and having removed that channel from the arms it would be incoherent to leave it
 in place for the scorers.
 
+WHICH CELLS THIS SCORES
+-----------------------
+`--cells` defaults to the same directory `run-crossmodel.py --outdir` defaults to, so the
+published sequence scores the cells it just generated. It did not used to: this file hard-coded
+`runs/2026-09-20-crossmodel-v2-artifacts` while the runner wrote to `out-crossmodel`, so
+anyone following our own reproduce instructions paid for fresh answers and then re-scored our
+committed historical ones. See `crossmodel_cells.py` for the full account.
+
+Re-scoring the committed run is still supported and now has to be named:
+
+    python judge-crossmodel.py --blind --cells evals/runs/2026-09-20-crossmodel-v2-artifacts
+
 Usage:
     python judge-crossmodel.py --blind            build the judge bundles and the label key
     python judge-crossmodel.py --judge            run 2 Sonnet judges per target
@@ -30,11 +42,36 @@ import shutil
 import subprocess
 import sys
 
+import crossmodel_cells as cc
+
 HERE = pathlib.Path(__file__).parent
-CELLS = HERE.parent / "runs" / "2026-09-20-crossmodel-v2-artifacts"
-BUNDLES = CELLS / "judge-bundles"
-SCORES = CELLS / "scorecards"
-KEY = CELLS / "label-key.csv"
+
+# Set by resolve_paths() from --cells before any command runs. Deliberately not given a
+# working default at import time: a module-level guess is what made the old hard-coded path
+# invisible, because every command silently had somewhere valid to go.
+CELLS = BUNDLES = SCORES = KEY = None
+
+
+def resolve_paths(cells_arg):
+    """Point every derived path at the chosen cells directory, and say so out loud."""
+    global CELLS, BUNDLES, SCORES, KEY
+    CELLS = cc.resolve_cells_dir(HERE, cells_arg)
+    BUNDLES = CELLS / "judge-bundles"
+    SCORES = CELLS / "scorecards"
+    KEY = CELLS / "label-key.csv"
+    print(f"cells dir: {CELLS}")
+    if not CELLS.exists():
+        sys.exit(
+            f"ERROR: no such cells directory.\n"
+            f"  Generate cells first:  python run-crossmodel.py --input "
+            f"evals/benchmarks/fixtures/v2-invoice-subtle.md\n"
+            f"  Or score a committed run: --cells evals/runs/2026-09-20-crossmodel-v2-artifacts"
+        )
+    n_cells = len(list(CELLS.glob("*-[AB][12].md")))
+    print(f"cell files present: {n_cells} of {len(TARGETS) * cc.CELLS_PER_TARGET} "
+          f"({len(TARGETS)} targets x {cc.CELLS_PER_TARGET})")
+    if n_cells == 0:
+        sys.exit("ERROR: that directory holds no cells. Nothing to blind or score.")
 
 TARGETS = ["claude-haiku", "claude-sonnet", "claude-opus",
            "gpt-5.5", "gpt-5.6-luna", "gpt-5.6-sol", "gpt-6-astra",
@@ -88,8 +125,9 @@ META = re.compile(
 
 
 def blind():
-    BUNDLES.mkdir(exist_ok=True)
+    BUNDLES.mkdir(parents=True, exist_ok=True)
     rows, total_dropped = [], 0
+    incomplete = []
     for tgt in TARGETS:
         parts = []
         for lab in ("W", "X", "Y", "Z"):
@@ -109,10 +147,21 @@ def blind():
             rows.append(f"{tgt},{lab},{arm},{rep}")
         (BUNDLES / f"judge-in-{tgt}.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8")
         residual = sum(1 for p in parts if META.search(p))
-        print(f"  {tgt}: {len(parts)} of 4 bundled, residual META {residual}")
+        mark = "" if len(parts) == cc.CELLS_PER_TARGET else "  INCOMPLETE"
+        if mark:
+            incomplete.append(tgt)
+        print(f"  {tgt}: {len(parts)} of {cc.CELLS_PER_TARGET} bundled, "
+              f"residual META {residual}{mark}")
     KEY.write_text("target,label,arm,rep\n" + "\n".join(rows) + "\n", encoding="utf-8")
     print(f"\n{total_dropped} meta lines dropped overall")
     print(f"label key -> {KEY.name}  (never reaches a judge)")
+    if incomplete:
+        # An incomplete bundle still gets judged, because a partial target is better evidence
+        # than none. But it must never be read as a four-cell result, so it is named here and
+        # again in --tabulate rather than left for someone to notice in the counts.
+        print(f"{len(incomplete)} target(s) bundled with fewer than "
+              f"{cc.CELLS_PER_TARGET} cells: {', '.join(incomplete)}")
+        print("  Their subtotals are out of a smaller denominator. Not a clean result.")
 
 
 JUDGE_SYSTEM = """You score four unlabeled outputs against a fixed checklist and return JSON.
@@ -192,28 +241,55 @@ def run_judge(bundle_path, judge_no):
         return None, f"JSON parse failed: {e}"
 
 
-def judge(only=None):
-    SCORES.mkdir(exist_ok=True)
+def judge(only=None, force=False):
+    SCORES.mkdir(parents=True, exist_ok=True)
+    unfingerprinted = []
     for tgt in (only or TARGETS):
         bundle = BUNDLES / f"judge-in-{tgt}.md"
         if not bundle.exists():
-            print(f"  skip {tgt}: no bundle")
+            print(f"  skip {tgt}: no bundle (run --blind first)")
             continue
+        bundle_bytes = bundle.read_bytes()
         for jn in (1, 2):
             dest = SCORES / f"score-{tgt}-{jn}.json"
-            if dest.exists():
-                print(f"  skip {dest.name} (exists)")
+            # The skip is load-bearing: judging 12 targets x 2 judges in one go is a long job,
+            # and it has to be resumable in short foreground batches. What it must not do is
+            # reuse a scorecard written against DIFFERENT bytes, which is how a re-blinded run
+            # would silently report the previous run's scores.
+            want = cc.bundle_fingerprint(bundle_bytes=bundle_bytes,
+                                         judge_model=PINNED_JUDGE_MODEL, judge_no=jn)
+            action, why = cc.reuse_verdict(dest, want)
+            if force and action != "generate":
+                action, why = "generate", "--force"
+            if action == "reuse":
+                print(f"  skip {dest.name} ({why})")
                 continue
+            if action == "reuse-unknown":
+                print(f"  skip {dest.name} ({why})  UNFINGERPRINTED")
+                unfingerprinted.append(dest.name)
+                continue
+            if action == "stale":
+                print(f"  STALE {dest.name}: {why} -> re-judging")
             data, err = run_judge(bundle, jn)
             if err:
                 print(f"  FAIL {tgt} judge{jn}: {err}")
                 continue
             dest.write_text(json.dumps(data, indent=2), encoding="utf-8")
+            cc.write_sidecar(dest, want, target=tgt, judge_no=jn,
+                             judge_model=PINNED_JUDGE_MODEL, bundle=bundle.name)
             n = sum(len(o.get("scores", [])) for o in data.get("outputs", []))
             print(f"  ok   {dest.name}  ({len(data.get('outputs', []))} outputs, {n} rows)")
+    if unfingerprinted:
+        print(f"\n{len(unfingerprinted)} reused scorecard(s) carry NO fingerprint, so nothing "
+              f"here can confirm they scored the current bundles:")
+        print("  " + ", ".join(unfingerprinted))
+        print("  Every scorecard predating fingerprinting (added 2026-09-20) is here. "
+              "--force re-judges.")
 
 
 def tabulate():
+    if not KEY.exists():
+        sys.exit(f"ERROR: no label key at {KEY}. Run --blind first.")
     key = {}
     for line in KEY.read_text(encoding="utf-8").splitlines()[1:]:
         t, lab, arm, rep = line.split(",")
@@ -222,8 +298,25 @@ def tabulate():
     tal = collections.defaultdict(lambda: [0, 0])
     votes = collections.defaultdict(list)
     excluded = 0
+    cards, carded, unverifiable, mismatched = 0, 0, [], []
     for f in sorted(SCORES.glob("score-*.json")):
         tgt = f.stem.replace("score-", "").rsplit("-", 1)[0]
+        # Say whether each scorecard provably scored the bundle now on disk. A table that
+        # cannot answer that question is a claim about a past run, not a measurement of this
+        # one, and the reader is entitled to know which they are looking at.
+        cards += 1
+        tail = f.stem.rsplit("-", 1)[1]
+        jn = int(tail) if tail.isdigit() else 0
+        bundle = BUNDLES / f"judge-in-{tgt}.md"
+        recorded = cc.read_fingerprint(f)
+        if recorded is None:
+            unverifiable.append(f.name)
+        elif bundle.exists() and recorded == cc.bundle_fingerprint(
+                bundle_bytes=bundle.read_bytes(),
+                judge_model=PINNED_JUDGE_MODEL, judge_no=jn):
+            carded += 1
+        else:
+            mismatched.append(f.name)
         data = json.loads(f.read_text(encoding="utf-8"))
         for o in data.get("outputs", []):
             lab = (o.get("label") or "").strip().upper()[:1]
@@ -241,7 +334,10 @@ def tabulate():
                     tal[(tgt, bi, arm)][0] += 1
 
     print("CROSS-MODEL VERIFIER STUDY | input V-2 (subtle customer_id leak) | k=2")
-    print("2 Sonnet judges per target. Cells = times PRESENT out of 4 (2 reps x 2 judges)\n")
+    print("2 Sonnet judges per target. Cells = times PRESENT out of 4 (2 reps x 2 judges)")
+    print(f"cells: {CELLS}")
+    print(f"judge: {PINNED_JUDGE_MODEL} | scorecards: {cards}, "
+          f"{carded} provably scored the bundles now on disk\n")
     grand = {"A": [0, 0], "B": [0, 0]}
     for tgt in TARGETS:
         sub = {"A": [0, 0], "B": [0, 0]}
@@ -273,6 +369,16 @@ def tabulate():
         print(f"\ninter-judge: {m-dis}/{m} agree ({100*po:.0f}%), Cohen's kappa {k_:.2f}")
         print(f"  judge1 present-rate {p1:.2f} | judge2 {p2:.2f}")
     print(f"rows excluded as out-of-range: {excluded}")
+    if unverifiable:
+        print(f"\n{len(unverifiable)} scorecard(s) carry NO fingerprint. This table cannot show "
+              f"that they scored the bundles now in {BUNDLES.name}/:")
+        print("  " + ", ".join(unverifiable))
+        print("  Every scorecard predating fingerprinting (added 2026-09-20) is in this")
+        print("  category, by construction. --judge --force re-scores them.")
+    if mismatched:
+        print(f"\n{len(mismatched)} scorecard(s) were scored against DIFFERENT bundle bytes than "
+              f"are on disk now. Re-judge them before quoting this table:")
+        print("  " + ", ".join(mismatched))
 
 
 if __name__ == "__main__":
@@ -283,12 +389,21 @@ if __name__ == "__main__":
     ap.add_argument("--target", action="append",
                     help="judge only this target; repeatable. Lets judging run in short "
                          "foreground batches instead of one long background job.")
+    ap.add_argument("--cells", default=cc.DEFAULT_CELLS_DIR,
+                    help="directory holding the cells to score. Defaults to the same place "
+                         "run-crossmodel.py writes them. Pass "
+                         "evals/runs/2026-09-20-crossmodel-v2-artifacts to re-score the "
+                         "committed run.")
+    ap.add_argument("--force", action="store_true",
+                    help="re-judge scorecards whose fingerprint already matches")
     a = ap.parse_args()
+    if not (a.blind or a.judge or a.tabulate):
+        ap.print_help()
+        sys.exit(0)
+    resolve_paths(a.cells)
     if a.blind:
         blind()
     if a.judge:
-        judge(a.target)
+        judge(a.target, force=a.force)
     if a.tabulate:
         tabulate()
-    if not (a.blind or a.judge or a.tabulate):
-        ap.print_help()
