@@ -82,7 +82,12 @@ re-derive it from the artifact and say what you assumed.
 
 ## Output contract
 - **Verdict** — VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED, and **BLOCKING: yes/no** (yes if any
-  unresolved HIGH defect, or a security/correctness-critical gap).
+  unresolved HIGH defect, or a security/correctness-critical gap). **Write `BLOCKING:` followed
+  immediately by `yes` or `no`**, then any qualification you like — "BLOCKING: yes, pending two
+  confirmations" is correct. A coordinator reads that word as the halt signal, so it has to be
+  present and unambiguous; a verdict whose BLOCKING line cannot be read halts the pipeline as a
+  harness failure. The two conditions are independent: `VERIFIED WITH GAPS` with **no defect at
+  all** is still `BLOCKING: yes` when the unconfirmable axis is security- or correctness-critical.
 - **Independence** — INDEPENDENT / NOT INDEPENDENT / UNKNOWN, with the one-line reason. A VERIFIED
   that is NOT INDEPENDENT is a weaker claim, so say that in the same line.
 - **Observable evidence** — what you can directly show: defects you can demonstrate, axes checked

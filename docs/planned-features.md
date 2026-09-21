@@ -118,7 +118,9 @@ reference the visual lenses point to?
 tri-state verdict (VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED) plus an explicit BLOCKING flag,
 and splits output into Observable evidence (facts) vs Assessment (judgment). Folds in the existing
 "Claimed vs actual" + "Confirm-these" (the latter is now what makes a verdict WITH GAPS).
-Orchestration unchanged — it keys on the BLOCKING/HIGH semantics, which are preserved. Concept only
+Orchestration keys on the **BLOCKING line**, which this preserved. *(Corrected 2026-09-20: this
+read "keys on the BLOCKING/HIGH semantics", and that slash hid a real divergence — Step 6.5 was
+keying on HIGH alone, so it continued past a `BLOCKING: yes` carrying no HIGH defect.)* Concept only
 (loki is BUSL — no code/text copied).
 
 **Source:** loki-mode "Evidence Receipt" + verdict levels.

@@ -166,10 +166,34 @@ A producer never audits its own output. Before assembly, any slice whose output 
 handles untrusted input, or ships externally** is re-dispatched to the **`verifier`** agent (or a
 domain reviewer like `security-review` / `api-reviewer`) — a *different* agent than produced it —
 given the artifact + its claimed contract, with the standing task: "assume this is wrong; refute
-that it meets its contract." The verifier returns a **blocking verdict**: an unresolved **HIGH**
-defect **halts synthesis and escalates** rather than synthesizing a vouched-for-but-unverified
-deliverable. Do not let the report repeat a builder's self-description ("production-grade") as if
-it were an audit — only the verifier's verdict counts.
+that it meets its contract." Do not let the report repeat a builder's self-description
+("production-grade") as if it were an audit — only the verifier's verdict counts.
+
+**The halt signal is the verifier's `BLOCKING:` line. Read it; never re-derive it.**
+`BLOCKING: yes` **halts synthesis and escalates**, whatever the defect list looks like, rather
+than synthesizing a vouched-for-but-unverified deliverable.
+
+That is not a restatement of "an unresolved HIGH defect halts", and the difference is the point.
+`agents/verifier.md` returns `BLOCKING: yes` on an unresolved HIGH defect **or on an unconfirmable
+gap that is itself security- or correctness-critical** — and the second kind has no defect to find.
+A coordinator that scans the findings list for a HIGH severity walks straight past it, in the
+unsafe direction, on exactly the artifacts this step exists to protect.
+
+The committed counterexample is `evals/runs/2026-09-20-b4-suite-artifacts/case-34-output.md`:
+**"VERIFIED WITH GAPS. BLOCKING: yes, pending two confirmations"**, whose own reasoning says
+*"I found no real defect in it… The block is on that unconfirmable, security-critical dependency."*
+Its highest severity is MEDIUM. Zero HIGH. This step tested only for HIGH, so it would have
+continued.
+
+Two further rules, both fail-safe:
+
+- **No readable `BLOCKING:` line means halt, not proceed.** A verdict you cannot parse is a
+  harness failure, and a harness failure must never resolve as consent. Escalate it as one.
+- **`NOT VERIFIED` is surfaced unresolved in the report even at `BLOCKING: no`.** A real defect
+  that breaks the contract is not yours to absorb into a deliverable.
+
+Halting is never a slice's call. Per Step 7 a slice may not self-certify this step, so a slice
+return that reports its own verdict is a finding, not a clearance.
 
 ### Step 7 — Assemble + curate
 
@@ -235,7 +259,10 @@ Lead with the **synthesized deliverable**. Then, separated below it:
 - **The approval gate's risk test is non-inferential** (Step 5). Write/execute/auth/secrets/
   payments/PII/outward-facing slices gate regardless of fan-out size; when in doubt, gate.
 - **A producer never audits its own output** (Step 6.5). A verifier slice distinct from the
-  builder owns the security/correctness of any code slice; an unresolved HIGH defect halts synthesis.
+  builder owns the security/correctness of any code slice, and **the verifier's `BLOCKING:` line
+  is the halt signal** — read it rather than re-deriving it from the severity list, because
+  `BLOCKING: yes` also fires on a security-critical gap with no defect at all. An unreadable
+  verdict halts too.
 - **Seam closure is verified against the synthesized text** (Step 7.5), not asserted in the report.
 - **Safety / data-exposure / irreversible conflicts are escalated unresolved** — never
   pre-resolved-then-flagged.

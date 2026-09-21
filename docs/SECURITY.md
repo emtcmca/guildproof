@@ -53,8 +53,15 @@ command-execution scope.
   claimed contract, it assumes the work is wrong and returns a blocking verdict, never trusting the
   producer's self-description. It backs all three of the controls below.
 - **Coordinator** (Step 6.5): a producer never audits its own output. Code/security/outward-facing
-  slices are re-verified by the `verifier` (or a domain reviewer) — a *different* agent — and an
-  unresolved HIGH defect halts synthesis.
+  slices are re-verified by the `verifier` (or a domain reviewer) — a *different* agent — and the
+  verifier's **`BLOCKING:` line** is what halts synthesis. The coordinator reads that line rather
+  than re-deriving the decision from the severity list, because `BLOCKING: yes` also fires on an
+  unconfirmable gap that is itself security-critical, with no defect found at all. A verdict with
+  no readable `BLOCKING:` line halts too: an unparseable verdict is a harness failure and must
+  never resolve as consent. *(Corrected 2026-09-20. This said "an unresolved HIGH defect halts
+  synthesis", which is only one of the verifier's two blocking conditions, so a coordinator
+  following it would continue past a blocking verdict. Found by an adversarial review from a
+  different model family; the committed counterexample is case-34.)*
 - **Synthesis** (Step 7.5): a seam-closure audit checks the *actual synthesized text*, not the plan.
 - **Eval harness**: high-stakes cases are judged by an **independent** invocation, and
   `evals/known-bad/` fixtures must FAIL — a judge that can't say no isn't judging.
