@@ -45,11 +45,38 @@ something plausible from a thin request is the failure mode this repo exists to 
 
 ## Pull requests
 
+There is a [PR template](.github/pull_request_template.md) that asks for the below; it is a
+reminder, not a form, and a one-line PR is fine.
+
 - One concern per PR.
 - If you changed a prompt, say what you ran it against and what changed in the output. "Should
   be better" is not reviewable.
 - No dependencies. No API keys. No model calls. Zero-dependency is architectural here, not a
   preference — the whole thing is method and structure, and the host agent does the reasoning.
+- Run `node scripts/validate.mjs` and `node scripts/validate.mjs --selftest`. Both spend nothing —
+  no model call, no key, no network. CI runs them too, in `fresh-machine.yml`.
+- **Counts go on a ref.** If you state one in a doc, take it with `git ls-tree`, not from your
+  working directory. This repo has published a wrong count in both directions more than once, and
+  every instance traced to counting files in a checkout that was sitting on a different branch.
+
+## Claiming that a prompt works
+
+Contributing a prompt needs none of this. **Claiming a prompt causes an effect needs a reduced
+arm** — a cheaper version of the same prompt, run as its own arm, to show the effect is not simply
+coming from the formatting.
+
+That rule was bought the hard way: a third arm carrying only one section of `agents/verifier.md`
+reproduced that prompt's entire published advantage, which retired a headline number.
+[`docs/FINDINGS.md`](docs/FINDINGS.md) has the full account under "Construct validity".
+
+## Security
+
+Do not report a vulnerability in a PR or a public issue. [`SECURITY.md`](SECURITY.md) has the private
+channel and the scope.
+
+## Code of conduct
+
+[`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). Argue with the work, not the person.
 
 ## License
 

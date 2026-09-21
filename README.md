@@ -437,8 +437,13 @@ guildproof/
   options, command chooser, every command, lenses, the gallery, orchestration, the eval harness.
 - [COMMAND-SHEET.md](docs/COMMAND-SHEET.md) — one-page reference: commands, flags, lenses, gallery,
   recipes.
-- [SECURITY.md](docs/SECURITY.md) — threat model + the guardrails (untrusted-input boundary, intent
-  gate, supplied-fact verification, independent verification).
+- [docs/SECURITY.md](docs/SECURITY.md) — threat model + the guardrails (untrusted-input boundary,
+  intent gate, supplied-fact verification, independent verification).
+- [SECURITY.md](SECURITY.md) — how to **report** a vulnerability, and what is in and out of scope.
+  The threat model above is the reasoning; this is the channel.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — where changes go, and what a prompt change has to say for
+  itself. · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [CHANGELOG.md](CHANGELOG.md) — including which published claims have been narrowed, and why.
 - [ROADMAP.md](ROADMAP.md) — the two-layer architecture and what's next.
 
 ---

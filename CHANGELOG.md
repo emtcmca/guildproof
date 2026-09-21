@@ -48,6 +48,21 @@ prompt rewriter for a coding agent on the same install channel.
   of its own answer before a judge sees it, and the strip is asserted rather than assumed. Ships
   with a positive control, because six fixtures all failing is also what a judge stuck on FAIL
   would produce.
+  - **Re-run at this release's own commit** (`evals/runs/2026-09-21-b4-knownbad.md`): **6 of 6
+    correctly failed, all 12 cells FAIL, gate PASS**, positive control **WEAK / WEAK**. All twelve
+    cells record `"cached": false`, so they were generated fresh rather than replayed from the
+    earlier run. **What that earns is narrow and exact: the judge can still fail a bad output at the
+    tagged commit. It is not "the suite is green at the tagged commit"** — the 38 numbered cases were
+    not re-run here, and their most recent blind run is the 2026-09-20 suite half, which is a
+    regression gate and not a rate.
+- **Project hygiene files.** Root [`SECURITY.md`](SECURITY.md) with a private reporting channel and
+  an explicit in-scope / out-of-scope split (`docs/SECURITY.md` remains the threat model, which is
+  the reasoning rather than the channel); [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), which states
+  plainly that a report about the sole maintainer goes to the sole maintainer and names GitHub's
+  independent channel for that case; and a
+  [pull request template](.github/pull_request_template.md). `CONTRIBUTING.md` now also records the
+  rule this release was written under: **contributing a prompt needs no benchmark, but claiming a
+  prompt causes an effect needs a reduced arm.**
 - **Benchmark coverage table** (`evals/benchmarks/README.md`) stating, per feature, which
   claims in this repo carry measurement and which do not. It is deliberately uncomfortable in
   places. Specs for the two unrun benchmarks (`/orchestrate`, `/forge-agent`) are there too.
