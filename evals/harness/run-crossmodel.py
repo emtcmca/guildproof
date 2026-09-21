@@ -265,7 +265,7 @@ def run_gemini(model, system_path, user_path, out_path, env):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--input", help="file holding the user message, sent verbatim to both arms")
+    ap.add_argument("--input", help="file holding the user message, sent verbatim to every arm")
     ap.add_argument("--outdir", default=cc.DEFAULT_CELLS_DIR,
                     help="where cells are written. The default is shared with "
                          "judge-crossmodel.py's --cells, so the published sequence scores the "
@@ -343,7 +343,7 @@ def main():
 
     all_targets = manifest["targets"]
     reps = list(range(1, manifest["reps"] + 1))
-    system_prompt_path = cc.resolve_repo_path(HERE, manifest["system_prompt"])
+    arms = cc.arms_for(manifest)
 
     targets = [t for t in all_targets
                if (not a.only or t["key"] == a.only)
@@ -390,10 +390,13 @@ def main():
         # Plan every REQUESTED target, not only the runnable ones. A new user with nothing
         # set up still needs to see the whole shape of the run before deciding to set it up.
         plan = [x for x in all_targets if not a.only or x["key"] == a.only]
-        n = len(plan) * 2 * len(reps)
-        print(f"\nDRY RUN. {n} calls would be made ({len(plan)} targets x 2 arms x k={len(reps)}).")
-        print(f"Input sent verbatim to both arms: {manifest['input']}")
-        print(f"Arm A: no system prompt. Arm B: {manifest['system_prompt']} as the system prompt.")
+        n = len(plan) * len(arms) * len(reps)
+        print(f"\nDRY RUN. {n} calls would be made ({len(plan)} targets x {len(arms)} arms "
+              f"x k={len(reps)}).")
+        print(f"Input sent verbatim to every arm: {manifest['input']}")
+        for arm in arms:
+            sp = arm.get("system_prompt") or "no system prompt (bare)"
+            print(f"  arm {arm['id']}: {arm.get('label', '?')} -> {sp}")
         for t in plan:
             sysnote = {
                 "claude": "--system-prompt-file",
@@ -403,7 +406,8 @@ def main():
             print(f"\n  {t['key']}  ({t['family']}, {t['model'] or 'codex default'})")
             print(f"    transport   : {t['transport']}")
             print(f"    arm B via   : {sysnote}")
-            print(f"    would write : {a.outdir}/{t['key']}-{{A,B}}{{1..{len(reps)}}}.md")
+            ids = ",".join(x["id"] for x in arms)
+            print(f"    would write : {a.outdir}/{t['key']}-{{{ids}}}{{1..{len(reps)}}}.md")
         if skipped:
             print(f"\n  {len(skipped)} of these would SKIP on this machine for lack of credentials.")
             print("  Run --check for the exact reason and fix for each.")
@@ -432,10 +436,21 @@ def main():
 
     if not manifest["input"]:
         sys.exit("ERROR: --input is required")
-    if not system_prompt_path.exists():
-        sys.exit(f"ERROR: specialist prompt not found at {system_prompt_path} "
-                 f"(manifest says {manifest['system_prompt']!r}). Arm B would run bare and the "
-                 f"result would read as a null finding.")
+
+    # Resolve and read every arm's system prompt up front. A missing one must stop the run, not
+    # silently turn that arm bare: a bare arm mislabelled as a prompted one reads as a null
+    # finding about the prompt, which is the most expensive kind of wrong result here.
+    arm_bytes, arm_paths = {}, {}
+    for arm in arms:
+        if not arm.get("system_prompt"):
+            arm_bytes[arm["id"]], arm_paths[arm["id"]] = None, None
+            continue
+        p = cc.resolve_repo_path(HERE, arm["system_prompt"])
+        if not p.exists():
+            sys.exit(f"ERROR: arm {arm['id']} ({arm.get('label', '?')}) names system prompt "
+                     f"{arm['system_prompt']!r}, which is not at {p}. Refusing to run: that arm "
+                     f"would go out bare and the result would read as a null finding.")
+        arm_paths[arm["id"]], arm_bytes[arm["id"]] = p, p.read_bytes()
 
     user_path = cc.resolve_repo_path(HERE, manifest["input"])
     if not user_path.exists():
@@ -446,7 +461,6 @@ def main():
     # that only shows up in the encoding, and the prompt files are read as bytes for the same
     # reason on the other side.
     input_bytes = user_path.read_bytes()
-    system_bytes = system_prompt_path.read_bytes()
 
     outdir.mkdir(parents=True, exist_ok=True)
     # Real work is starting, so the run's definition goes to disk now. From here the judge
@@ -466,13 +480,14 @@ def main():
     cell_log = []
     unfingerprinted = []
     for t in targets:
-        for arm in ("A", "B"):
+        for arm_def in arms:
+            arm = arm_def["id"]
             for rep in reps:
                 name = f"{t['key']}-{arm}{rep}.md"
                 out_path = outdir / name
                 fp = cc.cell_fingerprint(
                     input_bytes=input_bytes,
-                    system_bytes=system_bytes if arm == "B" else None,
+                    system_bytes=arm_bytes[arm],
                     model=t["model"], transport=t["transport"], arm=arm, rep=rep,
                 )
 
@@ -498,7 +513,7 @@ def main():
                 if action == "stale":
                     print(f"  STALE {name}: {why} -> regenerating")
 
-                sysp = system_prompt_path if arm == "B" else None
+                sysp = arm_paths[arm]
                 t0 = time.time()
                 if t["transport"] == "claude":
                     txt, err = run_claude(t["model"], sysp, user_text, out_path)
@@ -522,7 +537,8 @@ def main():
                         out_path, fp,
                         model=t["model"], transport=t["transport"], arm=arm, rep=rep,
                         input_file=str(user_path),
-                        system_prompt=manifest["system_prompt"] if arm == "B" else None,
+                        system_prompt=arm_def.get("system_prompt"),
+                        arm_label=arm_def.get("label"),
                     )
                 print(f"  ok   {name}  ({len(txt)} chars, {time.time()-t0:.0f}s)")
                 cell_log.append({**t, "arm": arm, "rep": rep, "file": name,
@@ -549,7 +565,7 @@ def main():
     ok = sum(1 for m in cell_log if m["ok"])
     print(f"\n{ok} of {len(cell_log)} cells produced output this invocation. "
           f"Failures are unmeasured, not clean.")
-    print(f"{len(rows)} of {len(all_targets) * 2 * len(reps)} cells recorded in "
+    print(f"{len(rows)} of {len(all_targets) * len(arms) * len(reps)} cells recorded in "
           f"{log_path.name} across all invocations.")
     if unfingerprinted:
         print(f"{len(unfingerprinted)} reused cell(s) carry NO fingerprint, so nothing here can "

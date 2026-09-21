@@ -1,0 +1,18 @@
+{
+  "generated_by": "evals/harness/make-arm-prompts.py",
+  "source": "agents/verifier.md",
+  "kept_sections": [
+    "Output contract"
+  ],
+  "dropped_sections": [
+    "Objective",
+    "Operating principles",
+    "Inputs",
+    "Method",
+    "Constraints / guardrails",
+    "When unsure"
+  ],
+  "framing_sentence": "Review the artifact the user provides. Your response must follow this output contract:",
+  "why": "Output contract only: the required sections, with no method, no adversarial stance and no guardrails. Isolates how much of arm B's advantage is bought by naming the headings the output must carry.",
+  "note": "Do not paste any of this into the prompt file. It names the experiment, and a model that reads it knows it is in one."
+}

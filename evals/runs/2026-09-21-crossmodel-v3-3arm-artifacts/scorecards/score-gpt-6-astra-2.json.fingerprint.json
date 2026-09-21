@@ -1,0 +1,7 @@
+{
+  "fingerprint": "c1a9fd5ee2534cf7ec732d7a4ef6cd911924ea171bebbe79af5170e044939f14",
+  "target": "gpt-6-astra",
+  "judge_no": 2,
+  "judge_model": "claude-sonnet-5",
+  "bundle": "judge-in-gpt-6-astra.md"
+}

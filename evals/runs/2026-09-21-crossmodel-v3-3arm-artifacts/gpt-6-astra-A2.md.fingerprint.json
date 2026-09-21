@@ -1,0 +1,10 @@
+{
+  "fingerprint": "c7683b53876c726ec0f31efe079f7fb2df5f4c1dd25c33a37e374249d00d60b1",
+  "model": "gpt-6-astra",
+  "transport": "codex",
+  "arm": "A",
+  "rep": 2,
+  "input_file": "C:\\dev\\promptsmith-wt-launch\\evals\\benchmarks\\fixtures\\v2-invoice-subtle.md",
+  "system_prompt": null,
+  "arm_label": "bare"
+}

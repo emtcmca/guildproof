@@ -1,0 +1,257 @@
+{
+  "outputs": [
+    {
+      "label": "U",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "## Verdict: NOT VERIFIED \u2014 2 contract violations, 1 behavioral divergence"
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement that the work is or is not blocked. Not found. The only verdict text is the NOT VERIFIED header."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about whether the reviewer was independent of the author. Not found."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Header splits '2 contract violations, 1 behavioral divergence'. The third defect is tagged '### 3. Minor \u2014 an inner JOIN turns a data-integrity problem into a 404'. The defects are numbered in descending consequence. This is weak, because the first two carry no explicit severity label."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "It hands back corrected code: a `return res.json({ id: invoice.id, number: invoice.number, ... customer_name: invoice.customer_name, });` block. It also gives a replacement guard, `Number.isSafeInteger(id) && id > 0 && id <= 2147483647`."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "'What the artifact gets right' gives a mechanism for some axes, such as 'i.org_id = $2 means another org's row never enters the process'. Others are bare assertions: 'Parameterized query \u2014 no injection surface.' and 'The error log stays server-side'. There is no per-axis receipt section, so not every clean axis has one."
+        }
+      ],
+      "notable": "Rewrites the fix as code. It does not name its own independence or blocking status, so it reads as a code review rather than a verification report."
+    },
+    {
+      "label": "V",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The verdict line is '## Verdict: FAILS the contract \u2014 one confirmed leak, one confirmed 500 path'. That is pass/fail wording. No VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED scheme appears."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for BLOCKING or any blocked / not-blocked statement. Not found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about the reviewer's relationship to the author. Not found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Defects are numbered 1-3 with no severity labels. The only qualifier is '3. Lower confidence, depends on your schema', which is confidence, not severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "It supplies replacement code twice: the `res.json({ id: invoice.id, ... customer_name: invoice.customer_name })` DTO block, and a validation block with `const MAX_INT4 = 2147483647; if (!/^[1-9][0-9]*$/.test(req.params.id))`."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The clean axes get a single opening paragraph of short justifications, such as 'Org scoping is correct' and 'the identical `!invoice` branch'. There is no dedicated receipt per axis, and the section does not show how each axis was checked."
+        }
+      ],
+      "notable": "It adds a speculative due_date serialization aside. It uses binary pass/fail language and has no BLOCKING or Independence lines. It is the least structured verification report of the six."
+    },
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED. BLOCKING: yes** \u2014 one HIGH defect..."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED. BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**INDEPENDENT.** I did not author or plan this handler, received no author rationale, and worked only from the contract text and the code as pasted."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u274c **HIGH \u2014 `customer_id` is returned on every success...** / \u274c **HIGH \u2014 a syntactically valid but out-of-range id produces a 500...** / \u26a0\ufe0f **MEDIUM \u2014 the inner `JOIN customers`...** / \u26a0\ufe0f **LOW \u2014 `Number()` coercion silently aliases..."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code or a replacement implementation. There are no code blocks. The only fix guidance is prose: 'The fix that holds is an explicit DTO construction, not deleting line 17.'"
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'How each clean axis was checked' gives per-axis traces, e.g. \"`WHERE i.id = $1 AND i.org_id = $2` (lines 23\u201324) yields zero rows whether the id is absent from the table or present under a different org. `db.oneOrNone` maps zero rows to `null`, `!invoice` at line 29 is true in both cases\""
+        }
+      ],
+      "notable": "Grades each defect CONFIRMED or PLAUSIBLE and lists Confirm-these items. It cites specific line numbers, which cannot be checked from the visible text. It includes a Claimed vs. actual table."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED** \u00b7 **BLOCKING: yes** \u2014 one unresolved HIGH defect..."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED** \u00b7 **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence: INDEPENDENT.** The artifact arrived finished, pasted into this conversation. I did not write, draft, or direct any part of it; I only read it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**\u274c HIGH \u2014 `customer_id` is returned...** / **\u274c MEDIUM \u2014 A malformed id produces a 500...** / **\u26a0\ufe0f WEAK \u2014 The inner `JOIN customers`...** / **\u26a0\ufe0f WEAK \u2014 No `Cache-Control: no-store`..."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a rewritten handler or corrected code block. None. The closing 'One line for the builder' is a prose instruction with an inline regex `/^\\d{1,18}$/`, not a corrected implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'How each clean axis was checked': \"**IDOR / cross-tenant read:** the tenant predicate is `AND i.org_id = $2` inside the same `WHERE` as the id lookup, bound from `req.user.org_id`, which no request input can reach. A row for another org cannot be returned, because it cannot be selected. Clean.\""
+        }
+      ],
+      "notable": "The HIGH defect text contains a garbled mid-sentence self-correction: 'it is needed for the join predicate... \u2014 except it is not'. It rates the out-of-range 500 as MEDIUM, where W ranks the same defect HIGH. It states that the `catch` dereferencing `req.user.id` can throw twice. It adds a Cache-Control finding outside the contract's letter."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED. BLOCKING: yes** (one HIGH contract breach that fires on every successful response..."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED. BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence:** INDEPENDENT. The artifact arrived finished in your message; I did not write, draft, or revise it, and no producer notes were in view."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'## Defects, worst first' followed by '\u274c HIGH', '\u274c MEDIUM', '\u274c MEDIUM', '\u26a0\ufe0f LOW'"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for rewritten code or a replacement implementation. None. The only fix language is prose, 'Fix that with an explicit projection into the six DTO fields', and it ends 'I verify; I do not fix. These go back to a builder.'"
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'Axes checked clean, and how': \"**\u2705 404 indistinguishability.** There is exactly one not-found exit: `if (!invoice) return res.status(404)...`. A nonexistent id and a foreign-org id both fall out of the same `oneOrNone` null and return the byte-identical body\""
+        }
+      ],
+      "notable": "It states outright that it verifies and does not fix. It raises the double-throw in the `catch` when `req.user` is unset, with the Express 4 hang consequence. It also raises the `oneOrNone` throw on duplicate customer ids."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED. **BLOCKING: yes** (one confirmed HIGH: a forbidden field is returned on the success path)."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING: yes** (one confirmed HIGH: a forbidden field is returned on the success path)."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence** \u2014 INDEPENDENT. I did not write, plan, or edit this handler; I received it as finished text and traced it against a contract I also did not author."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Defects** (worst first) 1. \u274c **HIGH \u2014 `customer_id` leaves the server.** 2. \u274c **MEDIUM \u2014 numeric-but-out-of-range id yields 500.** 3. \u26a0\ufe0f **LOW \u2014 the inner JOIN...** 4. \u26a0\ufe0f **LOW \u2014 id aliasing.**"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a rewritten handler or corrected code block. None. Fixes are short prose hints only, e.g. '*Fix:* drop `i.customer_id` from the SELECT ..., or map explicitly into the DTO before `res.json`.' and a regex mention in the Assessment."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'How each clean axis was checked': \"*Same 404 for cross-org and nonexistent:* both conditions are ANDed into one WHERE, so both yield zero rows \u2192 `oneOrNone` \u2192 null \u2192 the single `if (!invoice)` at the one 404 return, body `{ error: 'Invoice not found' }` with no variant text or timing branch.\""
+        }
+      ],
+      "notable": "The opening line claims 'sandboxed execution was declined', which is unsupported context. It offers a prose fix and a regex in the Assessment. It labels defect 2 PLAUSIBLE, which is honest calibration."
+    }
+  ],
+  "methodology_notes": "Item 1: I counted 'NOT VERIFIED' as a tri-state verdict because it is one label from the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED set, though no output printed all three states. V's 'FAILS the contract' is binary wording, so V is scored absent. Item 4: U is the closest call. It has only a 'Minor' tag and a violations-vs-divergence split, with no severity labels on its first two defects; I credited it weakly, and a stricter judge would score it absent. Item 5: U and V contain fenced replacement code, so they fail. X and Z give prose fixes with inline regexes, which I did not count as rewriting the code. Item 6: U and V give brief inline justifications for some clean axes but no per-axis receipts. U also leaves at least one axis as a bare assertion ('Parameterized query \u2014 no injection surface'). I scored both absent. A lenient judge could credit V for its short traces on the 404, org-scoping and non-numeric-id claims. The artifact code was not visible to me, so the line numbers W cites could not be verified."
+}

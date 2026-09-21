@@ -1,0 +1,10 @@
+{
+  "fingerprint": "64aad18b23a27f33ba818c7c84bd6a96f2de747eff8baa046e81cff8bf4eaa1a",
+  "model": "gemini-3.1-pro-preview",
+  "transport": "gemini",
+  "arm": "A",
+  "rep": 2,
+  "input_file": "C:\\dev\\promptsmith-wt-launch\\evals\\benchmarks\\fixtures\\v2-invoice-subtle.md",
+  "system_prompt": null,
+  "arm_label": "bare"
+}

@@ -107,12 +107,15 @@ def resolve_paths(cells_arg):
     # records the exact id that scored this run.
     PINNED_JUDGE_MODEL = MANIFEST["judge_model"]
     JUDGES_PER_TARGET = MANIFEST["judges_per_target"]
-    CELLS_PER_TARGET = 2 * MANIFEST["reps"]   # two arms x k reps
+    CELLS_PER_TARGET = len(cc.cells_for(MANIFEST))   # arms x k reps
 
     print(f"run      : {MANIFEST['run_id']}  ({len(TARGETS)} targets, k={MANIFEST['reps']}, "
           f"judge {PINNED_JUDGE_MODEL} x{JUDGES_PER_TARGET})")
     print(f"scoring  : {len(CHECKLIST)} checklist items, from the manifest")
-    n_cells = len(list(CELLS.glob("*-[AB][0-9].md")))
+    # Glob from the manifest's arm ids, not a literal [AB]: a third arm's cells would
+    # otherwise be invisible to the count while still being bundled and scored.
+    arm_ids = "".join(x["id"] for x in cc.arms_for(MANIFEST))
+    n_cells = len(list(CELLS.glob(f"*-[{arm_ids}][0-9].md")))
     print(f"cells    : {n_cells} of {len(TARGETS) * CELLS_PER_TARGET} present")
     if n_cells == 0:
         sys.exit("ERROR: that directory holds no cells. Nothing to blind or score.")
@@ -172,9 +175,9 @@ def blind():
         print("  Their subtotals are out of a smaller denominator. Not a clean result.")
 
 
-JUDGE_SYSTEM = """You score four unlabeled outputs against a fixed checklist and return JSON.
+JUDGE_SYSTEM = """You score {k} unlabeled outputs against a fixed checklist and return JSON.
 
-All four outputs answered the same user message. You do not know how any of them was
+All {k} outputs answered the same user message. You do not know how any of them was
 produced and must not guess. Some were produced under different conditions than others;
 which is which is deliberately withheld and inferring it is not part of your job.
 
@@ -203,6 +206,7 @@ Return ONLY a JSON object, no prose before or after, no markdown fence:
 def run_judge(bundle_path, judge_no):
     sys_txt = JUDGE_SYSTEM.format(
         n=len(CHECKLIST),
+        k=CELLS_PER_TARGET,
         items="\n".join(f"{i+1}. {b}" for i, b in enumerate(CHECKLIST)),
     )
     sys_file = HERE / f"_judge_sys_{judge_no}.txt"
@@ -215,9 +219,9 @@ def run_judge(bundle_path, judge_no):
     # cannot wander into the arm outputs, the label key, or this repo.
     user = (
         f"Score every output below against every checklist item.\n"
-        f"You are judge {judge_no} of 2. Another judge scores the same four outputs "
-        f"independently and the two are compared, so do not hedge toward a middle. Call it "
-        f"as you read it.\n"
+        f"You are judge {judge_no} of {JUDGES_PER_TARGET}. The others score the same "
+        f"{CELLS_PER_TARGET} outputs independently and the results are compared, so do not hedge "
+        f"toward a middle. Call it as you read it.\n"
         f"Do not use any tool. Everything you need is in this message.\n"
         f"Return only the JSON object.\n\n"
         f"{bundle_path.read_text(encoding='utf-8')}"
@@ -307,7 +311,13 @@ def tabulate():
     votes = collections.defaultdict(list)
     excluded = 0
     cards, carded, unverifiable, mismatched = 0, 0, [], []
-    for f in sorted(SCORES.glob("score-*.json")):
+    # Exclude the fingerprint sidecars. `score-X-1.json.fingerprint.json` matches `score-*.json`,
+    # so they were being counted as scorecards: the provenance line read "12 scorecards, 6
+    # provably scored" for a 6-scorecard run and then listed the six sidecars as unfingerprinted
+    # artifacts. It never corrupted a tally, because a sidecar has no "outputs" key and
+    # contributed nothing, but a count that is double the truth is a count nobody can use.
+    for f in sorted(p for p in SCORES.glob("score-*.json")
+                    if not p.name.endswith(".fingerprint.json")):
         tgt = f.stem.replace("score-", "").rsplit("-", 1)[0]
         # Say whether each scorecard provably scored the bundle now on disk. A table that
         # cannot answer that question is a claim about a past run, not a measurement of this
@@ -346,27 +356,39 @@ def tabulate():
     per_cell = MANIFEST["reps"] * JUDGES_PER_TARGET
     print(f"CROSS-MODEL VERIFIER STUDY | run {MANIFEST['run_id']} | k={MANIFEST['reps']}")
     print(f"input: {MANIFEST['input']}")
-    print(f"arm B system prompt: {MANIFEST['system_prompt']}")
     print(f"{JUDGES_PER_TARGET} x {PINNED_JUDGE_MODEL} per target. Cells = times PRESENT out of "
           f"{per_cell} ({MANIFEST['reps']} reps x {JUDGES_PER_TARGET} judges)")
     print(f"cells: {CELLS}")
     print(f"scorecards: {cards}, {carded} provably scored the bundles now on disk\n")
-    grand = {"A": [0, 0], "B": [0, 0]}
+    # One column per arm the manifest declares, in its declared order, so a third arm appears
+    # without this function knowing anything about what it is.
+    arms = cc.arms_for(MANIFEST)
+    arm_ids = [x["id"] for x in arms]
+    width = max(9, *(len(x.get("label") or x["id"]) for x in arms))
+    print("arms: " + " | ".join(f"{x['id']}={x.get('label') or x['id']}" for x in arms) + "\n")
+    print(" " * 48 + "  ".join(f"{(x.get('label') or x['id'])[:width]:>{width}}" for x in arms))
+
+    grand = {i: [0, 0] for i in arm_ids}
     for tgt in TARGETS:
-        sub = {"A": [0, 0], "B": [0, 0]}
+        sub = {i: [0, 0] for i in arm_ids}
         print(tgt)
         for bi in range(1, len(CHECKLIST) + 1):
-            a, b = tal[(tgt, bi, "A")], tal[(tgt, bi, "B")]
-            for arm, c in (("A", a), ("B", b)):
-                sub[arm][0] += c[0]; sub[arm][1] += c[1]
-                grand[arm][0] += c[0]; grand[arm][1] += c[1]
+            cols = []
+            for i in arm_ids:
+                c = tal[(tgt, bi, i)]
+                sub[i][0] += c[0]; sub[i][1] += c[1]
+                grand[i][0] += c[0]; grand[i][1] += c[1]
+                cols.append(f"{c[0]}/{c[1]}")
             short = CHECKLIST[bi - 1].split(".")[0][:44]
-            print(f"   {short:46s} bare {a[0]}/{a[1]}   gp {b[0]}/{b[1]}")
-        print(f"   {'subtotal':46s} bare {sub['A'][0]}/{sub['A'][1]}   gp {sub['B'][0]}/{sub['B'][1]}\n")
-    ga, gb = grand["A"], grand["B"]
-    if ga[1] and gb[1]:
-        print(f"TOTAL  bare {ga[0]}/{ga[1]} = {100*ga[0]/ga[1]:.0f}%   "
-              f"guildproof {gb[0]}/{gb[1]} = {100*gb[0]/gb[1]:.0f}%")
+            print(f"   {short:44s} " + "  ".join(f"{v:>{width}}" for v in cols))
+        print(f"   {'subtotal':44s} "
+              + "  ".join(f"{f'{sub[i][0]}/{sub[i][1]}':>{width}}" for i in arm_ids) + "\n")
+
+    print("TOTAL")
+    for x in arms:
+        g = grand[x["id"]]
+        pct = f"{100*g[0]/g[1]:.0f}%" if g[1] else "n/a"
+        print(f"   {x['id']}  {(x.get('label') or x['id']):34s} {g[0]}/{g[1]} = {pct}")
     n = len(votes)
     paired = {k: v for k, v in votes.items() if len(v) == 2}
     dis = sum(1 for v in paired.values() if len(set(v)) > 1)

@@ -1,0 +1,257 @@
+{
+  "outputs": [
+    {
+      "label": "U",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict:** NOT VERIFIED"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING:** yes"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence:** INDEPENDENT. The artifact was provided directly in the prompt, not produced by me in this session."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u274c **HIGH \u2014 Data Leakage / Contract Breach** \u2014 The API leaks the `customer_id`."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected SELECT, a DTO-mapping snippet, or any replacement handler code. None found. The output only reports the defect and how to demonstrate it."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u2705 **Anti-enumeration:** Lines 23 & 30: both non-existent IDs and out-of-org IDs yield 0 rows, making `invoice` falsy, triggering the exact same 404 response."
+        }
+      ],
+      "notable": "Complete on every item. Only one defect is listed, so severity ranking is trivial: the HIGH label is the only evidence. It also lists a Confirm-these item on requireSession() guaranteeing org_id. The line numbers it cites (17, 34, 5-8, 23, 30) differ from the ones W cites (14, 33, 6-7, 30). The artifact isn't visible to me, so some may be invented."
+    },
+    {
+      "label": "V",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED, and **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED, and **BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence** \u2014 INDEPENDENT, as all logic for the endpoint, query, and response are contained in the provided snippet."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u274c HIGH \u2014 Data Leakage \u2014 The contract explicitly forbids returning `customer_id`, but the query selects `i.customer_id`"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code, a rewritten SELECT, or a DTO mapper. None found. The output only describes the defect and how to demonstrate it."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u2705 Same 404 for missing/other org checked: Unowned/non-existent IDs fail the `WHERE` clause, `db.oneOrNone` returns a falsy value, triggering `if (!invoice) { return res.status(404)... }`."
+        }
+      ],
+      "notable": "Complete. The Independence justification (\"all logic ... contained in the provided snippet\") is about self-containment, not about who produced the artifact, but it still states INDEPENDENT. The Assessment admits it assumes pg-promise-style oneOrNone semantics, which is honest. Its Confirm-these is \"None\". It is the only output that hedges on the DB-library assumption."
+    },
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**VERDICT:** NOT VERIFIED"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING:** yes, due to an unresolved HIGH defect (contract violation/data leakage)."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**INDEPENDENCE:** INDEPENDENT \u2014 Artifact was provided in the prompt and not authored by me."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u274c **HIGH \u2014 Contract Violation / Data Leakage \u2014** The API leaks `customer_id` in the response payload."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code, a rewritten query, or a mapped DTO object. None found. The Actual line only shows the leaked response shape, not a fix."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u2705 **Malformed IDs produce 400, not 500:** Lines 6-7 parse route parameter strictly using `Number()` and `Number.isInteger()`, immediately returning 400 for anything like `\"abc\"` (`NaN`) or floats before execution reaches the database."
+        }
+      ],
+      "notable": "Complete. The Assessment speculates about the producer's motives (\"likely included i.customer_id ... out of habit or confusion with the JOIN clause\"), which is unsupported by the text. It also adds a SQL-injection axis with a receipt. Its cited line numbers (14, 33, 6-7, 30) differ from U's."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict** \u2014 NOT VERIFIED"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING: yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence** \u2014 INDEPENDENT. The data leak is fully visible in the provided source code."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u274c HIGH \u2014 Prohibited data leakage \u2014 The contract strictly forbids `customer_id` from leaving the server"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected implementation, a rewritten SELECT, or a mapping snippet. None found. The Claimed vs actual section only shows the leaked shape."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u2705 **Uniform 404 for missing/foreign org**: `db.oneOrNone` returns `null` if the ID doesn't exist *or* if the `org_id` mismatch filters it out; lines 29-31 map this to a single, indistinguishable 404 response."
+        }
+      ],
+      "notable": "Complete. The Independence justification (\"leak is fully visible\") is really about evidence sufficiency rather than producer independence, but it still gives an explicit INDEPENDENT label. Its receipts are the most compact of the four structured outputs."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "\"the implementation **fails** to strictly meet the contract requirements\" is prose pass/fail. It has per-section \u274c/\u2705/\u26a0\ufe0f marks but no VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED outcome."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line, or any statement that the work is blocked or gated. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line, or any statement about whether the verifier is independent of the producer. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels (HIGH/MED/LOW, critical, etc.) and any ordered defect list. Only \"minor caveat\" on axis 3 appears, and there is no severity ranking of defects."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected implementation or replacement code. None found. Only prose fix directions appear (\"Remove i.customer_id from the SELECT statement, or explicitly map the properties into a new DTO object\"), which is not a rewritten implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"By enforcing `i.org_id = $2` directly in the parameterized database query, the database will return `null` (or equivalent) for both missing invoices and unauthorized invoices. The application identically handles the missing row (`if (!invoice)`) by returning a generic `404 Not Found`\""
+        }
+      ],
+      "notable": "Free-form review with no verifier structure. Its raised concern that an out-of-range int would make the DB throw and give a 500 is a substantive edge case the structured outputs missed, but it is conditional on schema assumptions. The receipts are the weakest of the outputs that have any: they are mechanism descriptions rather than line-cited checks, though they do say how the axis was assessed. The fix advice is prose, not code."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for any verdict (VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED or similar). None found. The output is a refusal."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line. None found."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line. None found."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for any defect list or severity labels. None found; no defects are reported."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code or a rewritten implementation. None found. This is vacuous, since the output does no review at all."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for any clean axis and any receipt of how an axis was checked. None found."
+        }
+      ],
+      "notable": "Refuses a benign code-review request (\"Sorry, I cannot fulfill your request to verify or analyze this specific code snippet\") and gives generic reading suggestions instead. It analyzes nothing. The only checklist credit is item 5, which is vacuous."
+    }
+  ],
+  "methodology_notes": "Item 1: U, V, W and X show only the NOT VERIFIED value and never list the other two states. I credited it because the label comes from the tri-state vocabulary in the item, but a strict reader could say the three-way scheme is never shown. Item 4: U, V, W and X each list a single HIGH defect, so 'ranking' is really severity labeling with nothing to order. I credited the explicit severity label. A strict reader could mark all four absent. Y has no severity labels, so I marked it absent. Item 5: Y's prose fix directions are borderline. I judged them a defect report with remediation pointers, not a handed-back implementation. Item 6: I counted Y's per-axis explanations of how each pass was reached as weak receipts. A stricter judge could reject them for lacking line citations. Item 3: X's and V's Independence justifications talk about the evidence being self-contained rather than about the producer. I credited them because they explicitly state INDEPENDENT. I can't see the artifact, so I did not check the line numbers each output cites."
+}

@@ -1,0 +1,7 @@
+{
+  "fingerprint": "922e8ae758be231c9b42e5ddf3c91f67f774303fb801a58ebf23088d2f6205a2",
+  "target": "gemini-pro",
+  "judge_no": 1,
+  "judge_model": "claude-sonnet-5",
+  "bundle": "judge-in-gemini-pro.md"
+}

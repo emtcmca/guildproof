@@ -65,7 +65,18 @@ DEFAULT_CELLS_DIR = "out-crossmodel"
 CELLS_PER_TARGET = 4
 
 MANIFEST_NAME = "run.json"
-SCHEMA = "guildproof-crossmodel-run/1"
+SCHEMA = "guildproof-crossmodel-run/2"
+# /1 had no `arms` list and implied exactly two: bare, and `system_prompt`. It is still read, and
+# synthesized into the same two-arm shape, so a manifest written before arm C existed keeps working.
+SCHEMA_READABLE = ("guildproof-crossmodel-run/1", "guildproof-crossmodel-run/2")
+
+# The blind labels, assigned in order to a target's cells.
+#
+# The first four are fixed as W, X, Y, Z because the committed 2026-09-20 run's `label-key.csv`
+# uses them, and that key is what its real scorecards are joined on. Extending toward the start
+# of the alphabet keeps that invariant while making room for a third arm. Nothing depends on the
+# letters themselves beyond being stable and carrying no information about the arm.
+LABEL_POOL = ("W", "X", "Y", "Z", "V", "U", "T", "S", "R", "Q", "P", "N")
 
 # The scoring contract, used only to seed a NEW manifest. Once a run has a manifest, the
 # checklist it was scored against travels inside it, so a later reword here cannot silently
@@ -81,8 +92,35 @@ DEFAULT_CHECKLIST = [
     "Gives a receipt for each axis it calls clean: how that axis was actually checked, not just an assertion that it passed.",
 ]
 
-# The four blind labels a target's cells are presented under.
-LABELS = ("W", "X", "Y", "Z")
+def arms_for(manifest):
+    """The arms of this run, as [{id, label, system_prompt}].
+
+    A /1 manifest has no `arms` list and means exactly two: a bare arm and one carrying
+    `system_prompt`. Synthesizing them here rather than migrating every old manifest keeps a run
+    generated an hour ago readable, and keeps the two-arm case from needing boilerplate.
+
+    `system_prompt` of None is the bare arm. There may be more than one reduced arm.
+    """
+    if manifest.get("arms"):
+        return manifest["arms"]
+    return [
+        {"id": "A", "label": "bare", "system_prompt": None},
+        {"id": "B", "label": "full specialist prompt",
+         "system_prompt": manifest["system_prompt"]},
+    ]
+
+
+def cells_for(manifest):
+    """Every (arm_id, rep) this run defines, in a stable order. Length = cells per target."""
+    reps = range(1, manifest["reps"] + 1)
+    return [(arm["id"], rep) for arm in arms_for(manifest) for rep in reps]
+
+
+def labels_for(manifest):
+    n = len(cells_for(manifest))
+    if n > len(LABEL_POOL):
+        raise ValueError(f"run needs {n} blind labels but only {len(LABEL_POOL)} are defined")
+    return LABEL_POOL[:n]
 
 
 # ---------------------------------------------------------------------------------------
@@ -93,28 +131,38 @@ def manifest_path(cells_dir):
     return pathlib.Path(cells_dir) / MANIFEST_NAME
 
 
-def derive_permutation(seed, target_key, reps=2):
-    """Assign the four (arm, rep) cells of one target to the labels W/X/Y/Z, deterministically.
+def derive_permutation(seed, target_key, cells=None, labels=None, reps=2):
+    """Assign one target's (arm, rep) cells to blind labels, deterministically.
 
-    Blinding needs the label to carry no information about the arm, and a per-target
-    permutation so position never correlates with arm across the grid. Both are satisfied by
-    picking one of the 4! orderings from a hash of (seed, target key).
+    Blinding needs the label to carry no information about the arm, and a per-target permutation
+    so position never correlates with arm across the grid. Both are satisfied by picking one of
+    the n! orderings from a hash of (seed, target key).
 
-    DERIVED rather than hand-written on purpose. A hand-written table has one row per target,
-    so adding a target means remembering to add a row, and a missing row is a silent blinding
-    failure rather than an error. This cannot go out of sync with the roster because it is a
-    function of the roster.
+    DERIVED rather than hand-written on purpose. A hand-written table has one row per target, so
+    adding a target — or a third arm — means remembering to add or widen a row, and a missing row
+    is a silent blinding failure rather than an error. This cannot go out of sync with the run
+    because it is a function of the run.
 
     The seed is recorded in the manifest, so the assignment is reproducible and auditable by
-    anyone holding the manifest — which is the property that matters. It is not a secret: the
-    label KEY is what never reaches a judge, and that is enforced by what gets sent, not by
-    hiding the algorithm.
+    anyone holding it — which is the property that matters. It is not a secret: the label KEY is
+    what never reaches a judge, and that is enforced by what gets sent, not by hiding the
+    algorithm.
+
+    `cells` defaults to the two-arm A/B shape so the older two-arm call still works.
     """
-    cells = [(arm, rep) for arm in ("A", "B") for rep in range(1, reps + 1)]
+    if cells is None:
+        cells = [(arm, rep) for arm in ("A", "B") for rep in range(1, reps + 1)]
+    cells = [tuple(c) for c in cells]
+    if labels is None:
+        labels = LABEL_POOL[:len(cells)]
+    if len(labels) != len(cells):
+        raise ValueError(f"{len(labels)} labels for {len(cells)} cells")
+    # Enumerating n! is fine at these sizes (6 cells -> 720) and keeps the choice auditable as
+    # "ordering number k of the sorted list" rather than an opaque shuffle.
     orderings = sorted(itertools.permutations(range(len(cells))))
     h = hashlib.sha256(f"{seed}\x00{target_key}".encode("utf-8")).digest()
     order = orderings[int.from_bytes(h[:8], "big") % len(orderings)]
-    return {LABELS[i]: list(cells[order[i]]) for i in range(len(cells))}
+    return {labels[i]: list(cells[order[i]]) for i in range(len(cells))}
 
 
 def permutations_for(manifest):
@@ -140,8 +188,9 @@ def permutations_for(manifest):
         raise ValueError(
             f"manifest 'labels' must carry either a 'seed' or explicit 'permutations'; got "
             f"{sorted(labels)}. Without one, blinding is undefined and nothing may be scored.")
-    reps = manifest.get("reps", 2)
-    return {t["key"]: derive_permutation(seed, t["key"], reps) for t in manifest["targets"]}
+    cells, labs = cells_for(manifest), labels_for(manifest)
+    return {t["key"]: derive_permutation(seed, t["key"], cells=cells, labels=labs)
+            for t in manifest["targets"]}
 
 
 REQUIRED_KEYS = ("schema", "run_id", "input", "system_prompt", "reps",
@@ -155,11 +204,27 @@ def validate_manifest(manifest, where):
     result from an undefined setup, which is the failure mode this whole harness keeps
     running into.
     """
-    missing = [k for k in REQUIRED_KEYS if k not in manifest]
+    # `system_prompt` is only required on a /1 manifest, where it IS the second arm. A /2 manifest
+    # carries an explicit `arms` list and does not need it.
+    required = [k for k in REQUIRED_KEYS
+                if k != "system_prompt" or not manifest.get("arms")]
+    missing = [k for k in required if k not in manifest]
     if missing:
         raise ValueError(f"{where}: manifest is missing {', '.join(missing)}")
-    if manifest["schema"] != SCHEMA:
-        raise ValueError(f"{where}: schema is {manifest['schema']!r}, expected {SCHEMA!r}")
+    if manifest["schema"] not in SCHEMA_READABLE:
+        raise ValueError(f"{where}: schema is {manifest['schema']!r}, readable: "
+                         f"{', '.join(SCHEMA_READABLE)}")
+    arms = arms_for(manifest)
+    if len(arms) < 2:
+        raise ValueError(f"{where}: a run needs at least two arms to compare; got {len(arms)}")
+    ids = [x["id"] for x in arms]
+    if len(set(ids)) != len(ids):
+        raise ValueError(f"{where}: duplicate arm ids {ids}; cells would collide")
+    if sum(1 for x in arms if not x.get("system_prompt")) != 1:
+        # Exactly one bare arm. Zero means nothing to measure against; two means two arms write
+        # to the same stimulus and differ only by label, which is not a comparison.
+        raise ValueError(f"{where}: expected exactly one arm with no system_prompt, got "
+                         f"{[x['id'] for x in arms if not x.get('system_prompt')]}")
     if not manifest["targets"]:
         raise ValueError(f"{where}: manifest declares no targets")
     for t in manifest["targets"]:

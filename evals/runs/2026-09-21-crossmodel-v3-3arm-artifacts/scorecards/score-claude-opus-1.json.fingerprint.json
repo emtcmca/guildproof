@@ -1,0 +1,7 @@
+{
+  "fingerprint": "95affcec5a1de048a15f428c80dc804edf947667f937e0f53db83e78c97cc193",
+  "target": "claude-opus",
+  "judge_no": 1,
+  "judge_model": "claude-sonnet-5",
+  "bundle": "judge-in-claude-opus.md"
+}

@@ -218,6 +218,44 @@ def t_no_duplicate_config():
           "SHIPPED_TARGETS" in runner and "TARGETS = [" not in runner.replace("SHIPPED_TARGETS = [", ""))
     check("the runner writes the manifest", "cc.write_manifest(" in runner)
 
+    # Neither script may assume exactly two arms. A hardcoded 2 here does not crash and does not
+    # change what runs; it silently MISREPORTS a three-arm run as a two-arm one, which is how a
+    # dry-run came back saying "12 calls, 2 arms" for an 18-call run. Cheap to check, invisible
+    # otherwise.
+    for label, src in (("runner", runner), ("judge", judge)):
+        hard = [ln.strip() for ln in src.splitlines()
+                if ("* 2 *" in ln or "2 arms" in ln or "both arms" in ln
+                    or '("A", "B")' in ln)
+                and not ln.strip().startswith("#")]
+        check(f"{label} does not hardcode two arms", not hard, f"found: {hard[:3]}")
+
+
+def t_sidecars_are_not_artifacts():
+    """A fingerprint sidecar must never be mistaken for the artifact it describes.
+
+    `score-X-1.json.fingerprint.json` matches the glob `score-*.json`, so the sidecars were
+    counted as scorecards: a 6-scorecard run reported "12 scorecards, 6 provably scored" and then
+    listed the six sidecars as unfingerprinted evidence. No tally was wrong, because a sidecar has
+    no "outputs" key, but the provenance line is the part a reader checks.
+    """
+    print("\nSIDECARS ARE NOT ARTIFACTS")
+    judge = (HERE / "judge-crossmodel.py").read_text(encoding="utf-8")
+    check("the scorecard scan excludes sidecars", '.fingerprint.json"' in judge)
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="gp-selftest-"))
+    try:
+        real = tmp / "score-alpha-1.json"
+        real.write_text('{"outputs": []}', encoding="utf-8")
+        cc.write_sidecar(real, "deadbeef", note="selftest")
+        both = sorted(p.name for p in tmp.glob("score-*.json"))
+        check("the naive glob does catch both (this is why the filter exists)", len(both) == 2,
+              str(both))
+        filtered = [p for p in tmp.glob("score-*.json")
+                    if not p.name.endswith(".fingerprint.json")]
+        check("the filter leaves exactly the real scorecard",
+              [p.name for p in filtered] == ["score-alpha-1.json"], str(filtered))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
 
 def t_derived_permutation():
     """A permutation derived from the roster cannot fall out of sync with the roster."""
@@ -226,7 +264,7 @@ def t_derived_permutation():
     check("same seed and target is stable", a == cc.derive_permutation("seed-1", "claude-opus"))
     check("a different seed moves it", a != cc.derive_permutation("seed-2", "claude-opus"))
     check("a different target moves it", a != cc.derive_permutation("seed-1", "gemini-pro"))
-    check("all four labels are used", sorted(a) == list(cc.LABELS))
+    check("all four labels are used", sorted(a) == sorted(cc.LABEL_POOL[:4]))
     cells = sorted(tuple(v) for v in a.values())
     check("every arm/rep cell appears exactly once",
           cells == [("A", 1), ("A", 2), ("B", 1), ("B", 2)], str(cells))
@@ -348,6 +386,7 @@ if __name__ == "__main__":
     t_no_duplicate_config()
     t_resolution()
     t_manifest_validation()
+    t_sidecars_are_not_artifacts()
     t_derived_permutation()
     t_manifest_drives_the_judge()
     t_fingerprints()

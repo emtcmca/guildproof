@@ -1,0 +1,10 @@
+{
+  "fingerprint": "37ab75b10db1aa7898141c6890d017e95097b5d80a0904532aef3cefb6966de8",
+  "model": "gpt-6-astra",
+  "transport": "codex",
+  "arm": "B",
+  "rep": 1,
+  "input_file": "C:\\dev\\promptsmith-wt-launch\\evals\\benchmarks\\fixtures\\v2-invoice-subtle.md",
+  "system_prompt": "agents/verifier.md",
+  "arm_label": "full specialist prompt"
+}

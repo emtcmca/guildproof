@@ -1,0 +1,10 @@
+{
+  "fingerprint": "ae184e2d95c9eb26ed818365467828a8a1ff7e16a6f7035698ac6d7eb27bd79e",
+  "model": "claude-opus-5",
+  "transport": "claude",
+  "arm": "A",
+  "rep": 1,
+  "input_file": "C:\\dev\\promptsmith-wt-launch\\evals\\benchmarks\\fixtures\\v2-invoice-subtle.md",
+  "system_prompt": null,
+  "arm_label": "bare"
+}

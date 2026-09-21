@@ -1,0 +1,10 @@
+{
+  "fingerprint": "f28adb07cee21dc85207a1f8b78d3b3899670167e71619e8db4d0dc8b3097a03",
+  "model": "gemini-3.1-pro-preview",
+  "transport": "gemini",
+  "arm": "C",
+  "rep": 2,
+  "input_file": "C:\\dev\\promptsmith-wt-launch\\evals\\benchmarks\\fixtures\\v2-invoice-subtle.md",
+  "system_prompt": "evals/benchmarks/arms/verifier-output-contract-only.md",
+  "arm_label": "output contract only"
+}

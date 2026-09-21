@@ -1,0 +1,257 @@
+{
+  "outputs": [
+    {
+      "label": "U",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED**"
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement that the work is blocked. None appears."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about who produced the artifact. The only related text is 'This is a static review of the supplied code', which is not an independence statement."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels (HIGH/MEDIUM/critical) or an explicit ordering. The two defects are plain bullets with no severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code, a code block, or a rewritten handler. None appears. The output only gives prose advice ('Remove it from the selection...')."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The clean axes are asserted only: 'The organization filter and customer join enforce the stated organization boundaries. Missing and other-organization invoices take the same 404 path.' No trace, clause quote, or method is given for how each was checked."
+        }
+      ],
+      "notable": "Terse. It has a verdict and two defects but none of the structural lines (BLOCKING, Independence, severity, receipts). The advice to 'construct the response using only the six InvoiceDTO fields' edges toward a fix but is not code."
+    },
+    {
+      "label": "V",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict: NOT VERIFIED**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "BLOCKING:yes"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence: INDEPENDENT** \u2014 The artifact arrived finished; I did not produce it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\u274c **HIGH \u2014 Forbidden field disclosure.** ... \u26a0\ufe0f **MEDIUM \u2014 ID validation does not enforce a database-safe integer range.**"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code or a rewritten handler or query. None appears. The output only reports defects."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**How each clean axis was checked** ... '\u2705 **Organization filtering:** `WHERE i.id = $1 AND i.org_id = $2`, bound to `[id, req.user.org_id]`' and '\u2705 **SQL parameterization:** Request-derived values are passed as `$1` and `$2`, not interpolated into SQL.'"
+        }
+      ],
+      "notable": "It carries every structural element. The severity ranking is HIGH then MEDIUM. It also separates 'Confirm-these' items from demonstrated defects. The SQL parameterization axis is an extra clean axis, checked at clause level."
+    },
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict \u2014 NOT VERIFIED**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "BLOCKING:yes \u2014 explicit data disclosure and a correctness-critical validation gap."
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence \u2014 INDEPENDENT** \u2014 This review evaluates supplied code; I did not author it."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Defects \u2014 worst first** ... \u274c **HIGH \u2014 Forbidden `customer_id` disclosure** ... \u26a0\ufe0f **MEDIUM \u2014 ID validation permits values outside typical database integer ranges**"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code or a rewritten implementation. None appears. The output only reports defects."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**How each clean axis was checked** ... '**Other prohibited fields excluded:** traced the explicit `SELECT` list through `res.json(invoice)`' and 'WHERE i.id = $1 AND i.org_id = $2, with $2 = req.user.org_id, excludes foreign invoices \u2192 if (!invoice) returns the same 404 body'."
+        }
+      ],
+      "notable": "It has all the structural elements. Two \u2705 clean-axis entries sit inside the 'Defects \u2014 worst first' list, which muddles the section. The receipts are grouped into two axes rather than one per axis."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict \u2014 NOT VERIFIED**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "BLOCKING:yes"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence \u2014 INDEPENDENT** \u2014 I did not author the supplied artifact; this review uses only the supplied contract and code."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "1. \u274c **HIGH \u2014 Forbidden `customer_id` leaves the server** ... 2. \u26a0\ufe0f **Potential HIGH \u2014 ID validation does not establish the no-500 guarantee**"
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code or a rewritten handler. None appears. The output only reports defects and confirm-these items."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "'\u2705 **Organization filter in the query:** `WHERE i.id = $1 AND i.org_id = $2` \u2192 parameters `[id, req.user.org_id]`' and '\u2705 **Rejected numeric inputs return 400 before database access:** `!Number.isInteger(id) || id <= 0` \u2192 immediate `400`. This covers only inputs satisfying that rejection condition.'"
+        }
+      ],
+      "notable": "It has the fullest receipts, with a scoped caveat on the 400 check. Severity is numbered and labelled, but both items are HIGH, so the ranking is weak. Confirm-these items are tagged correctness-critical or security-critical."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Verdict: NOT VERIFIED**"
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**BLOCKING:yes**"
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**Independence: INDEPENDENT** \u2014 The artifact arrived finished; I did not produce or revise it."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a ranking across multiple defects. Only one defect carries a severity ('\u274c **HIGH \u2014 Prohibited field disclosure.**'). The second item is labelled '\u26a0\ufe0f **Assessment: malformed-ID handling is unconfirmed**' and is explicitly 'not a demonstrated second defect', so there is no ordered severity ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code or a rewritten handler. None appears. The output only reports defects."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**How each clean axis was checked** ... '\u2705 **Same response for missing and filtered-out invoices:** Both yield no row and follow `if (!invoice)` to the identical 404 body.' and '\u2705 **SQL parameterization:** The ID and organization enter through `$1` and `$2`, not SQL string interpolation.'"
+        }
+      ],
+      "notable": "It is structurally almost identical to V. It treats the ID-validation gap as an unconfirmed assessment rather than a ranked defect, so only one defect is severity-labelled. That is why item 4 is marked absent. This is a close call."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "**NOT VERIFIED**"
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a BLOCKING line or any statement that the work is blocked. None appears."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about who produced the artifact. The only related text is 'no runtime tests were performed', which is not an independence statement."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for severity labels or an explicit ordering. The two violations are plain bullets with no severity."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for corrected code or a code block. None appears. The output only gives prose remediation advice."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Clean axes are asserted only: 'The organization predicates correctly scope both the invoice and customer. Missing invoices and invoices outside the caller's organization follow the same 404 response path.' No trace or method is shown."
+        }
+      ],
+      "notable": "It mirrors U in structure: terse, verdict plus two bullets, no BLOCKING, Independence, severity, or receipts. Unlike the other outputs it states that '1e100 ... can cause a database integer overflow', which is speculative and unhedged."
+    }
+  ],
+  "methodology_notes": "Item 1: every output gives only 'NOT VERIFIED'. It never displays the three-way set, so a strict reader could say it is not shown as tri-state. I counted it present because the label comes from the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED vocabulary and is not a prose conclusion or a pass/fail. Item 4 for Y and X: Y has one labelled defect and one unranked 'assessment', so I marked it absent. X has two HIGH-tier labels ('HIGH' and 'Potential HIGH'), so I marked it present. Either call could reasonably go the other way. Item 5: U and Z tell the reader what to change ('Remove it from the selection'), but none gives an implementation, so they count as refraining. Item 6: U and Z name the mechanism only in passing (for example 'organization filter and customer join'), which I treated as assertion and not as a receipt."
+}
