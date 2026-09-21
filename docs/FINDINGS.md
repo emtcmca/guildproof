@@ -3,9 +3,28 @@
 Every figure in this document traces to a committed run doc or scorecard, cited inline. Where a
 figure does not exist, this document says so rather than estimating one.
 
+> **⚠ The headline claim of Section 2 was reduced on 2026-09-21, and the figures are kept in place
+> deliberately.** A reduced third arm carrying **only** the `## Output contract` section of
+> `agents/verifier.md` scored 72/72, against the full prompt's 71/72 and a bare arm's 18/72. **The
+> output contract accounts for the entire measured gap**, so every figure below that compares "bare"
+> against "with guildproof" is properly read as *bare against a stated output contract*, not as
+> evidence about the specialist prompt as a whole. Nothing has been deleted: the arithmetic is
+> unchanged and still re-derivable from the committed scorecards, and what changed is the
+> attribution. Run doc:
+> [`evals/runs/2026-09-21-crossmodel-v3-3arm.md`](../evals/runs/2026-09-21-crossmodel-v3-3arm.md).
+> Full treatment in [Section 2](#the-third-arm-and-what-it-took-away).
+>
+> **Two structural results are unaffected**, because they measure whether a named line is present
+> rather than whether a judgment was good: an explicit `BLOCKING:` line and an explicit
+> `Independence:` line each scored **0 of 48** unprompted and **48 of 48** prompted.
+
 Terminology used throughout: a **cell** is one model output. A **scoring** is one judge marking one
 checklist item on one cell. Two judges score every cell, so a per-item denominator is twice the
-number of runs behind it.
+number of runs behind it. **Note that two different populations in this document are both sized
+288**: Section 2's per-arm scoring count (6 items x 24 runs x 2 judges) and the judge-agreement
+population used at "284 of 288 cells agreed" (6 items x 48 cells, spanning *both* arms). They
+coincide by arithmetic accident. A disagreement rate computed against the wrong one will be off by
+a factor of two.
 
 ---
 
@@ -16,7 +35,7 @@ This table is first on purpose. It comes from
 
 | Feature | Benchmark | Status | Detail |
 |---|---|---|---|
-| `verifier` | B2, B3, cross-model | **Measured.** The only component measured as durable: its gap does not close as models improve. | [Section 2](#2-the-verifier-study), [Section 3](#3-the-specialist-benchmarks-b2) |
+| `verifier` | B2, B3, cross-model, 3-arm | **Measured, and narrowed by its own control.** A reduced arm carrying only the output contract reproduced the whole gap, so what is measured is the **contract**, not the specialist prompt. The bare-arm gap did not visibly close across the 12 models tested. | [Section 2](#2-the-verifier-study), [the third arm](#the-third-arm-and-what-it-took-away), [Section 3](#3-the-specialist-benchmarks-b2) |
 | `debugger`, `security-review`, `api-reviewer` | B2 | **Measured, and it cuts against them.** Bare frontier models score well on their own checklists with no prompt. These prompts compete with model progress. | [Section 3](#3-the-specialist-benchmarks-b2) |
 | `/sharpen` | B1 | **Not run.** The oldest and most central claim in this repo has never been tested. | [Section 7](#7-what-is-not-measured-at-all) |
 | `/orchestrate` | B5 | **Not measured.** Four eval cases and one live seven-agent run exist. That is a demonstration. | [Section 7](#7-what-is-not-measured-at-all) |
@@ -72,6 +91,12 @@ One artifact: a well-built invoice handler that returns `customer_id`, which its
 forbids. Sent verbatim to both arms. Arm A is the bare model. Arm B gets `agents/verifier.md` as its
 system prompt. k = 2 per arm per model.
 
+**This run had two arms, and that is its central design weakness.** With only a bare arm and a full
+prompt, nothing separates "the method worked" from "naming the required sections worked." A third arm
+was added on 2026-09-21 on a 3-target subset, and it settled that question against the prompt — see
+[the third arm](#the-third-arm-and-what-it-took-away). Read everything in this section with that
+result in hand.
+
 Every model id is pinned. An alias resolves to whatever a vendor currently points at, which silently
 changes what a published number was measured on.
 
@@ -91,22 +116,38 @@ cell, scored by two judges, gives 288 scorings per arm.
 
 ### Result
 
+**The result that survived its own control, and the one to read first:**
+
+**Two behaviors scored zero out of forty-eight.** Across twelve models and three vendors, not one
+unprompted run stated whether the work was blocked, and not one stated whether its review was
+independent of whoever wrote the code. Prompted, every one of the forty-eight did both.
+
+These two are the most trustworthy rows in the study and the least sensitive to anything the third
+arm changed, because each asks only whether a named line is present — not whether a judgment was
+sound. They are also the two an otherwise capable model will not produce on its own.
+
+**The aggregate, which is a weaker claim than it looks:**
+
 **Bare: 50/288 scorings (17%). With guildproof: 282/288 scorings (98%).**
+
+Read that as *bare against a stated output contract*. A reduced arm carrying only the contract
+reproduced all of it — see [the third arm](#the-third-arm-and-what-it-took-away) below — so it is
+not evidence about method, adversarial stance, or guardrails. It is kept here because it is what was
+measured and it remains re-derivable from the committed scorecards.
 
 Per item, all 12 models. Each denominator is 48 scorings, being 24 runs scored twice.
 
-| Behavior | Bare | With guildproof |
+| Behavior | Bare | With the full prompt |
 |---|---|---|
-| tri-state verdict | 14/48 (29%) | 48/48 (100%) |
 | explicit BLOCKING line | **0/48 (0%)** | 48/48 (100%) |
 | explicit Independence line | **0/48 (0%)** | 48/48 (100%) |
+| tri-state verdict | 14/48 (29%) | 48/48 (100%) |
 | defects ranked by severity | 4/48 (8%) | 46/48 (96%) |
 | does not rewrite the code | 16/48 (33%) | 46/48 (96%) |
 | receipt for each clean axis | 16/48 (33%) | 46/48 (96%) |
 
-Two behaviors scored zero out of forty-eight. Across twelve models and three vendors, not one
-unprompted run stated whether the work was blocked, and not one stated whether its review was
-independent of whoever wrote the code.
+The two zero rows are listed first here as of 2026-09-21. They previously sat third and fourth,
+below the tri-state row, which put the study's most defensible finding underneath its least.
 
 ### Does the gap close as models improve?
 
@@ -119,12 +160,28 @@ Each cell below is one model's 24 scorings.
 | Anthropic tier | 8% to 33% to **17%** | 83%, 100%, 100% |
 | `gemini-3.1-pro-preview` (older, larger) | 25% | 100% |
 
-No. The bare-arm score has no relationship to model strength. It scatters between 0% and 33% with no
-trend in any of the three families. `gemini-3.7-flash` scored 0 of 24. `gpt-6-astra`, the newest
-OpenAI model tested, scored below `gpt-5.5`. `claude-opus-5` scored below `claude-sonnet-5`.
+**Not across the twelve models tested.** The bare-arm score scatters between 0% and 33% with no
+visible trend in any of the three families. `gemini-3.7-flash` scored 0 of 24. `gpt-6-astra`, the
+newest OpenAI model tested, scored below `gpt-5.5`. `claude-opus-5` scored below `claude-sonnet-5`.
 
-This is a stronger result than a narrowing gap. It is not a deficit that model progress is slowly
-erasing. It is a behavior models do not exhibit and show no sign of trending toward.
+**Narrowed 2026-09-21, because the previous wording claimed more than this design can support.** It
+read: *"The bare-arm score has no relationship to model strength… This is a stronger result than a
+narrowing gap. It is not a deficit that model progress is slowly erasing. It is a behavior models do
+not exhibit and show no sign of trending toward."* That is a forward-looking claim built from twelve
+cross-sectional points, and an adversarial review was right to flag it. Three corrections:
+
+- **No trend observed is not a trend that will not appear.** Absence of a visible slope in twelve
+  pinned cells is weak evidence about the next model release, and none about releases after it.
+- **Sibling models are not repeated measures of one capability.** The control pair below is real
+  evidence about noise; it is not a variance estimate for a capability.
+- **The control pair cuts both ways, and the original text only used one edge.** If within-generation
+  spread exceeds every between-generation step, this instrument is **underpowered to detect a
+  generation-level trend** — which is not the same as establishing there is none. Both readings are
+  available and the honest one names the power limit.
+
+What the data supports is narrower and still worth acting on: the gap is not *visibly* closing on its
+own across these twelve models, so waiting for a better model is not a plan. It is not a claim that a
+future model cannot close it.
 
 ### The same-generation control pair
 
@@ -132,26 +189,105 @@ erasing. It is a behavior models do not exhibit and show no sign of trending tow
 
 That 25-point spread between two models of the same generation is wider than any
 generation-to-generation movement anywhere in the study. It is direct evidence that variation in the
-bare arm is noise rather than capability, and it is the reason a two-model comparison would have
-proved nothing. Anyone reading a two-point result in this space should ask for this control.
+bare arm is substantially noise rather than capability, and it is the reason a two-model comparison
+would have proved nothing. Anyone reading a two-point result in this space should ask for this
+control.
+
+**Read the implication honestly, though:** if the noise floor is wider than every signal in the
+ladder above, then the ladder cannot resolve a trend in either direction. That is a statement about
+this instrument's resolution, not a finding about models.
 
 ### Contract shape versus judgment
 
 Four of the six items are satisfiable by emitting a labelled section the prompt asks for. Two require
 the model to do or refrain from something substantive.
 
-| Item type | Bare | With guildproof | Delta |
+| Item type | Bare | With the full prompt | Delta |
 |---|---|---|---|
-| contract shape (items 1-4) | 9% | 99% | +90 pts |
-| judgment and restraint (items 5-6) | **33%** | **96%** | **+62 pts** |
+| contract shape (items 1-4) | 18/192 (9.4%) | 190/192 (99.0%) | +89.6 pts |
+| judgment and restraint (items 5-6) | **32/96 (33.3%)** | **92/96 (95.8%)** | **+62.5 pts** |
 
-Quoting the headline without this split quotes a number that is substantially instruction-following.
-The defensible figure is the judgment delta: +62 points.
+Fractions are shown because the rounded version of this table disagreed with itself: it printed
+`33%` and `96%` with a delta of `+62`, and 96 − 33 is 63. The unrounded delta is 62.5. Corrected
+2026-09-21.
+
+Quoting the aggregate without this split quotes a number that is substantially instruction-following.
+**This section used to end by calling the judgment delta "the defensible figure." That is no longer
+true, and the next section is why.**
+
+### The third arm, and what it took away
+
+On 2026-09-21 a third arm was run to answer the obvious objection: *how much of this is bought by
+simply naming the sections the output must contain?*
+
+Arm C carried **only** the `## Output contract` section of `agents/verifier.md`, plus one neutral
+framing sentence. It dropped Objective, Operating principles, Inputs, Method, Constraints /
+guardrails, and When unsure. It was extracted mechanically from the shipping file by
+[`make-arm-prompts.py`](../evals/harness/make-arm-prompts.py) rather than written by hand, so it
+cannot have been tuned to the result.
+
+The run used three targets, one per vendor at each vendor's frontier tier, with k=2 per arm. That is
+18 cells, scored by a pair of blinded `claude-sonnet-5` judges per target. Inter-judge agreement was
+107/108 (99%), Cohen's κ 0.98 — which again says the judges agreed, not that they were right.
+
+Three arms:
+
+| Arm | What it carried | Score |
+|---|---|---|
+| A | bare model, no system prompt | **18/72 (25%)** |
+| B | the full `verifier.md` prompt | **71/72 (99%)** |
+| C | **the output contract only** | **72/72 (100%)** |
+
+**Arm C matched arm B, and edged it by one cell.** On this checklist the output contract buys the
+entire measured gap and the rest of the prompt adds nothing measurable.
+
+**It also took the judgment delta with it.** The pre-registered prediction, recorded before any cell
+ran, was that arm C would score on items 1, 2, 3, 4 and 6 but **not** item 5 — *does not rewrite the
+code* — because item 5 is the one scored behavior that lives in `## Constraints / guardrails`, which
+arm C never received. **The prediction failed.** Arm C scored 4/4 on item 5 on all three targets,
+having never been told not to rewrite.
+
+The mechanism is visible in the cells and is the one place this run says something about design
+rather than about measurement: an output contract demanding *Defects*, *Claimed vs. actual*,
+*Confirm-these* and a per-axis receipt **leaves no slot for a rewrite**. Structure forbade the
+behavior a guardrail was written to forbid. On `claude-opus-5` the bare arm scored 0/4 on item 5 — it
+did hand back corrected code — and both prompted arms scored 4/4, so the effect is real on this
+input rather than an artifact of models that already refrain.
+
+**What this does not license:**
+
+- **It does not mean the checklist was wrong.** It means the checklist measures output *structure*,
+  which Section 6 has always said, and an output contract is the instrument that produces output
+  structure. In hindsight the result is close to tautological — and a tautology that took a third arm
+  to expose was doing real work as a headline number.
+- **It does not show the rest of the prompt is worthless.** It shows the rest has **no measured
+  effect**, which is weaker. Method, adversarial stance and guardrails would have to pay off in
+  *defect quality*: finding a real defect, ranking it correctly, refusing a plausible-but-wrong
+  refutation. **Nothing here measures that**, and detection never discriminated either — every cell
+  in the two-arm study found the planted leak in both arms.
+- **Arm C is a subset of arm B**, so C ≈ B is unsurprising in one direction. The finding is that B's
+  *additional* content added nothing, not that two unrelated prompts tied.
+- **Ceiling effect.** B and C are both at or within one cell of the maximum, so this run cannot rank
+  them. It can only say C is not worse.
+- **3 targets, not 12.** The twelve-target roster was not re-run under three arms. Arm A's 25% here
+  sits above the twelve-target run's 17%, consistent with three frontier models being the easiest
+  cases for a bare arm.
+
+**And the part worth recording about process, not results:** the refutation was already in this
+document. [the first item under "Results that cut against the verifier claim"](#results-that-cut-against-the-verifier-claim)
+said detection is not the differentiator, and item 4 said four of six items are arguably
+instruction-following. Both were published **26 hours before the third arm ran**. A caveat list
+absorbed the finding while the headline stood eighty-five lines above it. Writing a limitation down
+is not the same as acting on it.
+
+Full run doc, including the falsified prediction and the two harness defects found while running it:
+[`evals/runs/2026-09-21-crossmodel-v3-3arm.md`](../evals/runs/2026-09-21-crossmodel-v3-3arm.md).
 
 ### What the judges disagreed about
 
-Cohen's kappa = 0.97, with 284 of 288 cells agreed and judge present-rates of 0.58 and 0.57. All four
-splits:
+Cohen's kappa = 0.97, with 284 of 288 cells agreed and judge present-rates of 0.58 and 0.57. **This
+288 is the judge-agreement population — 6 items x 48 cells, spanning both arms — not the 288
+scorings-per-arm used in the headline above.** All four splits:
 
 | Target | Output | Arm | Item | judge1 / judge2 |
 |---|---|---|---|---|
@@ -168,18 +304,35 @@ closest to the line on both contested items.
 A high kappa was treated as a warning sign rather than a reassurance.
 [Section 5](#5-what-we-got-wrong-and-how-we-caught-it) explains why.
 
-### Results that cut against guildproof
+**And the distinction this document went too long without naming: κ measures RELIABILITY, not
+VALIDITY.** It says two judges applied the same ruler the same way. It says nothing about whether the
+ruler measured the thing the headline claimed. **A rubric can be highly reliable and weakly valid at
+the same time**, and κ cannot tell you which you have — worse, on a structural checklist the two pull
+in opposite directions, because a high κ partly means the scored thing was *unambiguous*, which is
+another way of saying *formal*. κ 0.97 was read here as reassurance about the result. It was actually
+a signal about the rubric, and the third arm is what that signal was pointing at. Nothing in this
+repo computed validity about itself until a reduced arm was run.
+
+### Results that cut against the verifier claim
 
 Per the house rules, these publish with the same prominence as the wins.
 
-1. **`claude-haiku-4-5-20251001` prompted arm: 20/24 scorings.** The only target well off ceiling.
-   The verifier prompt is weakest on the smallest model, which is also where a user is most likely to
-   be relying on it to compensate.
-2. **`gemini-3.6-flash`: 23/24. `gpt-5.6-sol`: 23/24.** The prompt is not a guarantee.
-3. **Detection is not the differentiator.** All 48 cells identified the `customer_id` leak, in both
+**These two are listed first as of 2026-09-21, because they were the study's own refutation and they
+sat at the bottom of this list for 26 hours while the headline stood above them.**
+
+1. **Detection is not the differentiator.** All 48 cells identified the `customer_id` leak, in both
    arms, on every model including Haiku. This tool does not help a model see a defect. It changes
    what the model does with one it has already seen.
-4. **Four of the six items are arguably instruction-following.** See the split above.
+2. **Four of the six items are arguably instruction-following.** See the split above — and then see
+   [the third arm](#the-third-arm-and-what-it-took-away), which found that the other two are as well,
+   on this input. Together these two bullets say the measured effect could be structural rather than
+   methodological, which is exactly what the reduced arm went on to confirm. **They were written
+   down, numbered, and published before the run that acted on them.** Recording a limitation is not
+   the same as treating it as a blocker, and that gap is the most useful thing in this document.
+3. **`claude-haiku-4-5-20251001` prompted arm: 20/24 scorings.** The only target well off ceiling.
+   The prompt is weakest on the smallest model, which is also where a user is most likely to be
+   relying on it to compensate.
+4. **`gemini-3.6-flash`: 23/24. `gpt-5.6-sol`: 23/24.** The prompt is not a guarantee.
 
 ### An earlier run reached the same conclusion by a weaker method
 
@@ -358,7 +511,7 @@ The generosity check came back clean. The Opus judge marked items present 79% of
 Sonnet judge 76%, a 3-point gap. If a same-model judge were flattering outputs from its own model,
 this is where it would show.
 
-### Results that cut against guildproof
+### Results that cut against the specialist prompts
 
 **1. `api-reviewer` lost two of its three behaviors at the small tier.** The bare model reviewed the
 contract in 4 of 4 scorings against the specialist's 3 of 4, and flagged breaking changes in 2 of 4
@@ -573,6 +726,28 @@ in [Section 2](#2-the-verifier-study).
 
 Consolidated across every study above.
 
+### Construct validity, and what the rubric cannot see
+
+Added 2026-09-21, after a reduced arm showed this was the binding limit on every number above.
+
+- **The checklist scores output STRUCTURE, so a structural instrument is sufficient to max it.** Items
+  were selected for "behaviors a bare model tends to skip", every item had to be provable by quoting
+  the output, the judge was given no answer key, and the whole study ran on a single planted defect
+  every model caught. Those four choices are individually reasonable and jointly leave **structure as
+  the only variance in the data** — so a discriminating rubric had to follow form, whether or not
+  anyone intended it. The third arm did not reveal a mistake in the scoring; it revealed what the
+  scoring had always been measuring.
+- **A rubric can be highly reliable and weakly valid, and κ cannot distinguish them.** κ 0.97 was read
+  here as reassurance about the result. It is a statement about the ruler: high agreement partly means
+  the scored thing was unambiguous. **Nothing in this harness computed validity about itself** until an
+  arm was removed and re-run.
+- **An accuracy audit will not find a validity defect.** Ten transport bugs and five ruler defects in
+  this repo were all found by asking *is this computed correctly?* None was found by asking *does this
+  measure the claim?* Those are different questions and only the second one caught this.
+- **A reduced arm is now required before any prompt claim is published here.** Only `verifier` has one.
+  Every B2 figure in Section 3 is therefore open to the same objection, and none of it has been
+  controlled that way yet.
+
 ### Sample size and breadth
 
 - **One artifact and one defect type in the cross-model study.** Twelve models is breadth across models,
@@ -589,11 +764,24 @@ Consolidated across every study above.
 
 ### The judge
 
-- **Every judge is a Claude model**, scoring Claude, GPT and Gemini outputs. Judge choice was measured
+- **Every judge is a Claude model**, scoring Claude, GPT and Gemini outputs. Judge choice was compared
   rather than assumed: against a two-Opus consensus over 69 cells, Sonnet scored Cohen's kappa 0.68 while
   Haiku scored 0.51 with a bias that flipped direction depending on the specialist. That is why
   `claude-sonnet-5` is the pinned judge in the cross-model study and in B4. A non-Claude judge would be a
   stronger design and is not yet calibrated.
+  - **State the limit of that selection plainly, because the original wording did not.** It said judge
+    choice was "measured," which overstates it. What was measured is **agreement with a Claude consensus**,
+    and agreement with a consensus is not accuracy — there is no ground truth anywhere in that chain, so a
+    judge that agrees with Opus and a judge that is right are indistinguishable by this procedure. If the
+    consensus is systematically wrong on an item, the selection rule actively prefers the judge that
+    reproduces the error. **The honest statement is that Sonnet tracks a Claude consensus more closely
+    than Haiku does, and that is the whole of it.** An answer key would settle it; none exists yet, and
+    building one is the outstanding work named in [Section 7](#7-what-is-not-measured-at-all).
+  - Those κ figures (0.68 / 0.51) come from a calibration exercise whose **scorecards are not committed**,
+    so unlike every other number in this document they cannot be re-derived from this repo. Treat them as
+    a recorded observation, not as evidence. Note also that κ 0.68 appears twice in this document for two
+    different measurements — this one, and the frontier-tier Opus-versus-Sonnet agreement in Section 3 —
+    which is a coincidence and not one statistic restated.
 - **In B2 the judges are a different tier than the subjects but the same family** at the small tier (Opus
   judging Haiku), and at the frontier tier judge 1 is the same model as the subjects. The generosity check
   in [Section 3](#3-the-specialist-benchmarks-b2) is what makes the latter defensible, and judge 2 is a
@@ -652,6 +840,18 @@ judges recorded in guildproof-arm outputs.
 
 ## 7. What is not measured at all
 
+- **DEFECT QUALITY. Nothing in this repo measures it, and it is now the most important gap.** Every
+  number above scores whether a behavior is *present*. None scores whether the right defect was found,
+  whether it was ranked correctly, or whether a plausible-but-wrong refutation was refused. That is
+  precisely where method, adversarial stance and guardrails would have to pay off, and it is precisely
+  what [the third arm](#the-third-arm-and-what-it-took-away) showed the current checklist cannot see.
+  Closing it needs a **defect corpus**: several defect classes with ground truth per fixture, plus a
+  clean artifact as a false-positive control, so a run can be wrong in both directions. Until that
+  exists, no claim here distinguishes a good review from a well-formatted one.
+- **An answer key, anywhere.** No study above has one. Judges are scored against each other, and the
+  pinned judge was selected by agreement with a Claude consensus rather than against ground truth. Every
+  agreement statistic in this document inherits that limit.
+- **A reduced arm for anything except `verifier`.** See [Section 6](#construct-validity-and-what-the-rubric-cannot-see).
 - **`/sharpen`, via B1.** Never run. The oldest and most central claim in this repo has never been tested.
   Tasks and hidden contracts are written and committed in
   [`evals/benchmarks/b1-tasks.md`](../evals/benchmarks/b1-tasks.md), dated 2026-09-19, with clause
@@ -673,7 +873,9 @@ judges recorded in guildproof-arm outputs.
   shape that is not the product. Measuring orchestration is benchmark B5. The other 34 cases were judged;
   see the run doc. Note the prior 2026-07-21 result of 36 PASS / 1 WEAK / 0 FAIL is not comparable to it:
   that run was judged inside the producing session, and PASS is close to unreachable under an independent
-  adversarial judge.
+  adversarial judge. **The case count also differs between those two runs** — 37 then, 38 now, because
+  case 41 (the planted-leak verifier fixture) was added afterwards and the numbering skips 38 through 40.
+  So the denominators differ too, on top of the judging change.
 - **Four of B2's eight inputs**, one per specialist pair, have not run at either tier.
 
 ---
@@ -736,10 +938,19 @@ To re-score our committed run instead of your own, name it:
 python evals/harness/judge-crossmodel.py --tabulate --cells evals/runs/2026-09-20-crossmodel-v2-artifacts
 ```
 
-That reproduces the table in [Section 2](#2-the-verifier-study) from the committed scorecards
-without a single model call. It will also tell you that all 24 of those scorecards predate fingerprinting,
-so the harness cannot itself prove which bundles they scored — which is true, and better said than left
-for you to wonder about.
+That reproduces the per-item figures in [Section 2](#2-the-verifier-study) from the committed scorecards without a
+single model call. Two notes so the output is not surprising: it prints the arms as the run's own
+`run.json` names them, which is the two-arm vocabulary this run was recorded under, and the
+**re-attribution above is editorial rather than arithmetic** — the tool reproduces the numbers, not the
+reading of them. It will also tell you that all 24 of those scorecards predate fingerprinting, so the
+harness cannot itself prove which bundles they scored — which is true, and better said than left for
+you to wonder about.
+
+The three-arm run re-derives the same way from its own directory:
+
+```bash
+python evals/harness/judge-crossmodel.py --tabulate --cells evals/runs/2026-09-21-crossmodel-v3-3arm-artifacts
+```
 
 ### The release gate
 

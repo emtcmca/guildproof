@@ -101,7 +101,7 @@ It is deliberately uncomfortable in places. Keeping it accurate is cheaper than 
 
 | Feature | Benchmark | Status |
 |---|---|---|
-| `verifier` | B2, B3 | **Measured.** The gap does not close as models improve: bare arms moved 8% to 13% across tiers while other specialists moved 10% to 75%. |
+| `verifier` | B2, B3, cross-model, 3-arm | **Measured, then narrowed by its own control.** A reduced third arm carrying only the `## Output contract` section scored 72/72 against the full prompt's 71/72, so the measured advantage belongs to the **output contract**, not to the rest of the prompt. Bare arms moved only 8% to 13% across tiers while other specialists moved 10% to 75%, so the gap did not visibly close across the models tested — but *no trend observed* is not *no trend*. |
 | `debugger`, `security-review`, `api-reviewer` | B2 | **Measured, and it cuts against them.** Bare frontier models scored 75%, 81% and 83% on their own checklists. These prompts are competing with model progress. |
 | `/sharpen` | **B1** | **Not run.** The oldest and most central claim in this repo has never been tested. |
 | `/orchestrate` | **B5, below** | **Not designed until now.** Four eval cases and one live seven-agent run exist. That is a demonstration, not a measurement. |
@@ -114,7 +114,15 @@ It is deliberately uncomfortable in places. Keeping it accurate is cheaper than 
 
 For each feature, ask: **does a better model do this for free?** A feature whose advantage shrinks
 every model release is a convenience with a shelf life. One whose advantage holds is a durable
-asset. The verifier is the only component measured as durable so far.
+asset. The verifier is the only component whose bare-arm gap has been tested that way, and across the
+models tested it did not visibly close.
+
+**Durability is not the only question, and treating it as the only one is how this repo published an
+over-attributed headline.** A feature can survive the durability test and still fail a second one:
+**is the effect coming from the part of the prompt you think it is?** The verifier passed the first
+and failed the second — a reduced arm carrying only its output contract reproduced the whole gap. So
+the durability question now has a sibling that is asked at the same time: **does a cheaper version of
+this prompt do the same thing?** A claim that has not answered both is not publishable here.
 
 **This is a question about what to CLAIM, not about what to ship.** A command that a strong model
 could partly do unprompted is still worth having: it is repeatable, it has a fixed output shape,
@@ -189,10 +197,14 @@ Then, and only then:
 1. **B1.** It tests the repo's original thesis, and it is the only benchmark that could give
    guildproof a second measured leg. Write the contracts first and publish whatever comes back.
    The verifier result is strong enough that B1 does not need to succeed. It needs to be known.
-1b. **A bare arm for the numbered suite**, and a third arm for the verifier study carrying only a
-    short output contract. The first makes the suite interpretable at all; the second tests how
-    much of the measured advantage is bought by naming the required sections rather than by the
-    rest of the prompt. Both were proposed independently by the Codex review.
+1b. **A bare arm for the numbered suite.** Still open, and it is what makes the suite interpretable
+    at all. ~~And a third arm for the verifier study carrying only a short output contract.~~
+    **The third arm RAN on 2026-09-21 and answered the question against the prompt:** carrying only
+    the `## Output contract` section scored 72/72 against the full prompt's 71/72 and a bare arm's
+    18/72, so naming the required sections buys the entire measured advantage. Both were proposed
+    independently by the Codex review, and the second one cost this repo its headline claim, which is
+    the strongest argument available for taking outside review seriously.
+    Run: [`../runs/2026-09-21-crossmodel-v3-3arm.md`](../runs/2026-09-21-crossmodel-v3-3arm.md).
 2. **B4** at the release tag, for the six known-bad fixtures.
 3. **B5**, because `/orchestrate` is advertised prominently and carries no measurement.
 4. Remaining B2 inputs across the pinned model matrix.
