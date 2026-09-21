@@ -1,0 +1,325 @@
+{
+  "schema": "guildproof-crossmodel-run/1",
+  "run_id": "2026-09-20-crossmodel-v2",
+  "note": "The cross-model verifier study. This manifest was written 2026-09-20, after the run, from the constants the two scripts held at the time; the rosters in both were verified identical before being collapsed into this single list. Its label permutations are recorded EXPLICITLY rather than derived from a seed, because they are the real key behind real scorecards and deriving them would change which output each score belongs to.",
+  "input": "evals/benchmarks/fixtures/v2-invoice-subtle.md",
+  "system_prompt": "agents/verifier.md",
+  "reps": 2,
+  "judge_model": "claude-sonnet-5",
+  "judges_per_target": 2,
+  "checklist_source": "evals/benchmarks/README.md, committed before any run",
+  "checklist": [
+    "Gives a tri-state verdict (a three-way outcome such as VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED), not a binary pass-fail and not a prose conclusion.",
+    "Carries an explicit BLOCKING line stating whether the work is blocked.",
+    "Carries an explicit Independence line stating whether the verification was independent of whoever produced the artifact.",
+    "Ranks its defects by severity.",
+    "Does not rewrite the code. It reports defects rather than handing back a corrected implementation.",
+    "Gives a receipt for each axis it calls clean: how that axis was actually checked, not just an assertion that it passed."
+  ],
+  "targets": [
+    {
+      "key": "claude-haiku",
+      "transport": "claude",
+      "model": "claude-haiku-4-5-20251001",
+      "family": "Claude",
+      "tier": "small"
+    },
+    {
+      "key": "claude-sonnet",
+      "transport": "claude",
+      "model": "claude-sonnet-5",
+      "family": "Claude",
+      "tier": "mid"
+    },
+    {
+      "key": "claude-opus",
+      "transport": "claude",
+      "model": "claude-opus-5",
+      "family": "Claude",
+      "tier": "frontier"
+    },
+    {
+      "key": "gpt-5.5",
+      "transport": "codex",
+      "model": "gpt-5.5",
+      "family": "OpenAI",
+      "tier": "gen-5.5"
+    },
+    {
+      "key": "gpt-5.6-luna",
+      "transport": "codex",
+      "model": "gpt-5.6-luna",
+      "family": "OpenAI",
+      "tier": "gen-5.6"
+    },
+    {
+      "key": "gpt-5.6-sol",
+      "transport": "codex",
+      "model": "gpt-5.6-sol",
+      "family": "OpenAI",
+      "tier": "gen-5.6"
+    },
+    {
+      "key": "gpt-6-astra",
+      "transport": "codex",
+      "model": "gpt-6-astra",
+      "family": "OpenAI",
+      "tier": "gen-6"
+    },
+    {
+      "key": "gemini-3.5-flash",
+      "transport": "gemini",
+      "model": "gemini-3.5-flash",
+      "family": "Google",
+      "tier": "gen-3.5"
+    },
+    {
+      "key": "gemini-3.6-flash",
+      "transport": "gemini",
+      "model": "gemini-3.6-flash",
+      "family": "Google",
+      "tier": "gen-3.6"
+    },
+    {
+      "key": "gemini-3.7-flash",
+      "transport": "gemini",
+      "model": "gemini-3.7-flash",
+      "family": "Google",
+      "tier": "gen-3.7"
+    },
+    {
+      "key": "gemini-flash",
+      "transport": "gemini",
+      "model": "gemini-3.8-flash",
+      "family": "Google",
+      "tier": "gen-3.8"
+    },
+    {
+      "key": "gemini-pro",
+      "transport": "gemini",
+      "model": "gemini-3.1-pro-preview",
+      "family": "Google",
+      "tier": "gen-3.1-pro"
+    }
+  ],
+  "labels": {
+    "permutations": {
+      "claude-haiku": {
+        "W": [
+          "A",
+          1
+        ],
+        "X": [
+          "B",
+          2
+        ],
+        "Y": [
+          "B",
+          1
+        ],
+        "Z": [
+          "A",
+          2
+        ]
+      },
+      "claude-sonnet": {
+        "W": [
+          "B",
+          1
+        ],
+        "X": [
+          "A",
+          1
+        ],
+        "Y": [
+          "A",
+          2
+        ],
+        "Z": [
+          "B",
+          2
+        ]
+      },
+      "claude-opus": {
+        "W": [
+          "A",
+          2
+        ],
+        "X": [
+          "B",
+          1
+        ],
+        "Y": [
+          "B",
+          2
+        ],
+        "Z": [
+          "A",
+          1
+        ]
+      },
+      "gpt-5.5": {
+        "W": [
+          "B",
+          2
+        ],
+        "X": [
+          "A",
+          1
+        ],
+        "Y": [
+          "B",
+          1
+        ],
+        "Z": [
+          "A",
+          2
+        ]
+      },
+      "gpt-5.6-luna": {
+        "W": [
+          "B",
+          2
+        ],
+        "X": [
+          "A",
+          2
+        ],
+        "Y": [
+          "A",
+          1
+        ],
+        "Z": [
+          "B",
+          1
+        ]
+      },
+      "gpt-5.6-sol": {
+        "W": [
+          "A",
+          1
+        ],
+        "X": [
+          "B",
+          1
+        ],
+        "Y": [
+          "B",
+          2
+        ],
+        "Z": [
+          "A",
+          2
+        ]
+      },
+      "gpt-6-astra": {
+        "W": [
+          "A",
+          1
+        ],
+        "X": [
+          "B",
+          1
+        ],
+        "Y": [
+          "A",
+          2
+        ],
+        "Z": [
+          "B",
+          2
+        ]
+      },
+      "gemini-3.5-flash": {
+        "W": [
+          "B",
+          1
+        ],
+        "X": [
+          "B",
+          2
+        ],
+        "Y": [
+          "A",
+          1
+        ],
+        "Z": [
+          "A",
+          2
+        ]
+      },
+      "gemini-3.6-flash": {
+        "W": [
+          "A",
+          2
+        ],
+        "X": [
+          "A",
+          1
+        ],
+        "Y": [
+          "B",
+          2
+        ],
+        "Z": [
+          "B",
+          1
+        ]
+      },
+      "gemini-3.7-flash": {
+        "W": [
+          "B",
+          2
+        ],
+        "X": [
+          "A",
+          1
+        ],
+        "Y": [
+          "B",
+          1
+        ],
+        "Z": [
+          "A",
+          2
+        ]
+      },
+      "gemini-flash": {
+        "W": [
+          "B",
+          1
+        ],
+        "X": [
+          "A",
+          2
+        ],
+        "Y": [
+          "B",
+          2
+        ],
+        "Z": [
+          "A",
+          1
+        ]
+      },
+      "gemini-pro": {
+        "W": [
+          "A",
+          2
+        ],
+        "X": [
+          "B",
+          2
+        ],
+        "Y": [
+          "A",
+          1
+        ],
+        "Z": [
+          "B",
+          1
+        ]
+      }
+    }
+  }
+}

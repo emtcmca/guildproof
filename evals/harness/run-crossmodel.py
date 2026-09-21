@@ -62,11 +62,14 @@ def exe(name):
     return shutil.which(name)
 
 
-def availability(env):
+def availability(env, targets):
     """Report which targets this machine can actually run, and why not for the rest.
 
     Every reason is a checked fact, not a guess: the CLI is resolved on PATH, the login is
     queried, the key is read from the environment. Nothing here spends a token.
+
+    `targets` comes from the run manifest, so this reports on the roster the run declares
+    rather than on a list this file happens to carry.
     """
     rows = {}
     claude_path = exe("claude")
@@ -93,21 +96,35 @@ def availability(env):
     if not (env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY")):
         gem_why = "no GEMINI_API_KEY (get one at aistudio.google.com/apikey)"
 
-    for t in TARGETS:
-        why = {"claude": claude_why, "codex": codex_why, "gemini": gem_why}[t["transport"]]
+    for t in targets:
+        why = {"claude": claude_why, "codex": codex_why, "gemini": gem_why}.get(
+            t["transport"], f"unknown transport {t['transport']!r}")
         rows[t["key"]] = (why is None, why)
     return rows
 
 HERE = pathlib.Path(__file__).parent
 REPO = HERE.parent.parent                      # evals/harness -> evals -> repo root
-# Read the specialist prompt from the shipping file, never a staged copy. A copy is a drift
-# site: the benchmark would keep measuring a stale version of the prompt it claims to test.
-VERIFIER_PROMPT = REPO / "agents" / "verifier.md"
 GEMINI_CALLER = HERE / "gemini-call.py"
 
+# Defaults used only when WRITING a new manifest. The manifest records them as repo-relative
+# paths, and from then on the run reads its own manifest. The specialist prompt is always read
+# from the shipping file, never a staged copy: a copy is a drift site, and the benchmark would
+# keep measuring a stale version of the prompt it claims to test.
+DEFAULT_SYSTEM_PROMPT = "agents/verifier.md"
+DEFAULT_REPS = 2
+DEFAULT_JUDGE_MODEL = "claude-sonnet-5"
+DEFAULT_JUDGES_PER_TARGET = 2
+
+# The SHIPPED DEFAULT roster, used only to write a new run.json. It is not the definition of
+# any run: once a manifest exists, the manifest's roster is what runs, and this list is unused.
+#
+# It is also this author's model access, which nobody else has. Cut it down with
+# `--targets claude-opus,gemini-pro`, or write your own run.json — a run with two targets is
+# a smaller claim than one with twelve, and a real one.
+#
 # Exact model ids, pinned. Never a "-latest" alias: an alias silently changes what a
 # published number was measured on.
-TARGETS = [
+SHIPPED_TARGETS = [
     {"key": "claude-haiku", "transport": "claude", "model": "claude-haiku-4-5-20251001", "family": "Claude", "tier": "small"},
     {"key": "claude-sonnet", "transport": "claude", "model": "claude-sonnet-5", "family": "Claude", "tier": "mid"},
     {"key": "claude-opus", "transport": "claude", "model": "claude-opus-5", "family": "Claude", "tier": "frontier"},
@@ -253,6 +270,12 @@ def main():
                     help="where cells are written. The default is shared with "
                          "judge-crossmodel.py's --cells, so the published sequence scores the "
                          "cells it just generated instead of the committed historical ones.")
+    ap.add_argument("--targets",
+                    help="comma-separated target keys for a NEW run, e.g. "
+                         "'claude-opus,gemini-pro'. The shipped roster is this author's model "
+                         "access; yours will differ. Ignored once run.json exists — edit that.")
+    ap.add_argument("--run-id", help="names a new run; defaults to the output directory name")
+    ap.add_argument("--seed", help="blinding seed for a new run; defaults to the run id")
     ap.add_argument("--only", help="run a single target key")
     ap.add_argument("--transport", choices=["claude", "codex", "gemini"],
                     help="run only targets on one transport. Useful when memory is tight: a "
@@ -270,13 +293,65 @@ def main():
     a = ap.parse_args()
 
     env = gemini_env()
-    targets = [t for t in TARGETS
+    outdir = cc.resolve_cells_dir(HERE, a.outdir)
+
+    # THE MANIFEST DECIDES WHAT THIS RUN IS. If one exists it wins outright, including over a
+    # conflicting flag, because silently re-pointing an existing run at a different input is
+    # precisely how cells from two different stimuli end up in one directory being scored as
+    # one result. A conflicting flag is reported, not applied.
+    manifest = cc.read_manifest(outdir)
+    if manifest:
+        print(f"run: {manifest['run_id']}  (manifest: {cc.manifest_path(outdir)})")
+        for flag, val, field in (("--input", a.input, "input"),
+                                 ("--targets", a.targets, None)):
+            if not val:
+                continue
+            current = ", ".join(t["key"] for t in manifest["targets"]) if field is None \
+                else manifest[field]
+            if str(val) != str(current):
+                print(f"  IGNORING {flag}: this run already declares {current!r}. "
+                      f"Edit {cc.MANIFEST_NAME} to change it, or use a new --outdir.")
+    else:
+        if not a.input and not (a.check or a.probe):
+            sys.exit("ERROR: --input is required to start a new run (it becomes run.json).")
+        roster = SHIPPED_TARGETS
+        if a.targets:
+            want = [k.strip() for k in a.targets.split(",") if k.strip()]
+            known = {t["key"] for t in SHIPPED_TARGETS}
+            unknown = [k for k in want if k not in known]
+            if unknown:
+                sys.exit(f"ERROR: unknown target key(s) {unknown}. Known: "
+                         f"{sorted(known)}. Or write your own {cc.MANIFEST_NAME}.")
+            roster = [t for t in SHIPPED_TARGETS if t["key"] in want]
+        run_id = a.run_id or outdir.name
+        manifest = {
+            "schema": cc.SCHEMA,
+            "run_id": run_id,
+            "input": a.input or "",
+            "system_prompt": DEFAULT_SYSTEM_PROMPT,
+            "reps": DEFAULT_REPS,
+            "judge_model": DEFAULT_JUDGE_MODEL,
+            "judges_per_target": DEFAULT_JUDGES_PER_TARGET,
+            "checklist_source": "evals/benchmarks/README.md, committed before any run",
+            "checklist": cc.DEFAULT_CHECKLIST,
+            "targets": roster,
+            "labels": {"seed": a.seed or run_id},
+        }
+        # Not written to disk yet: --check and --dry-run must not create a run directory as a
+        # side effect of asking a question. It is written once real work begins.
+        print(f"run: {run_id}  (new; {cc.MANIFEST_NAME} written when the first cell runs)")
+
+    all_targets = manifest["targets"]
+    reps = list(range(1, manifest["reps"] + 1))
+    system_prompt_path = cc.resolve_repo_path(HERE, manifest["system_prompt"])
+
+    targets = [t for t in all_targets
                if (not a.only or t["key"] == a.only)
                and (not a.transport or t["transport"] == a.transport)]
 
-    avail = availability(env)
+    avail = availability(env, all_targets)
     print("Targets on this machine:")
-    for t in TARGETS:
+    for t in all_targets:
         ok, why = avail[t["key"]]
         mark = "RUNNABLE" if ok else "SKIP    "
         print(f"  {mark}  {t['key']:15s} {t['family']:7s} {t['model'] or '(codex default)'}")
@@ -310,15 +385,15 @@ def main():
     if a.dry_run:
         # Print the exact shape of every call without making any of them, so a new user can
         # see what this is about to do to their quota before it does it.
-        if not a.input:
+        if not manifest["input"]:
             sys.exit("ERROR: --dry-run still needs --input, so the plan reflects the real run")
         # Plan every REQUESTED target, not only the runnable ones. A new user with nothing
         # set up still needs to see the whole shape of the run before deciding to set it up.
-        plan = [x for x in TARGETS if not a.only or x["key"] == a.only]
-        n = len(plan) * 2 * len(REPS)
-        print(f"\nDRY RUN. {n} calls would be made ({len(plan)} targets x 2 arms x k={len(REPS)}).")
-        print(f"Input sent verbatim to both arms: {a.input}")
-        print(f"Arm A: no system prompt. Arm B: {VERIFIER_PROMPT.name} as the system prompt.")
+        plan = [x for x in all_targets if not a.only or x["key"] == a.only]
+        n = len(plan) * 2 * len(reps)
+        print(f"\nDRY RUN. {n} calls would be made ({len(plan)} targets x 2 arms x k={len(reps)}).")
+        print(f"Input sent verbatim to both arms: {manifest['input']}")
+        print(f"Arm A: no system prompt. Arm B: {manifest['system_prompt']} as the system prompt.")
         for t in plan:
             sysnote = {
                 "claude": "--system-prompt-file",
@@ -328,7 +403,7 @@ def main():
             print(f"\n  {t['key']}  ({t['family']}, {t['model'] or 'codex default'})")
             print(f"    transport   : {t['transport']}")
             print(f"    arm B via   : {sysnote}")
-            print(f"    would write : {a.outdir}/{t['key']}-{{A,B}}{{1..{len(REPS)}}}.md")
+            print(f"    would write : {a.outdir}/{t['key']}-{{A,B}}{{1..{len(reps)}}}.md")
         if skipped:
             print(f"\n  {len(skipped)} of these would SKIP on this machine for lack of credentials.")
             print("  Run --check for the exact reason and fix for each.")
@@ -355,35 +430,44 @@ def main():
             print(err if err else txt[:400])
         return
 
-    if not a.input:
+    if not manifest["input"]:
         sys.exit("ERROR: --input is required")
-    if not VERIFIER_PROMPT.exists():
-        sys.exit(f"ERROR: specialist prompt not found at {VERIFIER_PROMPT}. "
-                 "Arm B would run bare and the result would read as a null finding.")
+    if not system_prompt_path.exists():
+        sys.exit(f"ERROR: specialist prompt not found at {system_prompt_path} "
+                 f"(manifest says {manifest['system_prompt']!r}). Arm B would run bare and the "
+                 f"result would read as a null finding.")
 
-    user_path = pathlib.Path(a.input)
+    user_path = cc.resolve_repo_path(HERE, manifest["input"])
+    if not user_path.exists():
+        sys.exit(f"ERROR: input not found at {user_path} "
+                 f"(manifest says {manifest['input']!r}).")
     user_text = user_path.read_text(encoding="utf-8")
     # Hash the bytes on disk, not the decoded string: the fingerprint has to notice a change
     # that only shows up in the encoding, and the prompt files are read as bytes for the same
     # reason on the other side.
     input_bytes = user_path.read_bytes()
-    system_bytes = VERIFIER_PROMPT.read_bytes()
+    system_bytes = system_prompt_path.read_bytes()
 
-    outdir = cc.resolve_cells_dir(HERE, a.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
+    # Real work is starting, so the run's definition goes to disk now. From here the judge
+    # reads its roster, reps, judge model, checklist and blinding from this file, which is why
+    # the two halves can no longer disagree about what the run is.
+    cc.write_manifest(outdir, manifest)
     # Print the resolved directory and the matching judge command. The whole defect this
     # replaces was invisible precisely because neither half ever said which directory it used.
     print(f"\ncells dir: {outdir}")
+    print(f"manifest : {cc.manifest_path(outdir).name}  "
+          f"({len(all_targets)} targets, k={len(reps)}, judge {manifest['judge_model']})")
     if a.outdir == cc.DEFAULT_CELLS_DIR:
         print("score these with: python judge-crossmodel.py --blind    (same default dir)")
     else:
         print(f"score these with: python judge-crossmodel.py --blind --cells {a.outdir}")
 
-    manifest = []
+    cell_log = []
     unfingerprinted = []
     for t in targets:
         for arm in ("A", "B"):
-            for rep in REPS:
+            for rep in reps:
                 name = f"{t['key']}-{arm}{rep}.md"
                 out_path = outdir / name
                 fp = cc.cell_fingerprint(
@@ -405,8 +489,8 @@ def main():
                     print(f"  skip {name}  ({why}){flag}")
                     if action == "reuse-unknown":
                         unfingerprinted.append(name)
-                    manifest.append({**t, "arm": arm, "rep": rep, "file": name,
-                                     "ok": True, "reused": True,
+                    cell_log.append({**t, "arm": arm, "rep": rep, "file": name,
+                                    "ok": True, "reused": True,
                                      "fingerprint": fp if action == "reuse" else None,
                                      "fingerprint_status": action,
                                      "chars": len(out_path.read_text(encoding="utf-8"))})
@@ -414,7 +498,7 @@ def main():
                 if action == "stale":
                     print(f"  STALE {name}: {why} -> regenerating")
 
-                sysp = VERIFIER_PROMPT if arm == "B" else None
+                sysp = system_prompt_path if arm == "B" else None
                 t0 = time.time()
                 if t["transport"] == "claude":
                     txt, err = run_claude(t["model"], sysp, user_text, out_path)
@@ -425,7 +509,7 @@ def main():
 
                 if err:
                     print(f"  FAIL {name}: {err}")
-                    manifest.append({**t, "arm": arm, "rep": rep, "file": name,
+                    cell_log.append({**t, "arm": arm, "rep": rep, "file": name,
                                      "ok": False, "error": err})
                     continue
                 # Write unconditionally. This used to read `if txt and not out_path.exists()`,
@@ -438,16 +522,35 @@ def main():
                         out_path, fp,
                         model=t["model"], transport=t["transport"], arm=arm, rep=rep,
                         input_file=str(user_path),
-                        system_prompt=str(VERIFIER_PROMPT) if arm == "B" else None,
+                        system_prompt=manifest["system_prompt"] if arm == "B" else None,
                     )
                 print(f"  ok   {name}  ({len(txt)} chars, {time.time()-t0:.0f}s)")
-                manifest.append({**t, "arm": arm, "rep": rep, "file": name,
+                cell_log.append({**t, "arm": arm, "rep": rep, "file": name,
                                  "ok": True, "fingerprint": fp,
                                  "fingerprint_status": "fresh", "chars": len(txt)})
 
-    (outdir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    ok = sum(1 for m in manifest if m["ok"])
-    print(f"\n{ok} of {len(manifest)} cells produced output. Failures are unmeasured, not clean.")
+    # MERGE the per-cell log rather than overwriting it. This used to be a plain overwrite, so
+    # a run taken in batches (`--transport codex`, then gemini, then claude) left a file
+    # describing only the LAST batch: the committed 2026-09-20 run's log lists 16 of its 48
+    # cells. A record that silently shrinks to the last invocation is not a record of the run.
+    log_path = outdir / "cells.json"
+    merged = {}
+    for source in (outdir / "manifest.json", log_path):
+        if source.exists():
+            try:
+                for row in json.loads(source.read_text(encoding="utf-8")):
+                    merged[row["file"]] = row
+            except (json.JSONDecodeError, KeyError, TypeError):
+                print(f"  note: {source.name} was unreadable; rebuilding from this invocation")
+    for row in cell_log:
+        merged[row["file"]] = row
+    rows = [merged[k] for k in sorted(merged)]
+    log_path.write_text(json.dumps(rows, indent=2) + "\n", encoding="utf-8")
+    ok = sum(1 for m in cell_log if m["ok"])
+    print(f"\n{ok} of {len(cell_log)} cells produced output this invocation. "
+          f"Failures are unmeasured, not clean.")
+    print(f"{len(rows)} of {len(all_targets) * 2 * len(reps)} cells recorded in "
+          f"{log_path.name} across all invocations.")
     if unfingerprinted:
         print(f"{len(unfingerprinted)} reused cell(s) carry NO fingerprint, so nothing here can "
               f"confirm which inputs produced them:")

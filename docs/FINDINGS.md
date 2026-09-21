@@ -694,19 +694,41 @@ python evals/harness/judge-crossmodel.py --judge      # add --target X to run in
 python evals/harness/judge-crossmodel.py --tabulate
 ```
 
+**You will not have these twelve models, and you should not have to pretend otherwise.** Name the
+ones you can reach and the whole run resizes around them:
+
+```bash
+python evals/harness/run-crossmodel.py --input evals/benchmarks/fixtures/v2-invoice-subtle.md \
+    --targets claude-opus,gemini-pro --outdir my-run
+python evals/harness/judge-crossmodel.py --blind --judge --tabulate --cells my-run
+```
+
+A two-model run is a smaller claim than a twelve-model one, and a real one. `--check` names the
+exact install or key needed for every target it cannot reach, by reading your machine rather than
+by reciting a prerequisites list that goes stale when a vendor renames a flag.
+
 `--check`, `--dry-run` and the selftest spend nothing. Targets your machine cannot run are reported as
 UNMEASURED, never as passing. Model versions move, so your numbers may differ; the model ids and the run
 date are recorded precisely so that difference is interpretable.
 
-Both halves print the cells directory they are using before they do anything. **This sequence scores the
-cells you just generated**, which is worth stating because until 2026-09-20 it did not. The runner defaulted
-to `out-crossmodel` while the judge hard-coded the committed artifacts directory, so following these
-instructions generated fresh answers and then re-scored our published ones — you would have spent real
-money and received our numbers back as apparent confirmation. Nothing errored; both halves worked exactly
-as written, which is why it survived several same-family review passes and was found by an adversarial one
-from a different model family. The default now has [one
-owner](../evals/harness/crossmodel_cells.py) that both scripts import, and
-[`selftest-crossmodel.py`](../evals/harness/selftest-crossmodel.py) fails if it is ever split again.
+**A run is defined by the `run.json` inside its own directory** — input, specialist prompt, roster, reps,
+judge model, scoring checklist, and the blinding permutations. Both halves read it, and both print which
+directory they resolved before doing anything. Neither script carries a roster, a permutation table or a
+checklist of its own.
+
+That is a correction, not an architecture note. Until 2026-09-20 the runner defaulted to `out-crossmodel`
+while the judge hard-coded the committed artifacts directory, so following these instructions generated
+fresh answers and then re-scored our published ones — you would have spent real money and received our
+numbers back as apparent confirmation. The judge separately kept its own copies of the target list, the
+label permutations and the checklist, all of which had to agree with the runner by hand. Since you have to
+change the roster, that mattered: editing the runner alone left the judge scoring the old list in silence.
+
+Nothing errored in either case. Both halves worked exactly as written, which is why several same-family
+review passes missed it and an adversarial review from a different model family found it. The run's
+definition now has [one owner](../evals/harness/crossmodel_cells.py), the permutations are derived from a
+recorded seed so they cannot drift from the roster, and
+[`selftest-crossmodel.py`](../evals/harness/selftest-crossmodel.py) fails under a mutation that
+re-introduces any of it.
 
 To re-score our committed run instead of your own, name it:
 

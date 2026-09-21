@@ -213,14 +213,29 @@ Nothing errored. Both halves did exactly what their code said, and the judge fou
 nothing complained. That is why it survived several same-family review passes and was found by
 an adversarial review from a different model family.
 
-Fixed the same day: the default lives in
-[`crossmodel_cells.py`](../harness/crossmodel_cells.py) and both scripts import it, both print
-the resolved directory before acting, the judge exits non-zero on a directory with no cells
-rather than looking elsewhere, and
-[`selftest-crossmodel.py`](../harness/selftest-crossmodel.py) fails if the two defaults are
-ever split again. The numbers in this document are unaffected — they were produced by pointing
-both halves at this directory by hand — and re-running `--tabulate` against it reproduces them
-exactly. Two related defects were fixed alongside it:
+Fixed the same day, and then fixed more thoroughly. The first pass gave the two scripts one
+shared default in [`crossmodel_cells.py`](../harness/crossmodel_cells.py). That closed the bug
+but left the path as a default the scripts carried rather than a property of the run, and it did
+not touch the same defect's three siblings: **the judge kept its own copy of the target roster,
+the label permutation table and the scoring checklist**, each hand-maintained against the
+runner's. Anyone reproducing this has to change the roster, because nobody else has these twelve
+models — and editing the runner alone left the judge scoring the old list without complaint.
+
+So a run is now declared in one [`run.json`](2026-09-20-crossmodel-v2-artifacts/run.json) inside
+its own directory: input, specialist prompt, roster, reps, judge model, judges per target,
+checklist and blinding. Both halves read it and neither holds a roster, a permutation table or a
+checklist. Permutations for a new run are derived from a recorded seed, so they cannot fall out
+of sync with the roster; this run's are recorded explicitly because they are the real key behind
+real scorecards, and deriving them now would change which output each score belongs to.
+`--targets claude-opus,gemini-pro` resizes the whole run for a reader with two models instead of
+twelve.
+
+**The numbers in this document are unaffected.** They were produced by pointing both halves at
+this directory by hand, and `--tabulate` against it still reproduces them exactly: bare
+50/288 = 17%, guildproof 282/288 = 98%, inter-judge κ 0.97. The manifest was written from the
+constants the two scripts held, after verifying the two rosters were still identical, and it
+reproduces the committed `label-key.csv` row for row — 48 of 48. Three related defects were
+fixed alongside:
 
 - **`--force` was worse than a no-op.** It spent the call, received the new answer, and then
   kept the old file, because the write was gated on `not out_path.exists()`.
@@ -230,3 +245,10 @@ exactly. Two related defects were fixed alongside it:
   directory predate that, so every command that reuses them says UNFINGERPRINTED and names
   them. They are not back-filled: nobody recorded their true inputs at the time, and inventing
   a fingerprint would assert exactly the thing that cannot be checked.
+- **The per-cell log described the last batch, not the run.** It was overwritten on every
+  invocation, and this run was taken in batches by transport, so the committed `manifest.json`
+  lists **16 of 48 cells**. The runner now merges. `manifest.json` is left exactly as it was,
+  and `cells.json` covers all 48, reconstructed from what is readable on disk and marked
+  `"reconstructed": true`; what was never written down is absent rather than guessed. The
+  directory's own [`README.md`](2026-09-20-crossmodel-v2-artifacts/README.md) says which file is
+  which.
