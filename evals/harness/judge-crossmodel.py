@@ -1,7 +1,18 @@
-"""Blind the cross-model cells, then score them with two Sonnet judges per target.
+"""Blind the cross-model cells, then score them with the judges the run's manifest names.
+
+THIS FILE HOLDS NO RUN CONFIGURATION
+------------------------------------
+No roster, no label permutations, no checklist, no judge model, no default directory. All of it
+comes from the `run.json` inside the cells directory, which the runner wrote. That is a
+correction rather than a preference: this file used to carry its own target list, permutation
+table and checklist, each a hand-maintained duplicate of something the runner also knew. Anyone
+but the author has to change the roster — nobody else has these twelve models on their keys —
+and editing the runner alone left this script scoring the old list without a word of complaint.
 
 WHY SONNET, AND WHY NOT THE WORKFLOW HARNESS
 --------------------------------------------
+The manifest names the judge. This is why every run here names the one it does.
+
 Judge choice is measured, not assumed. Against a two-Opus consensus on 69 cells of the
 earlier small-tier run, Sonnet scored kappa 0.68 with a 3-point present-rate gap, while
 Haiku scored kappa 0.51 with a bias that flipped direction by specialist (too generous on
@@ -28,7 +39,7 @@ Re-scoring the committed run is still supported and now has to be named:
 
 Usage:
     python judge-crossmodel.py --blind            build the judge bundles and the label key
-    python judge-crossmodel.py --judge            run 2 Sonnet judges per target
+    python judge-crossmodel.py --judge            run the manifest's judges per target
     python judge-crossmodel.py --tabulate         join scorecards to the key and report
 """
 
@@ -46,15 +57,23 @@ import crossmodel_cells as cc
 
 HERE = pathlib.Path(__file__).parent
 
-# Set by resolve_paths() from --cells before any command runs. Deliberately not given a
-# working default at import time: a module-level guess is what made the old hard-coded path
-# invisible, because every command silently had somewhere valid to go.
+# Every one of these is set by resolve_paths() from the run's own manifest. This file holds NO
+# roster, NO label permutations and NO checklist of its own, and that is the point: it used to
+# carry all three, each a hand-maintained duplicate of something the runner also knew. An
+# outside user has to change the roster, because nobody else has the author's twelve models —
+# and editing the runner alone left the judge scoring the old list without complaint.
 CELLS = BUNDLES = SCORES = KEY = None
+MANIFEST = TARGETS = MAPPING = CHECKLIST = None
+PINNED_JUDGE_MODEL = None
+JUDGES_PER_TARGET = 2
+CELLS_PER_TARGET = None
 
 
 def resolve_paths(cells_arg):
-    """Point every derived path at the chosen cells directory, and say so out loud."""
+    """Load the run from its manifest, point every path at it, and say so out loud."""
     global CELLS, BUNDLES, SCORES, KEY
+    global MANIFEST, TARGETS, MAPPING, CHECKLIST, PINNED_JUDGE_MODEL, JUDGES_PER_TARGET
+    global CELLS_PER_TARGET
     CELLS = cc.resolve_cells_dir(HERE, cells_arg)
     BUNDLES = CELLS / "judge-bundles"
     SCORES = CELLS / "scorecards"
@@ -67,47 +86,39 @@ def resolve_paths(cells_arg):
             f"evals/benchmarks/fixtures/v2-invoice-subtle.md\n"
             f"  Or score a committed run: --cells evals/runs/2026-09-20-crossmodel-v2-artifacts"
         )
-    n_cells = len(list(CELLS.glob("*-[AB][12].md")))
-    print(f"cell files present: {n_cells} of {len(TARGETS) * cc.CELLS_PER_TARGET} "
-          f"({len(TARGETS)} targets x {cc.CELLS_PER_TARGET})")
+
+    try:
+        MANIFEST = cc.read_manifest(CELLS)
+    except ValueError as e:
+        sys.exit(f"ERROR: {e}")
+    if MANIFEST is None:
+        sys.exit(
+            f"ERROR: {CELLS} has no {cc.MANIFEST_NAME}, so there is no run to score.\n"
+            f"  A run's roster, reps, judge model, checklist and blinding all live in that\n"
+            f"  file. Scoring without it would mean this script guessing them, which is the\n"
+            f"  defect it was written to remove. Run run-crossmodel.py to create it."
+        )
+
+    TARGETS = [t["key"] for t in MANIFEST["targets"]]
+    MAPPING = cc.permutations_for(MANIFEST)
+    CHECKLIST = MANIFEST["checklist"]
+    # Pinned, never a bare "sonnet" alias: an alias resolves to whatever the CLI currently
+    # points at, which silently changes what a published number was measured on. The manifest
+    # records the exact id that scored this run.
+    PINNED_JUDGE_MODEL = MANIFEST["judge_model"]
+    JUDGES_PER_TARGET = MANIFEST["judges_per_target"]
+    CELLS_PER_TARGET = len(cc.cells_for(MANIFEST))   # arms x k reps
+
+    print(f"run      : {MANIFEST['run_id']}  ({len(TARGETS)} targets, k={MANIFEST['reps']}, "
+          f"judge {PINNED_JUDGE_MODEL} x{JUDGES_PER_TARGET})")
+    print(f"scoring  : {len(CHECKLIST)} checklist items, from the manifest")
+    # Glob from the manifest's arm ids, not a literal [AB]: a third arm's cells would
+    # otherwise be invisible to the count while still being bundled and scored.
+    arm_ids = "".join(x["id"] for x in cc.arms_for(MANIFEST))
+    n_cells = len(list(CELLS.glob(f"*-[{arm_ids}][0-9].md")))
+    print(f"cells    : {n_cells} of {len(TARGETS) * CELLS_PER_TARGET} present")
     if n_cells == 0:
         sys.exit("ERROR: that directory holds no cells. Nothing to blind or score.")
-
-TARGETS = ["claude-haiku", "claude-sonnet", "claude-opus",
-           "gpt-5.5", "gpt-5.6-luna", "gpt-5.6-sol", "gpt-6-astra",
-           "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash",
-           "gemini-flash", "gemini-pro"]
-
-# Pinned, never the bare "sonnet" alias. An alias resolves to whatever the CLI currently
-# points at, which silently changes what a published number was measured on. This is the
-# same rule the arms follow and the same one a "-latest" tag violates.
-PINNED_JUDGE_MODEL = "claude-sonnet-5"
-
-# A distinct permutation per target so position never correlates with arm.
-MAPPING = {
-    "claude-haiku":     {"W": ("A", 1), "X": ("B", 2), "Y": ("B", 1), "Z": ("A", 2)},
-    "claude-sonnet":    {"W": ("B", 1), "X": ("A", 1), "Y": ("A", 2), "Z": ("B", 2)},
-    "claude-opus":      {"W": ("A", 2), "X": ("B", 1), "Y": ("B", 2), "Z": ("A", 1)},
-    "gpt-5.5":          {"W": ("B", 2), "X": ("A", 1), "Y": ("B", 1), "Z": ("A", 2)},
-    "gpt-5.6-luna":     {"W": ("B", 2), "X": ("A", 2), "Y": ("A", 1), "Z": ("B", 1)},
-    "gpt-5.6-sol":      {"W": ("A", 1), "X": ("B", 1), "Y": ("B", 2), "Z": ("A", 2)},
-    "gpt-6-astra":      {"W": ("A", 1), "X": ("B", 1), "Y": ("A", 2), "Z": ("B", 2)},
-    "gemini-3.5-flash": {"W": ("B", 1), "X": ("B", 2), "Y": ("A", 1), "Z": ("A", 2)},
-    "gemini-3.6-flash": {"W": ("A", 2), "X": ("A", 1), "Y": ("B", 2), "Z": ("B", 1)},
-    "gemini-3.7-flash": {"W": ("B", 2), "X": ("A", 1), "Y": ("B", 1), "Z": ("A", 2)},
-    "gemini-flash":     {"W": ("B", 1), "X": ("A", 2), "Y": ("B", 2), "Z": ("A", 1)},
-    "gemini-pro":       {"W": ("A", 2), "X": ("B", 2), "Y": ("A", 1), "Z": ("B", 1)},
-}
-
-# Verbatim from evals/benchmarks/README.md, committed before any run.
-CHECKLIST = [
-    "Gives a tri-state verdict (a three-way outcome such as VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED), not a binary pass-fail and not a prose conclusion.",
-    "Carries an explicit BLOCKING line stating whether the work is blocked.",
-    "Carries an explicit Independence line stating whether the verification was independent of whoever produced the artifact.",
-    "Ranks its defects by severity.",
-    "Does not rewrite the code. It reports defects rather than handing back a corrected implementation.",
-    "Gives a receipt for each axis it calls clean: how that axis was actually checked, not just an assertion that it passed.",
-]
 
 # Meta self-description only. Structural content is never stripped: in this benchmark the
 # scored behaviors ARE output structure, so removing a heading would cost an arm a point it
@@ -130,7 +141,7 @@ def blind():
     incomplete = []
     for tgt in TARGETS:
         parts = []
-        for lab in ("W", "X", "Y", "Z"):
+        for lab in sorted(MAPPING[tgt]):
             arm, rep = MAPPING[tgt][lab]
             src = CELLS / f"{tgt}-{arm}{rep}.md"
             if not src.exists():
@@ -147,10 +158,10 @@ def blind():
             rows.append(f"{tgt},{lab},{arm},{rep}")
         (BUNDLES / f"judge-in-{tgt}.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8")
         residual = sum(1 for p in parts if META.search(p))
-        mark = "" if len(parts) == cc.CELLS_PER_TARGET else "  INCOMPLETE"
+        mark = "" if len(parts) == CELLS_PER_TARGET else "  INCOMPLETE"
         if mark:
             incomplete.append(tgt)
-        print(f"  {tgt}: {len(parts)} of {cc.CELLS_PER_TARGET} bundled, "
+        print(f"  {tgt}: {len(parts)} of {CELLS_PER_TARGET} bundled, "
               f"residual META {residual}{mark}")
     KEY.write_text("target,label,arm,rep\n" + "\n".join(rows) + "\n", encoding="utf-8")
     print(f"\n{total_dropped} meta lines dropped overall")
@@ -160,13 +171,13 @@ def blind():
         # than none. But it must never be read as a four-cell result, so it is named here and
         # again in --tabulate rather than left for someone to notice in the counts.
         print(f"{len(incomplete)} target(s) bundled with fewer than "
-              f"{cc.CELLS_PER_TARGET} cells: {', '.join(incomplete)}")
+              f"{CELLS_PER_TARGET} cells: {', '.join(incomplete)}")
         print("  Their subtotals are out of a smaller denominator. Not a clean result.")
 
 
-JUDGE_SYSTEM = """You score four unlabeled outputs against a fixed checklist and return JSON.
+JUDGE_SYSTEM = """You score {k} unlabeled outputs against a fixed checklist and return JSON.
 
-All four outputs answered the same user message. You do not know how any of them was
+All {k} outputs answered the same user message. You do not know how any of them was
 produced and must not guess. Some were produced under different conditions than others;
 which is which is deliberately withheld and inferring it is not part of your job.
 
@@ -195,6 +206,7 @@ Return ONLY a JSON object, no prose before or after, no markdown fence:
 def run_judge(bundle_path, judge_no):
     sys_txt = JUDGE_SYSTEM.format(
         n=len(CHECKLIST),
+        k=CELLS_PER_TARGET,
         items="\n".join(f"{i+1}. {b}" for i, b in enumerate(CHECKLIST)),
     )
     sys_file = HERE / f"_judge_sys_{judge_no}.txt"
@@ -207,9 +219,9 @@ def run_judge(bundle_path, judge_no):
     # cannot wander into the arm outputs, the label key, or this repo.
     user = (
         f"Score every output below against every checklist item.\n"
-        f"You are judge {judge_no} of 2. Another judge scores the same four outputs "
-        f"independently and the two are compared, so do not hedge toward a middle. Call it "
-        f"as you read it.\n"
+        f"You are judge {judge_no} of {JUDGES_PER_TARGET}. The others score the same "
+        f"{CELLS_PER_TARGET} outputs independently and the results are compared, so do not hedge "
+        f"toward a middle. Call it as you read it.\n"
         f"Do not use any tool. Everything you need is in this message.\n"
         f"Return only the JSON object.\n\n"
         f"{bundle_path.read_text(encoding='utf-8')}"
@@ -250,7 +262,7 @@ def judge(only=None, force=False):
             print(f"  skip {tgt}: no bundle (run --blind first)")
             continue
         bundle_bytes = bundle.read_bytes()
-        for jn in (1, 2):
+        for jn in range(1, JUDGES_PER_TARGET + 1):
             dest = SCORES / f"score-{tgt}-{jn}.json"
             # The skip is load-bearing: judging 12 targets x 2 judges in one go is a long job,
             # and it has to be resumable in short foreground batches. What it must not do is
@@ -299,7 +311,13 @@ def tabulate():
     votes = collections.defaultdict(list)
     excluded = 0
     cards, carded, unverifiable, mismatched = 0, 0, [], []
-    for f in sorted(SCORES.glob("score-*.json")):
+    # Exclude the fingerprint sidecars. `score-X-1.json.fingerprint.json` matches `score-*.json`,
+    # so they were being counted as scorecards: the provenance line read "12 scorecards, 6
+    # provably scored" for a 6-scorecard run and then listed the six sidecars as unfingerprinted
+    # artifacts. It never corrupted a tally, because a sidecar has no "outputs" key and
+    # contributed nothing, but a count that is double the truth is a count nobody can use.
+    for f in sorted(p for p in SCORES.glob("score-*.json")
+                    if not p.name.endswith(".fingerprint.json")):
         tgt = f.stem.replace("score-", "").rsplit("-", 1)[0]
         # Say whether each scorecard provably scored the bundle now on disk. A table that
         # cannot answer that question is a claim about a past run, not a measurement of this
@@ -333,27 +351,44 @@ def tabulate():
                 if s.get("present"):
                     tal[(tgt, bi, arm)][0] += 1
 
-    print("CROSS-MODEL VERIFIER STUDY | input V-2 (subtle customer_id leak) | k=2")
-    print("2 Sonnet judges per target. Cells = times PRESENT out of 4 (2 reps x 2 judges)")
+    # Every number in this header is read from the manifest, so the report cannot describe a
+    # run other than the one it scored.
+    per_cell = MANIFEST["reps"] * JUDGES_PER_TARGET
+    print(f"CROSS-MODEL VERIFIER STUDY | run {MANIFEST['run_id']} | k={MANIFEST['reps']}")
+    print(f"input: {MANIFEST['input']}")
+    print(f"{JUDGES_PER_TARGET} x {PINNED_JUDGE_MODEL} per target. Cells = times PRESENT out of "
+          f"{per_cell} ({MANIFEST['reps']} reps x {JUDGES_PER_TARGET} judges)")
     print(f"cells: {CELLS}")
-    print(f"judge: {PINNED_JUDGE_MODEL} | scorecards: {cards}, "
-          f"{carded} provably scored the bundles now on disk\n")
-    grand = {"A": [0, 0], "B": [0, 0]}
+    print(f"scorecards: {cards}, {carded} provably scored the bundles now on disk\n")
+    # One column per arm the manifest declares, in its declared order, so a third arm appears
+    # without this function knowing anything about what it is.
+    arms = cc.arms_for(MANIFEST)
+    arm_ids = [x["id"] for x in arms]
+    width = max(9, *(len(x.get("label") or x["id"]) for x in arms))
+    print("arms: " + " | ".join(f"{x['id']}={x.get('label') or x['id']}" for x in arms) + "\n")
+    print(" " * 48 + "  ".join(f"{(x.get('label') or x['id'])[:width]:>{width}}" for x in arms))
+
+    grand = {i: [0, 0] for i in arm_ids}
     for tgt in TARGETS:
-        sub = {"A": [0, 0], "B": [0, 0]}
+        sub = {i: [0, 0] for i in arm_ids}
         print(tgt)
         for bi in range(1, len(CHECKLIST) + 1):
-            a, b = tal[(tgt, bi, "A")], tal[(tgt, bi, "B")]
-            for arm, c in (("A", a), ("B", b)):
-                sub[arm][0] += c[0]; sub[arm][1] += c[1]
-                grand[arm][0] += c[0]; grand[arm][1] += c[1]
+            cols = []
+            for i in arm_ids:
+                c = tal[(tgt, bi, i)]
+                sub[i][0] += c[0]; sub[i][1] += c[1]
+                grand[i][0] += c[0]; grand[i][1] += c[1]
+                cols.append(f"{c[0]}/{c[1]}")
             short = CHECKLIST[bi - 1].split(".")[0][:44]
-            print(f"   {short:46s} bare {a[0]}/{a[1]}   gp {b[0]}/{b[1]}")
-        print(f"   {'subtotal':46s} bare {sub['A'][0]}/{sub['A'][1]}   gp {sub['B'][0]}/{sub['B'][1]}\n")
-    ga, gb = grand["A"], grand["B"]
-    if ga[1] and gb[1]:
-        print(f"TOTAL  bare {ga[0]}/{ga[1]} = {100*ga[0]/ga[1]:.0f}%   "
-              f"guildproof {gb[0]}/{gb[1]} = {100*gb[0]/gb[1]:.0f}%")
+            print(f"   {short:44s} " + "  ".join(f"{v:>{width}}" for v in cols))
+        print(f"   {'subtotal':44s} "
+              + "  ".join(f"{f'{sub[i][0]}/{sub[i][1]}':>{width}}" for i in arm_ids) + "\n")
+
+    print("TOTAL")
+    for x in arms:
+        g = grand[x["id"]]
+        pct = f"{100*g[0]/g[1]:.0f}%" if g[1] else "n/a"
+        print(f"   {x['id']}  {(x.get('label') or x['id']):34s} {g[0]}/{g[1]} = {pct}")
     n = len(votes)
     paired = {k: v for k, v in votes.items() if len(v) == 2}
     dis = sum(1 for v in paired.values() if len(set(v)) > 1)

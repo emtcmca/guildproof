@@ -24,3 +24,8 @@ __pycache__/
 # Cross-model harness scratch output (the default --outdir). Real runs get promoted
 # into a dated evals/runs/ folder; this directory is working space.
 evals/harness/out-crossmodel/
+
+# First Codex adversarial review output (2026-09-20). Kept locally: it carries absolute
+# machine paths and is a working artifact, not published evidence. The prompt that produced
+# it IS committed, at evals/codex-adversarial-review-prompt.md.
+codex-review-out.md

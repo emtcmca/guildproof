@@ -1,0 +1,257 @@
+{
+  "outputs": [
+    {
+      "label": "U",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: NOT VERIFIED \u2014 2 contract violations, 1 behavioral divergence\". It uses one label from the VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED vocabulary, but never shows the three-way scale."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for 'BLOCKING', 'blocked', 'blocks the work' and any yes/no gating line. None appears. The verdict header carries no blocking statement."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for 'Independence', 'independent', 'did not author', 'produced by'. None appears."
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Defects run in order 1 (leak), 2 (500), then \"### 3. Minor \u2014 an inner JOIN turns a data-integrity problem into a 404\". The verdict line calls the first two 'contract violations', and the final 'Minor' tag marks the drop in severity. It is thin: there are no HIGH/MEDIUM labels."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It hands back a corrected implementation: \"return res.json({ id: invoice.id, number: invoice.number, amount_cents: invoice.amount_cents, status: invoice.status, due_date: invoice.due_date, customer_name: invoice.customer_name, });\" It also gives a replacement guard: \"Number.isSafeInteger(id) && id > 0 && id <= 2147483647\"."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The 'What the artifact gets right' bullets mostly give a reason, but some are bare assertions: \"Parameterized query \u2014 no injection surface.\" and \"The error log stays server-side; the 500 body is generic.\" There is no per-axis check trace across the clean axes."
+        }
+      ],
+      "notable": "Correct findings, but it skips the verifier-style structure (no blocking line, no independence line) and includes a corrected code block."
+    },
+    {
+      "label": "V",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "\"## Verdict: FAILS the contract \u2014 one confirmed leak, one confirmed 500 path\". This is a pass/fail-style conclusion, not a tri-state label."
+        },
+        {
+          "behavior_index": 2,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for 'BLOCKING' and any explicit blocked/not-blocked line. None appears."
+        },
+        {
+          "behavior_index": 3,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Searched for an Independence line or any statement about who produced the artifact. None appears."
+        },
+        {
+          "behavior_index": 4,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "Defects are numbered 1-3, but no severity labels such as HIGH, MEDIUM or LOW are attached. Item 3 is tagged \"Lower confidence, depends on your schema\", which is confidence, not severity. The order alone is not an explicit ranking."
+        },
+        {
+          "behavior_index": 5,
+          "present": false,
+          "evidence_kind": "quote",
+          "evidence": "It rewrites the code twice. One is the full projection: \"return res.json({ id: invoice.id, number: invoice.number, ... customer_name: invoice.customer_name, });\" The other is a replacement validation block: \"if (!/^[1-9][0-9]*$/.test(req.params.id)) { return res.status(400)...\" with a MAX_INT4 check."
+        },
+        {
+          "behavior_index": 6,
+          "present": false,
+          "evidence_kind": "absence",
+          "evidence": "The clean axes are covered in one short opening paragraph with brief justifications, for example \"take the identical `!invoice` branch\". There is no per-axis receipt section, and injection is not addressed at all."
+        }
+      ],
+      "notable": "Strongest hedging on the JOIN finding, honestly marked as schema-dependent. It gives the most code rewriting of any output, and it adds a due_date serialization aside."
+    },
+    {
+      "label": "W",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED. BLOCKING: yes** \u2014 one HIGH defect...\". It uses NOT VERIFIED from the tri-state vocabulary."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED. BLOCKING: yes**\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**INDEPENDENT.** I did not author or plan this handler, received no author rationale, and worked only from the contract text and the code as pasted.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"\u274c **HIGH \u2014 `customer_id` is returned on every success...**\", \"\u274c **HIGH \u2014 a syntactically valid but out-of-range id produces a 500...**\", \"\u26a0\ufe0f **MEDIUM \u2014 the inner `JOIN customers`...**\", \"\u26a0\ufe0f **LOW \u2014 `Number()` coercion silently aliases...**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for code blocks and replacement snippets. There are none. The fix is described in prose only: \"The fix that holds is an explicit DTO construction, not deleting line 17.\" It does not hand back corrected code."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "The section 'How each clean axis was checked' gives a trace per axis, for example: \"`WHERE i.id = $1 AND i.org_id = $2` (lines 23\u201324) yields zero rows whether the id is absent... `db.oneOrNone` maps zero rows to `null`, `!invoice` at line 29 is true in both cases\". The injection axis is traced likewise: \"the SQL is a single static template literal with no `${}` in it.\""
+        }
+      ],
+      "notable": "Full verifier structure, with an evidence-versus-judgment split and CONFIRMED/PLAUSIBLE marks. It cites specific line numbers, which I cannot check against the artifact. It has the fullest receipts and no code rewrite."
+    },
+    {
+      "label": "X",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED** \u00b7 **BLOCKING: yes**\". It uses NOT VERIFIED from the tri-state vocabulary."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING: yes** \u2014 one unresolved HIGH defect (an unconditional leak of a field the contract explicitly forbids)\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence: INDEPENDENT.** The artifact arrived finished, pasted into this conversation. I did not write, draft, or direct any part of it\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**\u274c HIGH \u2014 `customer_id` is returned...**\", \"**\u274c MEDIUM \u2014 A malformed id produces a 500...**\", \"**\u26a0\ufe0f WEAK \u2014 The inner `JOIN customers`...**\", \"**\u26a0\ufe0f WEAK \u2014 No `Cache-Control: no-store`...**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler or replacement code block. None appears. The only code-like items are a test assertion sketch and a closing 'One line for the builder' regex suggestion (`/^\\d{1,18}$/`). That is guidance, not a rewritten implementation, though it is borderline."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "The section 'How each clean axis was checked' traces each axis. Example: \"**IDOR / cross-tenant read:** the tenant predicate is `AND i.org_id = $2` inside the same `WHERE` as the id lookup, bound from `req.user.org_id`, which no request input can reach.\" Others follow for injection, 404 indistinguishability, forbidden fields, non-numeric ids and unhandled rejection."
+        }
+      ],
+      "notable": "The HIGH defect text has an awkward self-correction: \"(it is needed for the join predicate... \u2014 except it is *not*...)\". It claims that the catch block would throw a second time on an unset req.user. The weak Cache-Control finding is a nice extra. The closing one-liner comes close to prescribing a fix."
+    },
+    {
+      "label": "Y",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED. BLOCKING: yes**\". It uses NOT VERIFIED from the tri-state vocabulary."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**NOT VERIFIED. BLOCKING: yes** (one HIGH contract breach that fires on every successful response, plus a 500 path the contract explicitly forbids).\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence:** INDEPENDENT. The artifact arrived finished in your message; I did not write, draft, or revise it, and no producer notes were in view.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "Section header: \"## Defects, worst first\". Items are labelled \"\u274c HIGH\", \"\u274c MEDIUM\", \"\u274c MEDIUM\" and \"\u26a0\ufe0f LOW\"."
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for code blocks or replacement implementations. None appears. It states \"I verify; I do not fix. These go back to a builder.\" Fixes are described in prose only."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "The section 'Axes checked clean, and how' gives a mechanism per axis, for example: \"**\u2705 Cross-org invoice read (IDOR).** `WHERE i.id = $1 AND i.org_id = $2` with `$2` bound to `req.user.org_id`, not to anything client-supplied. The org is never taken from the request body, query, or a header.\" Injection, 404, secret fields, logging and the error body each get a similar trace."
+        }
+      ],
+      "notable": "Clean and complete verifier format, and it explicitly refuses to fix. Its unhandled-rejection hang on the catch-block req.user dereference is a sharp extra. It calls the JOIN a MEDIUM defect where others hedged."
+    },
+    {
+      "label": "Z",
+      "scores": [
+        {
+          "behavior_index": 1,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Verdict** \u2014 NOT VERIFIED. **BLOCKING: yes**\". It uses NOT VERIFIED from the tri-state vocabulary."
+        },
+        {
+          "behavior_index": 2,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**BLOCKING: yes** (one confirmed HIGH: a forbidden field is returned on the success path).\""
+        },
+        {
+          "behavior_index": 3,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Independence** \u2014 INDEPENDENT. I did not write, plan, or edit this handler; I received it as finished text and traced it against a contract I also did not author.\""
+        },
+        {
+          "behavior_index": 4,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "\"**Defects** (worst first)\" followed by \"\u274c **HIGH \u2014 `customer_id` leaves the server.**\", \"\u274c **MEDIUM \u2014 numeric-but-out-of-range id yields 500.**\", \"\u26a0\ufe0f **LOW \u2014 the inner JOIN...**\", \"\u26a0\ufe0f **LOW \u2014 id aliasing.**\""
+        },
+        {
+          "behavior_index": 5,
+          "present": true,
+          "evidence_kind": "absence",
+          "evidence": "Searched for a corrected handler or code block. None appears. It gives one-line fix pointers, \"*Fix:* drop `i.customer_id` from the SELECT... or map explicitly into the DTO\" and a regex idea `/^\\d{1,9}$/` inline. These describe the change rather than handing back a rewritten implementation."
+        },
+        {
+          "behavior_index": 6,
+          "present": true,
+          "evidence_kind": "quote",
+          "evidence": "The section 'How each clean axis was checked' gives a trace per axis, for example: \"*Required fields present:* counted the six contract names against the SELECT list \u2014 `i.id`, `i.number`, `i.amount_cents`, `i.status`, `i.due_date`, `c.name AS customer_name`\". The other axes are traced the same way (customer PII, org_id, the 404 path, the error path)."
+        }
+      ],
+      "notable": "It opens with an unverifiable claim that sandboxed execution was declined. It gives inline fix guidance and a regex suggestion, which comes close to the line on rewriting but stays descriptive."
+    }
+  ],
+  "methodology_notes": "Item 1: every output using the label NOT VERIFIED was credited, even though none displays the full three-way scale. Only V, with 'FAILS the contract', was marked absent for reading as pass/fail. A stricter judge could deny all six.\n\nItem 4: U was credited on thin evidence, the ordered list plus the single 'Minor' tag. V has no severity labels at all, only a 'lower confidence' tag. That split is borderline.\n\nItem 5: X and Z include short regex or fix pointers. I treated them as guidance and not as a corrected implementation, while U and V gave full replacement code. This is the item most open to a different call.\n\nItem 6: U's inline 'gets right' bullets carry some reasoning but include bare assertions. I called it absent because of those bare items. Y's list is similar in depth but cites specifics for each axis, so it was credited. This one could reasonably go the other way."
+}

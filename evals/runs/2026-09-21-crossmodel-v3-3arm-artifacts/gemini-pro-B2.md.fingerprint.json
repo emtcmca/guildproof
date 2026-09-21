@@ -1,0 +1,10 @@
+{
+  "fingerprint": "7cbd074c49243f34055d0db4e91bc0f2383a77b9ec185b0e537c7115dfb29da1",
+  "model": "gemini-3.1-pro-preview",
+  "transport": "gemini",
+  "arm": "B",
+  "rep": 2,
+  "input_file": "C:\\dev\\promptsmith-wt-launch\\evals\\benchmarks\\fixtures\\v2-invoice-subtle.md",
+  "system_prompt": "agents/verifier.md",
+  "arm_label": "full specialist prompt"
+}

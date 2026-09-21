@@ -1,5 +1,16 @@
 # Cross-model verifier study — 12 models, 3 vendors
 
+> **⚠ READ THIS FIRST — this run's headline claim was reduced on 2026-09-21, and the numbers below
+> are kept deliberately.** This document is the record of what was measured, and every figure in it
+> is still re-derivable from the committed scorecards. What changed is the **attribution**, not the
+> arithmetic. A third arm carrying only the `## Output contract` section of `agents/verifier.md`
+> scored 72/72 against the full prompt's 71/72, so **the aggregate gap below belongs to the output
+> contract rather than to the specialist prompt as a whole.** Do not quote the aggregate as evidence
+> about the prompt. The per-item structural results — a `BLOCKING:` line and an `Independence:` line
+> in 0 of 48 bare scorecards against 48/48 prompted — are unaffected, because they measure output
+> structure, which is what the checklist could see. Superseding run:
+> [`2026-09-21-crossmodel-v3-3arm.md`](2026-09-21-crossmodel-v3-3arm.md).
+
 **Date:** 2026-09-20 · **Benchmark:** [B2](../benchmarks/README.md), input V-2
 · **Artifacts:** [`2026-09-20-crossmodel-v2-artifacts/`](2026-09-20-crossmodel-v2-artifacts/)
 — 48 cells, 24 judge scorecards, 12 blinded bundles, the label key, and the runner.
@@ -33,6 +44,11 @@ blinded Sonnet judges per target, on 288 cells.
 
 **Bare: 50/288 (17%). With guildproof: 282/288 (98%).**
 
+**Attribution, added 2026-09-21:** that gap is real and it is **not** evidence about the specialist
+prompt as a whole. A reduced third arm carrying only the `## Output contract` section reproduced all
+of it, so read this figure as *bare model versus a stated output contract*. See
+[`2026-09-21-crossmodel-v3-3arm.md`](2026-09-21-crossmodel-v3-3arm.md).
+
 ### Per item, all 12 models
 
 | Behavior | Bare | With guildproof |
@@ -57,14 +73,20 @@ was independent of whoever wrote the code.
 | Anthropic tier | 8% → 33% → **17%** | 83%, 100%, 100% |
 | `gemini-3.1-pro` (older, larger) | 25% | 100% |
 
-**No.** The bare-arm score has no relationship to model strength. It scatters between 0% and
-33% with no trend in any of the three families. `gemini-3.7-flash` scored **0 of 24**.
-`gpt-6-astra`, the newest OpenAI model tested, scored below `gpt-5.5`. `claude-opus-5` scored
+**Not in this sample.** The bare-arm score shows no relationship to model strength here. It scatters
+between 0% and 33% with no trend in any of the three families. `gemini-3.7-flash` scored **0 of
+24**. `gpt-6-astra`, the newest OpenAI model tested, scored below `gpt-5.5`. `claude-opus-5` scored
 below `claude-sonnet-5`.
 
-This is a stronger result than a narrowing gap would have been. It is not a deficit that model
-progress is slowly erasing. It is a behavior models do not exhibit and show no sign of trending
-toward.
+**Softened 2026-09-21, because the earlier wording overreached.** This paragraph previously read
+"the bare-arm score has no relationship to model strength" and concluded it "is a behavior models do
+not exhibit and show no sign of trending toward." That claims more than the design supports, and an
+adversarial review was right to flag it. **No trend observed is not a trend that will not appear**,
+and two models of one generation are not repeated measures of one capability — the 8%-versus-33%
+spread inside a single OpenAI generation is wider than any step between generations here, which is
+itself evidence that this instrument cannot resolve a generation-level trend. What the data supports
+is narrower and still useful: the gap is not *visibly* closing on its own across the twelve models
+tested, so waiting for a better model is not a plan.
 
 ### The control pair
 
@@ -213,14 +235,29 @@ Nothing errored. Both halves did exactly what their code said, and the judge fou
 nothing complained. That is why it survived several same-family review passes and was found by
 an adversarial review from a different model family.
 
-Fixed the same day: the default lives in
-[`crossmodel_cells.py`](../harness/crossmodel_cells.py) and both scripts import it, both print
-the resolved directory before acting, the judge exits non-zero on a directory with no cells
-rather than looking elsewhere, and
-[`selftest-crossmodel.py`](../harness/selftest-crossmodel.py) fails if the two defaults are
-ever split again. The numbers in this document are unaffected — they were produced by pointing
-both halves at this directory by hand — and re-running `--tabulate` against it reproduces them
-exactly. Two related defects were fixed alongside it:
+Fixed the same day, and then fixed more thoroughly. The first pass gave the two scripts one
+shared default in [`crossmodel_cells.py`](../harness/crossmodel_cells.py). That closed the bug
+but left the path as a default the scripts carried rather than a property of the run, and it did
+not touch the same defect's three siblings: **the judge kept its own copy of the target roster,
+the label permutation table and the scoring checklist**, each hand-maintained against the
+runner's. Anyone reproducing this has to change the roster, because nobody else has these twelve
+models — and editing the runner alone left the judge scoring the old list without complaint.
+
+So a run is now declared in one [`run.json`](2026-09-20-crossmodel-v2-artifacts/run.json) inside
+its own directory: input, specialist prompt, roster, reps, judge model, judges per target,
+checklist and blinding. Both halves read it and neither holds a roster, a permutation table or a
+checklist. Permutations for a new run are derived from a recorded seed, so they cannot fall out
+of sync with the roster; this run's are recorded explicitly because they are the real key behind
+real scorecards, and deriving them now would change which output each score belongs to.
+`--targets claude-opus,gemini-pro` resizes the whole run for a reader with two models instead of
+twelve.
+
+**The numbers in this document are unaffected.** They were produced by pointing both halves at
+this directory by hand, and `--tabulate` against it still reproduces them exactly: bare
+50/288 = 17%, guildproof 282/288 = 98%, inter-judge κ 0.97. The manifest was written from the
+constants the two scripts held, after verifying the two rosters were still identical, and it
+reproduces the committed `label-key.csv` row for row — 48 of 48. Three related defects were
+fixed alongside:
 
 - **`--force` was worse than a no-op.** It spent the call, received the new answer, and then
   kept the old file, because the write was gated on `not out_path.exists()`.
@@ -230,3 +267,10 @@ exactly. Two related defects were fixed alongside it:
   directory predate that, so every command that reuses them says UNFINGERPRINTED and names
   them. They are not back-filled: nobody recorded their true inputs at the time, and inventing
   a fingerprint would assert exactly the thing that cannot be checked.
+- **The per-cell log described the last batch, not the run.** It was overwritten on every
+  invocation, and this run was taken in batches by transport, so the committed `manifest.json`
+  lists **16 of 48 cells**. The runner now merges. `manifest.json` is left exactly as it was,
+  and `cells.json` covers all 48, reconstructed from what is readable on disk and marked
+  `"reconstructed": true`; what was never written down is absent rather than guessed. The
+  directory's own [`README.md`](2026-09-20-crossmodel-v2-artifacts/README.md) says which file is
+  which.

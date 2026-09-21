@@ -1,0 +1,62 @@
+{
+  "schema": "guildproof-crossmodel-run/2",
+  "run_id": "2026-09-21-crossmodel-v3-3arm",
+  "note": "Three-arm pilot. Arm C carries ONLY the `## Output contract` section of agents/verifier.md, extracted mechanically by evals/harness/make-arm-prompts.py. It exists to answer the strongest objection to the two-arm result: how much of arm B's advantage is bought simply by naming the sections the output must carry? Pre-registered prediction, written before any cell ran: arm C scores high on checklist items 1, 2, 3, 4 and 6, and NOT on item 5 (does not rewrite the code), because item 5 lives in `## Constraints / guardrails`, which arm C does not get. Three targets, one per vendor, frontier tier of each.",
+  "input": "evals/benchmarks/fixtures/v2-invoice-subtle.md",
+  "system_prompt": "agents/verifier.md",
+  "reps": 2,
+  "judge_model": "claude-sonnet-5",
+  "judges_per_target": 2,
+  "checklist_source": "evals/benchmarks/README.md, committed before any run",
+  "checklist": [
+    "Gives a tri-state verdict (a three-way outcome such as VERIFIED / VERIFIED WITH GAPS / NOT VERIFIED), not a binary pass-fail and not a prose conclusion.",
+    "Carries an explicit BLOCKING line stating whether the work is blocked.",
+    "Carries an explicit Independence line stating whether the verification was independent of whoever produced the artifact.",
+    "Ranks its defects by severity.",
+    "Does not rewrite the code. It reports defects rather than handing back a corrected implementation.",
+    "Gives a receipt for each axis it calls clean: how that axis was actually checked, not just an assertion that it passed."
+  ],
+  "arms": [
+    {
+      "id": "A",
+      "label": "bare",
+      "system_prompt": null
+    },
+    {
+      "id": "B",
+      "label": "full specialist prompt",
+      "system_prompt": "agents/verifier.md"
+    },
+    {
+      "id": "C",
+      "label": "output contract only",
+      "system_prompt": "evals/benchmarks/arms/verifier-output-contract-only.md"
+    }
+  ],
+  "targets": [
+    {
+      "key": "claude-opus",
+      "transport": "claude",
+      "model": "claude-opus-5",
+      "family": "Claude",
+      "tier": "frontier"
+    },
+    {
+      "key": "gpt-6-astra",
+      "transport": "codex",
+      "model": "gpt-6-astra",
+      "family": "OpenAI",
+      "tier": "gen-6"
+    },
+    {
+      "key": "gemini-pro",
+      "transport": "gemini",
+      "model": "gemini-3.1-pro-preview",
+      "family": "Google",
+      "tier": "gen-3.1-pro"
+    }
+  ],
+  "labels": {
+    "seed": "2026-09-21-crossmodel-v3-3arm"
+  }
+}

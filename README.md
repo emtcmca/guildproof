@@ -15,10 +15,15 @@ animation drawn frame by frame from the text of a real run, not a screen recordi
 Ask a coding agent to review work and you get prose: some observations, some rewritten code, no
 verdict. It does not say whether the work is blocked, and it does not say whether the review was
 independent of whoever wrote the code. guildproof ships that missing reviewer as an independent
-verifier that returns a blocking verdict, a guild of 20 specialist agents to dispatch, and three
-commands that turn a rough request into a complete prompt instead of a guess. No dependencies, no
-API keys, and no model calls inside the plugin: it is pure method and structure, and your agent
-does the reasoning.
+verifier that returns a blocking verdict, a guild of 20 specialist agents to dispatch, four
+commands that turn a rough request into a complete prompt instead of a guess, and 12 review lenses.
+No dependencies, no API keys, and no model calls inside the plugin: it is pure method and
+structure, and your agent does the reasoning.
+
+The measured part of that is narrower than the pitch, and this page says so in detail below: what
+has been tested is that **a short output contract reliably produces a blocking, independent
+verdict** where bare models produce one about a quarter of the time. The rest ships because the
+prompts are complete and inspectable, not because a number vouches for them.
 
 ---
 
@@ -57,22 +62,57 @@ Twelve models. Three vendors. One piece of well-built code that leaks a field it
 forbids. Each model saw it twice with no instructions and twice with `agents/verifier.md` as its
 system prompt, scored by two blinded judges against a checklist written before any run.
 
-**Bare: 50/288 scorings (17%). With guildproof: 282/288 scorings (98%).**
-
 **Nothing unprompted stated whether the work was blocked, or whether its review was independent.**
-Both behaviors scored **0 of 48**, across twelve models and three vendors. With the verifier
-prompt, 48 of 48. What that means for you: a review with no verdict is a review you have to
-re-read yourself, and a review that never says who wrote the code cannot be told apart from
-self-approval. Those two lines are what turn a wall of prose into something a build can stop on,
-and they are the two a capable model will not write on its own.
+Both behaviors scored **0 of 48**, across twelve models and three vendors. Prompted, **48 of 48**.
 
-**And it does not improve as models improve.** That is the interesting part. The unprompted score
+What that means for you: a review with no verdict is a review you have to re-read yourself, and a
+review that never says who wrote the code cannot be told apart from self-approval. Those two lines
+are what turn a wall of prose into something a build can stop on, and they are the two a capable
+model will not write on its own.
+
+### The number that got smaller, and why it is still on this page
+
+An earlier version of this section led with an aggregate: **17%** of scorings bare against **98%**
+prompted. That arithmetic was never wrong, and it is no longer the claim, because a later run took
+it apart.
+
+A third arm carried **only the `## Output contract` section** of `agents/verifier.md` — the list of
+sections an answer must contain. No method, no adversarial stance, no guardrails, none of the rest
+of the prompt. It scored **72/72**, against the full prompt's **71/72** and a bare arm's **18/72**.
+
+**The output contract buys the entire measured gap.** On this checklist the rest of the prompt adds
+nothing measurable, so the honest claim is about the contract, not about the specialist prompt:
+
+> A short output contract reliably produces a tri-state verdict, a BLOCKING line, an independence
+> statement, severity-ranked defects, and a receipt per clean axis. Bare models produce those about
+> a quarter of the time.
+
+Two things are easy to get wrong about that result:
+
+- **"No measured effect" is not "no effect."** Arm C *is* guildproof content, so the benefit was
+  localized, not removed. Method, stance and guardrails would have to pay off in **defect quality** —
+  finding a real defect, ranking it correctly, refusing a plausible-but-wrong refutation — and
+  nothing here measures that. Detection never discriminated either: every cell found the planted
+  defect in both arms.
+- **The checklist was not wrong, it was narrow.** It scores output *structure*, which this page has
+  always said, and an output contract is precisely the instrument that produces output structure.
+  In hindsight the result is close to tautological. It still took a third arm to see it, which is
+  the argument for running one.
+
+The reduced arm was extracted mechanically from the shipping file rather than written by hand, and
+it falsified a prediction registered before any cell ran. Full run:
+[`evals/runs/2026-09-21-crossmodel-v3-3arm.md`](evals/runs/2026-09-21-crossmodel-v3-3arm.md).
+
+**Bare performance did not track model recency, across the models tested.** The unprompted score
 scatters between 0% and 33% with no trend across four consecutive Gemini generations, three OpenAI
 generations and three Claude tiers. One Gemini generation scored **zero of 24**, and it was the
-third of four, not the newest. Two models of the *same* OpenAI generation scored 8% and 33%, a
-wider spread than any generation-to-generation change in the study. What that means for you: this
-is not a deficit the next model release erases, so waiting for a better model does not get you a
-blocking, independent verdict.
+third of four, not the newest.
+
+Stated carefully, because an earlier version of this paragraph overreached: **no trend observed is
+not a trend that will not appear.** Two models of the *same* OpenAI generation scored 8% and 33%, a
+wider spread than any generation-to-generation change here, and sibling models are not repeated
+measures of one capability. What the data supports is that the gap is not *visibly* closing on its
+own — not that a future release cannot close it.
 
 **The suite ships six fixtures it must always fail.** Each pairs a case input with a deliberately
 wrong output: an invented fact asserted as established, a review that obeys an injection planted in
@@ -85,21 +125,38 @@ say no. These fixtures are what make every other number here falsifiable, and th
 losses above are published at all.
 Gate: [`evals/runs/2026-09-20-b4-knownbad.md`](evals/runs/2026-09-20-b4-knownbad.md).
 
-### Three things this does not claim
+### Four things this does not claim
 
 - **It will not help a model see a bug.** Every run found the defect, in both arms, on all twelve
   models. Detection is the model's job. This changes what the model *does* with a defect it
   already found.
-- **Four of the six scored behaviors are arguably instruction-following.** Scored separately, the
-  two that require judgment or restraint go from 33% to 96%. That +62 points is the honest figure.
+- **It does not show the specialist prompt beats a bare output contract.** The third arm above is
+  the reason. Anything this page says about method, adversarial stance or guardrails is a design
+  argument, not a measured one.
+- **It measures output structure, not review quality.** Nothing here scores whether a defect was
+  ranked correctly or whether a wrong refutation was refused. A defect corpus with ground truth per
+  fixture is the outstanding gap, and it is the reason not to over-read any of this.
 - **One defect type, one artifact.** Breadth across models is not breadth across bugs.
 
+**And one thing κ does not tell you.** Inter-judge agreement on the cross-model run was κ 0.97,
+which says the two blinded judges agreed — not that they were right. High agreement partly means
+the scored thing was unambiguous, which for a structural checklist is expected. Reliability is not
+validity, and reading κ as reassurance is part of how the aggregate headline above survived as long
+as it did.
+
 ### Scope of the benchmarks
+
+**Everything measured on this page is about one agent out of twenty.** `verifier` is the headline
+because it is the piece nothing else ships, and because it is the only one with a cross-model run
+behind it. It is not evidence about the rest of the guild, and this page should not be read as if it
+were.
 
 **Four of the twenty have a bare-versus-prompted benchmark on file**, on one input each, at two
 model tiers: `verifier`, `debugger`, `security-review` and `api-reviewer`. The other sixteen are
 not benchmarked, and neither `/sharpen` nor `/orchestrate` is. They ship because they are complete
-prompts, not because a number says they help.
+prompts, not because a number says they help. If you want the gallery judged, judge it on the
+prompts themselves — they are all plain markdown in [`agents/`](agents/), and
+[the gallery table below](#the-gallery) says what each one is for.
 
 `api-reviewer` is the one that came back mixed, and per this repo's own rule it publishes here with
 the rest. At the small tier the bare model reviewed the contract in 4 of 4 scorings against the
@@ -113,6 +170,15 @@ Every table, every judge quote, the method limits, and a section on the bugs fou
 measuring instrument itself: **[`docs/FINDINGS.md`](docs/FINDINGS.md)**. Raw cross-model run, with
 all 48 outputs and all 24 judge scorecards:
 [`evals/runs/2026-09-20-crossmodel-verifier.md`](evals/runs/2026-09-20-crossmodel-verifier.md).
+The three-arm run that reduced the claim:
+[`evals/runs/2026-09-21-crossmodel-v3-3arm.md`](evals/runs/2026-09-21-crossmodel-v3-3arm.md).
+
+Re-derive the published tables with **no model call**, straight from the committed scorecards:
+
+```
+python evals/harness/judge-crossmodel.py --tabulate \
+  --cells evals/runs/2026-09-20-crossmodel-v2-artifacts
+```
 
 Run it against your own models: `python evals/harness/run-crossmodel.py --check`
 
@@ -181,6 +247,12 @@ prompt at the small tier.
 
 Per-behavior tables, every judge quote, and the note that the frontier run does not pin a model id:
 [`docs/FINDINGS.md`, section 3](docs/FINDINGS.md#3-the-specialist-benchmarks-b2).
+
+**No reduced arm was run here.** The verifier result above showed that a bare output contract can
+account for a whole measured gap, and nothing rules that out for this benchmark either — so read
+these as "the prompt produced this", not "the method produced this". Running the control on the
+other benchmarks is open work, and it is now a precondition in this repo for any new claim about a
+prompt.
 
 That is one of twenty gallery agents, run the hard way. The plugin is the same prompts with the
 dispatch, the lens library, and the orchestration around them, but you should not have to take
@@ -280,6 +352,12 @@ applies-to: comma, separated, topics, that, auto-select, this, lens
 
 ## Honest limits
 
+- **The checklist measures output structure, so a structural instrument is enough to max it.** That
+  is what the third arm showed, and it is the largest limit on this page. A prompt claim in this
+  repo now requires a reduced arm before it is published; only `verifier` has one so far.
+- **A rubric can be highly reliable and weakly valid, and κ cannot tell you which.** κ 0.97 means
+  the judges agreed. It says nothing about whether the checklist measured the thing the headline
+  claimed.
 - **One artifact and one defect type in the cross-model study.** Twelve models is breadth across
   models, not across defect classes.
 - **Four of the twenty gallery agents carry a benchmark.** `/sharpen` (B1), `/orchestrate` (B5)
@@ -300,8 +378,8 @@ applies-to: comma, separated, topics, that, auto-select, this, lens
   `/orchestrate` cases need a host that can dispatch subagents, so they are unmeasured rather
   than passing). Do not read that as a 6% pass rate. PASS requires zero ⚠️ marks across roughly
   15 to 20 marks per case, under a judge told to default to ⚠️ when uncertain, and the suite has
-  no bare arm to cancel judge harshness against. The bare-versus-prompted numbers above are
-  comparisons and mean something; these are absolutes and do not.
+  no bare arm to cancel judge harshness against. The bare-versus-prompted numbers above are at
+  least comparisons against a control; these are absolutes and are not.
   [`evals/runs/2026-09-20-b4-suite.md`](evals/runs/2026-09-20-b4-suite.md) has the 8 failures,
   each named, and the four rubric defects the run found in its own measuring instrument.
 

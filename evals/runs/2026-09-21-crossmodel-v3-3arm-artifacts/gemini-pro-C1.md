@@ -1,0 +1,21 @@
+- **Verdict** — NOT VERIFIED
+- **BLOCKING: yes**
+- **Independence** — INDEPENDENT. The data leak is fully visible in the provided source code.
+- **Observable evidence**
+  - The SQL query selects `i.customer_id` alongside the required fields.
+  - The raw database row result (`invoice`) is passed directly to `res.json()`, returning `customer_id` in the API response.
+  - Malformed ID validation explicitly blocks non-integers and `NaN` with a 400 response.
+  - The `WHERE` clause checks both `i.id` and `i.org_id`.
+- **Assessment**
+  - The endpoint correctly enforces multi-tenant boundaries (org scopes) and avoids 500s from bad input types, but fails data minimization by leaking a forbidden internal identifier.
+- **Defects**
+  - ❌ HIGH — Prohibited data leakage — The contract strictly forbids `customer_id` from leaving the server, but the SQL query selects `i.customer_id` and the artifact returns the raw row object directly via `res.json(invoice)`.
+- **Claimed vs. actual**
+  - Claimed: The response is strictly an InvoiceDTO containing `{ id, number, amount_cents, status, due_date, customer_name }` with no `customer_id`.
+  - Actual: The response object contains `{ id, number, amount_cents, status, due_date, customer_id, customer_name }`.
+- **Confirm-these**
+  - *(None. The artifact's correctness is fully determinable from the snippet, and the defect is unambiguous.)*
+- **How each clean axis was checked**
+  - ✅ **Belongs to caller's organization**: `WHERE i.id = $1 AND i.org_id = $2` checks `req.user.org_id` directly in the database query.
+  - ✅ **Uniform 404 for missing/foreign org**: `db.oneOrNone` returns `null` if the ID doesn't exist *or* if the `org_id` mismatch filters it out; lines 29-31 map this to a single, indistinguishable 404 response.
+  - ✅ **Malformed ids never produce 500**: Lines 5-8 cast `req.params.id` to a `Number` and reject `NaN`, floats, and non-positives with a 400 before querying the database.

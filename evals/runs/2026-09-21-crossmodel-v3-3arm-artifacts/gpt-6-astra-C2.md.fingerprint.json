@@ -1,0 +1,10 @@
+{
+  "fingerprint": "a951f8769541e184c1f7551445e7ce75e3855c7629a2f3e37ca3847304dc6d7f",
+  "model": "gpt-6-astra",
+  "transport": "codex",
+  "arm": "C",
+  "rep": 2,
+  "input_file": "C:\\dev\\promptsmith-wt-launch\\evals\\benchmarks\\fixtures\\v2-invoice-subtle.md",
+  "system_prompt": "evals/benchmarks/arms/verifier-output-contract-only.md",
+  "arm_label": "output contract only"
+}

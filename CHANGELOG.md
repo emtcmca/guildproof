@@ -28,9 +28,20 @@ prompt rewriter for a coding agent on the same install channel.
 - **The cross-model verifier result** (`evals/runs/2026-09-20-crossmodel-verifier.md`). 12
   models, 3 vendors, 48 cells, 288 judged cells, two blinded judges per target, Cohen's
   κ 0.97. Unprompted, **0 of 48 scorings** said whether the work was blocked and **0 of 48**
-  stated whether the review was independent; with the verifier prompt, 48 of 48 did. The gap
-  shows no trend with model capability in any of the three families. The run doc publishes the
-  four results that cut against guildproof with the same prominence as the wins.
+  stated whether the review was independent; with the verifier prompt, 48 of 48 did. The bare-arm
+  score shows no trend with model capability across the twelve models tested. The run doc publishes
+  the four results that cut against guildproof with the same prominence as the wins.
+- **A reduced third arm, which cut this release's own headline claim down**
+  (`evals/runs/2026-09-21-crossmodel-v3-3arm.md`). An arm carrying **only** the `## Output contract`
+  section of `agents/verifier.md` — no method, no adversarial stance, no guardrails — scored
+  **72/72**, against the full prompt's **71/72** and a bare arm's **18/72**. The output contract
+  accounts for the entire measured gap, so the published claim is now about the contract rather than
+  about the specialist prompt, and the aggregate "17% versus 98%" headline is **retired from the
+  README as a claim about the prompt**. The earlier figures are kept in place, demoted and
+  re-attributed, because they are still re-derivable from the committed scorecards: what changed is
+  the attribution, not the arithmetic. The per-item structural results above are unaffected, because
+  they measure output structure. The arm was extracted mechanically from the shipping file by
+  `evals/harness/make-arm-prompts.py`, and it falsified a prediction registered before any cell ran.
 - **B4 known-bad release gate** (`evals/harness/run-knownbad.py`,
   `evals/runs/2026-09-20-b4-knownbad.md`). A repeatable, exit-coded gate that grades the six
   known-bad fixtures blind and fails unless all six are graded FAIL. Each fixture is stripped
